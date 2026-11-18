@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1080px;
+    height: 1350px;
+    background: radial-gradient(circle at 85% 15%, rgba(244, 120, 48, 0.09) 0%, transparent 45%), linear-gradient(180deg, #FAF7F2 0%, #F4ECE1 100%);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 55px 65px 40px 65px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 48px;
+  }
+  .logo {
+    height: 42px;
+  }
+  .page-num {
+    font-size: 22px;
+    font-weight: 700;
+    color: #64748B;
+    letter-spacing: 2px;
+  }
+  .kicker {
+    margin-top: 26px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #C2410C;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .title {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.15;
+    color: #0F172A;
+    margin-top: 12px;
+    letter-spacing: -1px;
+  }
+  .title .highlight {
+    color: #F47830;
+  }
+  .hero-badge {
+    margin-top: 22px;
+    background: linear-gradient(135deg, #F47830 0%, #E05A10 100%);
+    border-radius: 20px;
+    padding: 16px 26px;
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 10px 25px -5px rgba(244, 120, 48, 0.35);
+  }
+  .badge-main {
+    font-size: 22px;
+    font-weight: 800;
+    color: #FFFFFF;
+    letter-spacing: 0.5px;
+  }
+  .badge-sub {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+    border-left: 2px solid rgba(255, 255, 255, 0.35);
+    padding-left: 16px;
+  }
+  .pills {
+    display: flex;
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .pill {
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .pill-filled {
+    background: #F47830;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(244, 120, 48, 0.25);
+  }
+  .pill-outline {
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    color: #1E293B;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+  .bullet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    margin-top: 20px;
+  }
+  .bullet-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 13px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.03);
+  }
+  .check-circle {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    background: linear-gradient(135deg, #F47830 0%, #E05A10 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .check-circle svg {
+    width: 16px;
+    height: 16px;
+  }
+  .bullet-text {
+    font-size: 18.5px;
+    font-weight: 600;
+    color: #1E293B;
+    line-height: 1.35;
+  }
+  .mockup-container {
+    position: relative;
+    width: 100%;
+    height: 520px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .mockup-img {
+    width: 100%;
+    height: auto;
+    max-height: 520px;
+    object-fit: contain;
+    object-position: bottom center;
+  }
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    padding-top: 18px;
+  }
+  .footer-url {
+    font-size: 21px;
+    font-weight: 800;
+    color: #F47830;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+  }
+  .footer-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #64748B;
+  }
+</style>
+</head>
+<body>
+  <div>
+    <div class="header">
+      <img class="logo" src="../slides_assets/alpha_logo.png">
+      <div class="page-num">03 / 06</div>
+    </div>
+    
+        <div class="kicker">NHÓM TÍNH NĂNG 2/5</div>
+        <div class="title">Chấm công, nghỉ phép,<br><span class="highlight">bảng công tự tính</span></div>
+        <div class="bullet-list">
+          
+            <div class="bullet-card">
+              <div class="check-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <div class="bullet-text">Chấm công Wi-Fi, quét mã QR nhanh chóng ngay trên điện thoại</div>
+            </div>
+            
+            <div class="bullet-card">
+              <div class="check-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <div class="bullet-text">Bảng công tự tính từ giờ chấm, đơn nghỉ, lịch lễ tết; ca làm việc linh hoạt</div>
+            </div>
+            
+            <div class="bullet-card">
+              <div class="check-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <div class="bullet-text">Đồng bộ dữ liệu máy chấm công vân tay, tự khớp mã nhân viên chuẩn xác</div>
+            </div>
+            
+            <div class="bullet-card">
+              <div class="check-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <div class="bullet-text">Quỹ phép tự tính theo thâm niên, phép tồn tự động chuyển sang năm sau</div>
+            </div>
+            
+        </div>
+        
+  </div>
+  <div class="mockup-container">
+    <img class="mockup-img" src="../slides_assets/mockup_slide_3_patched.png">
+  </div>
+  <div class="footer">
+    <div class="footer-url">https://hr.alphabooks.vn/</div>
+    <div class="footer-name">Hệ thống Quản lý Nhân sự Alpha Books</div>
+  </div>
+</body>
+</html>

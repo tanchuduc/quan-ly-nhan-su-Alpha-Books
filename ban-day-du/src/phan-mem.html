@@ -6362,8 +6362,8 @@ if (typeof module !== 'undefined') module.exports = XW;
      2) Sơ đồ tổ chức
      (chèn vào app.js khi build tại chỗ đánh dấu NHANSU, sau PAGES – dùng chung biến, hàm)
      ===================================================================== */
-  var EKEY = { NV: 'Mã NV', PB: 'Mã phòng ban', HD: 'Số hợp đồng', GT: 'Mã NV', QT: 'Mã dòng' };
-  var ETYPE_T = { NV: 'Hồ sơ nhân viên', PB: 'Danh mục phòng ban', HD: 'Sổ hợp đồng', GT: 'Hồ sơ giấy tờ', QT: 'Quá trình' };
+  var EKEY = { NV: 'Mã NV', PB: 'Mã phòng ban', CV: 'Mã chức vụ', HD: 'Số hợp đồng', GT: 'Mã NV', QT: 'Mã dòng' };
+  var ETYPE_T = { NV: 'Hồ sơ nhân viên', PB: 'Danh mục phòng ban', CV: 'Danh mục chức vụ', HD: 'Sổ hợp đồng', GT: 'Hồ sơ giấy tờ', QT: 'Quá trình' };
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function ensureBase(u) { if (!u.base) u.base = clone(u.data); if (!u.ovr) u.ovr = {}; if (!u.chlog) u.chlog = []; }
   function ovrCount(u) { var n = 0; if (u.ovr) Object.keys(u.ovr).forEach(function (t) { n += Object.keys(u.ovr[t]).length; }); return n; }
@@ -6668,6 +6668,28 @@ if (typeof module !== 'undefined') module.exports = XW;
     return '<div class="org" data-org="' + o.u.id + '">' + rootHtml + '<div class="org-kids" style="--n:' + o.children.length + '">' + o.children.map(function (x) { return '<div class="org-kid">' + orgDept(o, x, f) + '</div>'; }).join('') +
       '</div><div class="org-tools"><button type="button" class="od-addbtn" data-act="od-add" data-u="' + o.u.id + '">+ Thêm phòng ban</button></div></div>';
   }
+  function orgTableHtml(rows, R) {
+    return '<div class="card card-pad">' +
+      '<div class="card-head"><div><h3>Danh mục phòng ban</h3><p>Danh sách các phòng ban, định biên và nhân sự hiện có · bấm <b>Sửa</b> để chỉnh sửa thông tin, <b>Xóa</b> để xóa phòng ban</p></div></div>' +
+      (rows.length ? table('tochuc', uCol().concat([
+        { t: 'Mã', f: function (r) { return r.x.code; }, mono: 1 },
+        { t: 'Phòng ban', f: function (r) { return r.x.name; }, h: function (r) { return '<a href="#" class="plink" data-act="od-edit" data-u="' + r.u.id + '" data-id="' + esc(r.x.name) + '" title="Bấm để sửa">' + esc(r.x.name) + '</a>'; } },
+        { t: 'Trưởng bộ phận', f: function (r) { return r.x.head ? r.x.head.e['Họ và tên'] : ''; }, h: function (r) { return r.x.head ? personLink(r.u, r.x.head.id, r.x.head.e['Họ và tên']) : '<span class="faint">—</span>'; } },
+        { t: 'Định biên', f: function (r) { return r.x.plan; }, r: 1 },
+        { t: 'Đang làm', f: function (r) { return r.x.members.length; }, r: 1 },
+        { t: 'Đang đi làm', f: function (r) { return r.x.working; }, r: 1 },
+        { t: 'Còn trống', f: function (r) { return r.x.vac || ''; }, r: 1 },
+        { t: 'Lịch làm việc', f: function (r) { return r.x.pb ? r.x.pb['Lịch làm việc'] : ''; } },
+        { t: 'Ghi chú', wrap: 1, f: function (r) { return r.x.notes.map(function (n) { return n[1]; }).join('; '); } },
+        { t: 'Thao tác', nosort: 1, cls: 'r', h: function (r) {
+          return '<div class="link-row" style="margin:0;justify-content:flex-end;gap:6px">' +
+            '<button type="button" class="btn btn-sm" data-act="od-edit" data-u="' + r.u.id + '" data-id="' + esc(r.x.name) + '" title="Sửa phòng ban">Sửa</button>' +
+            '<button type="button" class="btn btn-sm btn-danger-ghost" data-act="od-del" data-u="' + r.u.id + '" data-id="' + esc(r.x.name) + '" title="Xóa phòng ban này">Xóa</button>' +
+            '</div>';
+        } }
+      ]), rows, { title: 'So do to chuc', note: 'Tính đến ' + vn(R), noExport: false, limit: 1000 }) : '<p class="muted">Chưa có phòng ban nào.</p>') +
+      '</div>';
+  }
   PAGES.tochuc = function () {
     var f = ps('tochuc', { view: 'chart', left: false }), R = refDate();
     var orgs = selUnits().map(function (u) { return orgOf(u, R); });
@@ -6706,7 +6728,11 @@ if (typeof module !== 'undefined') module.exports = XW;
           { t: 'Thao tác', nosort: 1, cls: 'r', h: function (x) { return '<button type="button" class="btn btn-sm" data-act="cv-edit" data-u="' + x.u.id + '" data-id="' + esc(x.r['Mã chức vụ']) + '">Sửa</button>'; } }
         ], cvs, { title: 'Chức vụ', limit: 1000 }) : '<p class="muted">Chưa có danh mục chức vụ.</p>') + '</div>';
     }
-    else if (f.view === 'table') body = '<div id="orgTbl"></div>';
+    else if (f.view === 'table') {
+      var rows = [];
+      selUnits().forEach(function (u) { orgOf(u, R).depts.forEach(function (x) { rows.push({ u: u, x: x }); }); });
+      body = '<div id="orgTbl">' + orgTableHtml(rows, R) + '</div>';
+    }
     else body = orgs.map(function (o) { return '<div class="card card-pad org-card">' + orgChart(o, f) + '</div>'; }).join('') +
       '<div class="org-leg"><span><i class="lg-head"></i>Trưởng bộ phận</span><span><i class="lg-mat"></i>Nghỉ thai sản</span><span><i class="lg-prob"></i>Thử việc</span><span><i class="lg-vac"></i>Còn trống theo định biên</span><span class="faint">Kéo một người sang ô phòng khác để chuyển phòng · bấm tên phòng để sửa</span></div>';
     var noNvNotice = !gather('NV').length ? '<div class="notice" style="margin-bottom:14px">' + ic('info') + '<div>Đơn vị chưa có hồ sơ nhân viên. Bạn có thể bấm <b>+ Thêm phòng ban</b> để thiết lập trước cơ cấu tổ chức, hoặc vào <a href="#nhap" data-go="nhap">Nhập dữ liệu</a> để nạp hồ sơ nhân viên.</div></div>' : '';
@@ -6718,73 +6744,68 @@ if (typeof module !== 'undefined') module.exports = XW;
   BINDS.tochuc = function () {
     // CV Batch Checkbox Bindings
     var allCk = $('#cvAll'), delBtn = $('#cvDelBatch');
-    function updateCvBatch() {
-      var cks = $('.cv-ck:checked');
-      if (delBtn) {
-        delBtn.style.display = cks.length ? 'inline-flex' : 'none';
-        delBtn.textContent = 'Xóa (' + cks.length + ' đã chọn)';
+    var cvCks = $('.cv-ck');
+    if (cvCks.length) {
+      function updateCvBatch() {
+        var cks = $('.cv-ck:checked');
+        if (delBtn) {
+          delBtn.style.display = cks.length ? 'inline-flex' : 'none';
+          delBtn.textContent = 'Xóa (' + cks.length + ' đã chọn)';
+        }
+        if (allCk) {
+          allCk.checked = cvCks.length > 0 && cks.length === cvCks.length;
+          allCk.indeterminate = cks.length > 0 && cks.length < cvCks.length;
+        }
       }
       if (allCk) {
-        var allList = $('.cv-ck');
-        allCk.checked = allList.length > 0 && cks.length === allList.length;
-        allCk.indeterminate = cks.length > 0 && cks.length < allList.length;
-      }
-    }
-    if (allCk) {
-      allCk.addEventListener('change', function () {
-        $('.cv-ck').forEach(function (ck) { ck.checked = allCk.checked; });
-        updateCvBatch();
-      });
-    }
-    $('.cv-ck').forEach(function (ck) {
-      ck.addEventListener('change', updateCvBatch);
-    });
-    if (delBtn) {
-      delBtn.addEventListener('click', function () {
-        var cks = $('.cv-ck:checked');
-        if (!cks.length) return;
-        var codes = [].map.call(cks, function (el) { return el.getAttribute('data-code'); });
-        var u = unitById(cks[0].getAttribute('data-u')) || (selUnits()[0] || S.units[0]);
-        var inUse = [];
-        codes.forEach(function (code) {
-          var item = (u.data.CV || []).filter(function (c) { return String(c['Mã chức vụ']).toUpperCase() === String(code).toUpperCase(); })[0];
-          if (item) {
-            var cnt = (u.data.NV || []).filter(function (e) { return e['Chức vụ'] === item['Tên chức vụ'] && HR.staffState(e, refDate()) !== 'left'; }).length;
-            if (cnt > 0) inUse.push(item['Tên chức vụ'] + ' (' + cnt + ' người)');
-          }
+        allCk.addEventListener('change', function () {
+          cvCks.forEach(function (ck) { ck.checked = allCk.checked; });
+          updateCvBatch();
         });
-        if (inUse.length) {
-          toast('Không thể xóa chức vụ đang có người giữ', 'err', 'Chức vụ: ' + inUse.join(', ') + '. Cần đổi chức vụ của nhân viên trước.');
-          return;
-        }
-        confirmBox('Xóa ' + codes.length + ' chức vụ đã chọn?', 'Các chức vụ này sẽ bị xóa khỏi Danh mục chức vụ.', 'Xóa', function () {
+      }
+      cvCks.forEach(function (ck) {
+        ck.addEventListener('change', updateCvBatch);
+      });
+      if (delBtn) {
+        delBtn.addEventListener('click', function () {
+          var cks = $('.cv-ck:checked');
+          if (!cks.length) return;
+          var codes = [].map.call(cks, function (el) { return el.getAttribute('data-code'); });
+          var u = unitById(cks[0].getAttribute('data-u')) || (selUnits()[0] || S.units[0]);
+          var inUse = [];
           codes.forEach(function (code) {
             var item = (u.data.CV || []).filter(function (c) { return String(c['Mã chức vụ']).toUpperCase() === String(code).toUpperCase(); })[0];
-            delRow(u, 'CV', code, 'Xóa chức vụ ' + (item ? item['Tên chức vụ'] : code));
+            if (item) {
+              var cnt = (u.data.NV || []).filter(function (e) { return e['Chức vụ'] === item['Tên chức vụ'] && HR.staffState(e, refDate()) !== 'left'; }).length;
+              if (cnt > 0) inUse.push(item['Tên chức vụ'] + ' (' + cnt + ' người)');
+            }
           });
-          commitEdits();
-          toast('Đã xóa ' + codes.length + ' chức vụ', 'ok');
-          render();
+          if (inUse.length) {
+            toast('Không thể xóa chức vụ đang có người giữ', 'err', 'Chức vụ: ' + inUse.join(', ') + '. Cần đổi chức vụ của nhân viên trước.');
+            return;
+          }
+          confirmBox('Xóa ' + codes.length + ' chức vụ đã chọn?', 'Các chức vụ này sẽ bị xóa khỏi Danh mục chức vụ.', 'Xóa', function () {
+            codes.forEach(function (code) {
+              var item = (u.data.CV || []).filter(function (c) { return String(c['Mã chức vụ']).toUpperCase() === String(code).toUpperCase(); })[0];
+              delRow(u, 'CV', code, 'Xóa chức vụ ' + (item ? item['Tên chức vụ'] : code));
+            });
+            commitEdits();
+            toast('Đã xóa ' + codes.length + ' chức vụ', 'ok');
+            render();
+          });
         });
-      });
+      }
     }
 
     var cb = $('#orgLeft'); if (cb) cb.addEventListener('change', function () { PS.tochuc.left = cb.checked; render(); });
     if ($('#orgTbl')) {
-      var R = refDate(), rows = [];
-      selUnits().forEach(function (u) { orgOf(u, R).depts.forEach(function (x) { rows.push({ u: u, x: x }); }); });
+      var R = refDate();
       REFRESH = function () {
-        $('#orgTbl').innerHTML = table('tochuc', uCol().concat([
-          { t: 'Mã', f: function (r) { return r.x.code; }, mono: 1 },
-          { t: 'Phòng ban', f: function (r) { return r.x.name; }, h: function (r) { return '<a href="#" class="plink" data-act="od-edit" data-u="' + r.u.id + '" data-id="' + esc(r.x.name) + '">' + esc(r.x.name) + '</a>'; } },
-          { t: 'Trưởng bộ phận', f: function (r) { return r.x.head ? r.x.head.e['Họ và tên'] : ''; }, h: function (r) { return r.x.head ? personLink(r.u, r.x.head.id, r.x.head.e['Họ và tên']) : '<span class="faint">—</span>'; } },
-          { t: 'Định biên', f: function (r) { return r.x.plan; }, r: 1 }, { t: 'Đang làm', f: function (r) { return r.x.members.length; }, r: 1 },
-          { t: 'Đang đi làm', f: function (r) { return r.x.working; }, r: 1 }, { t: 'Còn trống', f: function (r) { return r.x.vac || ''; }, r: 1 },
-          { t: 'Lịch làm việc', f: function (r) { return r.x.pb ? r.x.pb['Lịch làm việc'] : ''; } },
-          { t: 'Ghi chú', wrap: 1, f: function (r) { return r.x.notes.map(function (n) { return n[1]; }).join('; '); } }
-        ]), rows, { title: 'So do to chuc', note: 'Tính đến ' + vn(R), noExport: false });
+        var rows = [];
+        selUnits().forEach(function (u) { orgOf(u, R).depts.forEach(function (x) { rows.push({ u: u, x: x }); }); });
+        var el = $('#orgTbl');
+        if (el) el.innerHTML = orgTableHtml(rows, R);
       };
-      REFRESH();
       return;
     }
     // Kéo thả người sang phòng khác
@@ -7213,6 +7234,21 @@ if (typeof module !== 'undefined') module.exports = XW;
     });
     $('#pbSave', m).addEventListener('click', function () { if (saveDept(u, x, m)) { m.close(); commitEdits(); } });
   };
+  ACTS['od-del'] = function (a, name, ev) {
+    if (ev) ev.preventDefault();
+    var u = unitById(a.getAttribute('data-u')) || (selUnits()[0] || S.units[0]); if (!u) return;
+    var o = orgOf(u, refDate()), x = o.depts.filter(function (d) { return d.name === name; })[0]; if (!x) return;
+    if (x.members && x.members.length) {
+      toast('Còn ' + x.members.length + ' người đang làm ở ' + x.name, 'err', 'Chuyển hết người sang phòng khác trước khi xóa phòng ban.');
+      return;
+    }
+    confirmBox('Xóa ' + x.name + '?', 'Phòng ban bị xóa khỏi Danh mục phòng ban' + (x.left && x.left.length ? '. Hồ sơ ' + x.left.length + ' người đã nghỉ vẫn giữ tên phòng cũ.' : '.'), 'Xóa', function () {
+      delRow(u, 'PB', x.code, 'Xóa phòng ban ' + x.name);
+      commitEdits();
+      toast('Đã xóa phòng ban ' + x.name, 'ok');
+      render();
+    });
+  };
   ACTS['od-add'] = function (a) {
     var u = unitById(a.getAttribute('data-u')) || (selUnits()[0] || S.units[0]), pre = null;
     if (a.getAttribute('data-pre') === 'bgd') { var L = orgOf(u, refDate()).leaders; pre = { 'Mã phòng ban': 'BGD', 'Tên phòng ban': 'Ban Giám đốc', 'Mã NV trưởng bộ phận': L[0] ? L[0].id : '', 'Định biên': L.length || 1 }; }
@@ -7634,7 +7670,7 @@ if (typeof module !== 'undefined') module.exports = XW;
     $('#fQr', m).addEventListener('click', function () { $('#fQrF', m).click(); });
     $('#fQrF', m).addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) cccdFill(m, f); });
     var up = $('#fUnit', m); if (up) up.addEventListener('change', function () { u = unitById(up.value); $('#fBody', m).innerHTML = nvForm(u, null, true); bindAll(); });
-    $('#fSave', m).addEventListener('click', function () { if (saveNv(u, e, isNew, m)) { m.close(); commitEdits(); } });
+    $('#fSave', m).addEventListener('click', function () { try { if (saveNv(u, e, isNew, m)) { m.close(); commitEdits(); } } catch (err) { console.error('Lỗi lưu nhân sự:', err); toast('Chưa lưu được hồ sơ', 'err', err.message || String(err)); } });
     var lv = $('#fLeave', m); if (lv) lv.addEventListener('click', function () { m.close(); openLeave(u, id); });
     var bk = $('#fBack', m); if (bk) bk.addEventListener('click', function () { confirmBox('Hủy nghỉ việc?', e['Họ và tên'] + ' trở lại trạng thái Đang làm việc (xóa ngày nghỉ việc). Hợp đồng đã chấm dứt cần lập lại ở trang Hợp đồng.', 'Hủy nghỉ việc', function () { editRow(u, 'NV', id, { 'Trạng thái': 'Đang làm việc', 'Ngày nghỉ việc': '', 'Lý do nghỉ việc': '' }, 'Hủy nghỉ việc ' + e['Họ và tên']); m.close(); commitEdits(); }); });
     var dl = $('#fDel', m); if (dl) dl.addEventListener('click', function () { confirmBox('Xóa hồ sơ ' + e['Họ và tên'] + '?', 'Chỉ xóa được hồ sơ thêm trong phần mềm và chưa ghi ra Excel. Dùng khi thêm nhầm.', 'Xóa', function () { delRow(u, 'NV', id, 'Xóa hồ sơ thêm nhầm ' + e['Họ và tên']); if (u.acc) delete u.acc[id]; m.close(); commitEdits(); }); });

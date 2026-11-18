@@ -714,10 +714,11 @@ td.ipbox,td.num{white-space:nowrap;word-break:normal}
   .nvx-wrap.dk .nvx-nav button svg{color:inherit;flex-shrink:0}
   .nvx-wrap.dk .nvx-nav button>span:not(.nvx-avi){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .nvx-wrap.dk .nvx-nav .dot{position:static;margin-left:auto;flex-shrink:0}
-  .nvx-wrap.dk .dk-brand{display:flex;align-items:center;gap:10px;padding:2px 8px 14px;margin-bottom:6px;border-bottom:1px solid var(--mline)}
-  .nvx-wrap.dk .dk-brand img{width:auto;max-width:72px;height:36px;object-fit:contain;border-radius:10px;background:#fff;padding:2px 6px}
-  .nvx-wrap.dk .dk-brand>span,.nvx-wrap.dk .dk-me>span:not(.nvx-avi){display:flex;flex-direction:column;min-width:0}
-  .nvx-wrap.dk .dk-brand b{font-size:15px;color:var(--mtx)}.nvx-wrap.dk .dk-brand small{font-size:12px;color:var(--mmut);white-space:normal;line-height:1.35}
+  .nvx-wrap.dk .dk-brand{display:flex;align-items:center;gap:12px;padding:4px 8px 16px;margin-bottom:8px;border-bottom:1px solid var(--mline);min-width:0}
+  .nvx-wrap.dk .dk-brand img{width:40px;height:40px;min-width:40px;max-width:40px;object-fit:cover;border-radius:10px;background:transparent;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .nvx-wrap.dk .dk-brand>span,.nvx-wrap.dk .dk-me>span:not(.nvx-avi){display:flex;flex-direction:column;min-width:0;justify-content:center}
+  .nvx-wrap.dk .dk-brand b{font-size:15.5px;font-weight:700;color:var(--mtx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+  .nvx-wrap.dk .dk-brand small{font-size:11.5px;font-weight:500;color:var(--mmut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;margin-top:2px}
   .nvx-wrap.dk .nvx-nav .dk-me{display:flex;min-height:56px;margin-bottom:8px;background:var(--mbg)}
   .nvx-wrap.dk .dk-me b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nvx-wrap.dk .dk-me small{font-size:11.5px;color:var(--mmut);font-weight:500}
   .nvx-wrap.dk .nvx-nav .dk-qt{display:flex;margin-top:8px;border:1px solid var(--mline);color:#6B3E8E}
@@ -1328,6 +1329,12 @@ function mkDoiView(st) {
   };
   $('#mk-out').onclick = function (e) { e.preventDefault(); api('/api/dang-xuat', { vai: 'nv' }).then(function () { boot(); }); };
 }
+var ALPHA_LOGO = "data:image/webp;base64,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";
+var OMEGA_LOGO = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="%231F5F8B"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="24" fill="white">Ω</text></svg>';
+var ETS_LOGO = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="%230B5F5A"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="16" fill="white">ETS</text></svg>';
+var GAMMA_LOGO = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="%232F4A2B"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="24" fill="white">γ</text></svg>';
+var MED_LOGO = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="%2312407A"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="14" fill="white">MED</text></svg>';
+
 function coBrand(st) {
   var HS = (st && st.hs) || null, HSo = (st && st.ho_so) || {};
   var ctyRaw = String((st && st.cty) || (HS && HS.cty) || HSo.cty || (st && st.me && st.me.cty) || (st && st.ten_cty) || '').trim();
@@ -1338,10 +1345,13 @@ function coBrand(st) {
   var isEts = /ets/i.test(ctyRaw);
   var isGamma = /gamma/i.test(ctyRaw);
   var isMed = /medinsights/i.test(ctyRaw);
+  var isGroupOnly = /tập đoàn|publishing group/i.test(ctyRaw);
 
-  var brandName = custom.name || (isOmega ? 'Omega Plus' : isEts ? 'ETS Publishing' : isGamma ? 'Gamma Books' : isMed ? 'Medinsights' : cleanCty || (window.QTT_BR && window.QTT_BR.name) || 'Alpha Books');
-  var brandSub = custom.sub || 'Thành viên Alpha Publishing Group';
-  var brandLogo = custom.logo || (window.QTT_BR && window.QTT_BR.logo) || '/icon.svg';
+  var defaultName = isOmega ? 'Omega Plus' : isEts ? 'ETS Publishing' : isGamma ? 'Gamma Books' : isMed ? 'Medinsights' : isGroupOnly ? 'Alpha Publishing Group' : cleanCty || 'Alpha Books';
+  var brandName = custom.name || defaultName;
+  var brandSub = custom.sub || (isGroupOnly ? 'Tập đoàn Xuất bản' : 'Alpha Publishing Group');
+  var defaultLogo = isOmega ? OMEGA_LOGO : isEts ? ETS_LOGO : isGamma ? GAMMA_LOGO : isMed ? MED_LOGO : isGroupOnly ? ((window.QTT_BR && window.QTT_BR.logo) || ALPHA_LOGO) : ALPHA_LOGO;
+  var brandLogo = custom.logo || defaultLogo;
 
   var m = '#D95F18', m2 = '#F47830', grad = 'linear-gradient(165deg,#8F360A 0%,#C84E14 55%,#F47830 100%)';
   if (isOmega || custom.color === 'duong') {
@@ -1352,6 +1362,8 @@ function coBrand(st) {
     m = '#2F4A2B'; m2 = '#557A42'; grad = 'linear-gradient(165deg,#1A2F18 0%,#2F4A2B 55%,#557A42 100%)';
   } else if (isMed) {
     m = '#12407A'; m2 = '#1F6FB5'; grad = 'linear-gradient(165deg,#0C2647 0%,#12407A 55%,#1F6FB5 100%)';
+  } else if (isGroupOnly) {
+    m = '#A81C1D'; m2 = '#D32F2F'; grad = 'linear-gradient(165deg,#5C0A0B 0%,#8B1416 55%,#D32F2F 100%)';
   } else if (custom.color === 'hongdam') {
     m = '#7E1846'; m2 = '#C93C7A'; grad = 'linear-gradient(165deg,#4A0C28 0%,#7E1846 55%,#C93C7A 100%)';
   }
