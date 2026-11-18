@@ -6666,22 +6666,24 @@ if (typeof module !== 'undefined') module.exports = XW;
       '</div><div class="org-tools"><button type="button" class="od-addbtn" data-act="od-add" data-u="' + o.u.id + '">+ Thêm phòng ban</button></div></div>';
   }
   PAGES.tochuc = function () {
-    if (!gather('NV').length) return pageHead('Sơ đồ tổ chức') + noData('hồ sơ nhân viên');
     var f = ps('tochuc', { view: 'chart', left: false }), R = refDate();
     var orgs = selUnits().map(function (u) { return orgOf(u, R); });
     var nD = 0, act = 0, plan = 0, vac = 0, noHead = 0, work = 0;
     orgs.forEach(function (o) { o.depts.forEach(function (x) { if (!x.pb && !x.members.length) return; nD++; act += x.members.length; work += x.working; vac += x.vac; if (x.plan !== null) plan += x.plan; if ((!x.head || x.headOut) && !x.isRoot) noHead++; }); });
     var kpi = '<div class="org-kpi"><div><b>' + nD + '</b><span>bộ phận</span></div><div><b>' + act + '</b><span>người đang làm' + (work < act ? ' · ' + work + ' đang đi làm' : '') + '</span></div><div><b>' + plan + '</b><span>định biên</span></div>' +
       '<div class="' + (vac ? 'k-vac' : '') + '"><b>' + vac + '</b><span>vị trí còn trống</span></div><div class="' + (noHead ? 'k-warn' : '') + '"><b>' + noHead + '</b><span>bộ phận thiếu người phụ trách</span></div></div>';
+    var uFirst = selUnits()[0] || S.units[0];
+    var addBtn = uFirst ? '<button class="btn btn-sm btn-primary" data-act="od-add" data-u="' + uFirst.id + '">+ Thêm phòng ban</button>' : '';
     var tools = '<div class="seg" role="tablist"><button class="' + (f.view === 'chart' ? 'on' : '') + '" data-act="org-view" data-id="chart">Sơ đồ</button><button class="' + (f.view === 'table' ? 'on' : '') + '" data-act="org-view" data-id="table">Bảng phòng ban</button><button class="' + (f.view === 'cv' ? 'on' : '') + '" data-act="org-view" data-id="cv">Chức vụ</button></div>' +
       (f.view === 'cv' ? '' : '<label class="radio"><input type="checkbox" id="orgLeft"' + (f.left ? ' checked' : '') + '> Hiện người đã nghỉ</label>' +
-      '<button class="btn btn-sm" data-act="org-print">In sơ đồ</button>');
+      '<button class="btn btn-sm" data-act="org-print">In sơ đồ</button>' + addBtn);
     var body;
     if (f.view === 'cv') { var cvs = gather('CV'); body = '<div class="card card-pad"><div class="card-head"><div><h3>Chức vụ</h3><p>Đọc từ danh mục chức vụ trong dữ liệu (sheet CV)</p></div></div>' + (cvs.length ? table('dm-CV', uCol().concat(['Mã chức vụ', 'Tên chức vụ', 'Cấp bậc', 'Phụ cấp chức vụ (đồng/tháng)'].map(function (k) { return { t: k, f: function (x) { return x.r[k]; }, r: /Cấp|Phụ cấp/.test(k) ? 1 : 0 }; })), cvs, { title: 'Chức vụ', limit: 1000 }) : '<p class="muted">Chưa có danh mục chức vụ.</p>') + '</div>'; }
     else if (f.view === 'table') body = '<div id="orgTbl"></div>';
     else body = orgs.map(function (o) { return '<div class="card card-pad org-card">' + orgChart(o, f) + '</div>'; }).join('') +
       '<div class="org-leg"><span><i class="lg-head"></i>Trưởng bộ phận</span><span><i class="lg-mat"></i>Nghỉ thai sản</span><span><i class="lg-prob"></i>Thử việc</span><span><i class="lg-vac"></i>Còn trống theo định biên</span><span class="faint">Kéo một người sang ô phòng khác để chuyển phòng · bấm tên phòng để sửa</span></div>';
-    return editBar() + pageHead('Sơ đồ tổ chức', 'Vẽ từ Danh mục phòng ban và Danh sách nhân sự · tính đến ' + vn(R), tools) + kpi + body;
+    var noNvNotice = !gather('NV').length ? '<div class="notice" style="margin-bottom:14px">' + ic('info') + '<div>Đơn vị chưa có hồ sơ nhân viên. Bạn có thể bấm <b>+ Thêm phòng ban</b> để thiết lập trước cơ cấu tổ chức, hoặc vào <a href="#nhap" data-go="nhap">Nhập dữ liệu</a> để nạp hồ sơ nhân viên.</div></div>' : '';
+    return editBar() + noNvNotice + pageHead('Sơ đồ tổ chức', 'Vẽ từ Danh mục phòng ban và Danh sách nhân sự · tính đến ' + vn(R), tools) + kpi + body;
   };
   BINDS.tochuc = function () {
     var cb = $('#orgLeft'); if (cb) cb.addEventListener('change', function () { PS.tochuc.left = cb.checked; render(); });
@@ -6815,6 +6817,26 @@ if (typeof module !== 'undefined') module.exports = XW;
     });
   }
   // Xem / sửa / thêm / xóa phòng ban
+    function makeDeptCode(u, name) {
+    var raw = HR.stripAcc(String(name || '')).toUpperCase();
+    var words = raw.match(/\b[A-Z0-9]/g);
+    var base = (words && words.length >= 2) ? words.join('') : raw.replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    if (!base) base = 'PB';
+    var code = base.slice(0, 8), k = 1;
+    var exists = function (c) { return (u.data.PB || []).some(function (p) { return String(p['Mã phòng ban']).toUpperCase() === c; }); };
+    while (exists(code)) { k++; code = base.slice(0, 6) + k; }
+    return code;
+  }
+  function ensureDept(u, name, code) {
+    if (!name) return null;
+    name = String(name).trim().replace(/\s+/g, ' ');
+    var existing = (u.data.PB || []).filter(function (p) { return p['Tên phòng ban'] && p['Tên phòng ban'].toLowerCase() === name.toLowerCase(); })[0];
+    if (existing) return existing;
+    var c = code ? String(code).trim().toUpperCase() : makeDeptCode(u, name);
+    var row = { 'Mã phòng ban': c, 'Tên phòng ban': name, 'Mã NV trưởng bộ phận': '', 'Trưởng bộ phận': '', 'Định biên': '', 'Lịch làm việc': 'Thứ Hai – Thứ Sáu' };
+    editRow(u, 'PB', c, row, 'Tự động thêm phòng ban ' + name + ' (' + c + ')');
+    return row;
+  }
   function deptForm(u, x, pre) {
     var pb = x ? x.pb || {} : (pre || {}), R = refDate(), mat = HR.maternitySet(u.data, R);
     var act = u.data.NV.filter(function (e) { return HR.isActive(e, R, mat); }).sort(function (a, b) { return (a['Phòng ban'] === (x && x.name) ? -1 : 0) - (b['Phòng ban'] === (x && x.name) ? -1 : 0) || cmp(a['Họ và tên'], b['Họ và tên']); });
@@ -7121,7 +7143,7 @@ if (typeof module !== 'undefined') module.exports = XW;
     });
   }
   function sel(id, label, list, val, free) {
-    if (free) return '<div class="field"><label for="' + id + '">' + label + '</label><input class="input" id="' + id + '" list="' + id + '-l" value="' + esc(val || '') + '"><datalist id="' + id + '-l">' + list.map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist></div>';
+    if (free) return '<div class="field"><label for="' + id + '">' + label + '</label><input class="input" id="' + id + '" list="' + id + '-l" value="' + esc(val || '') + '"' + (id === 'fPb' ? ' placeholder="Chọn hoặc gõ phòng ban mới…"' : '') + '><datalist id="' + id + '-l">' + list.map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist></div>';
     var has = !val || list.indexOf(val) >= 0;
     return '<div class="field"><label for="' + id + '">' + label + '</label><select class="input" id="' + id + '">' + opt('', '— Chọn —', val) + (has ? '' : opt(val, val + ' (đang ghi)', val)) + list.map(function (o) { return opt(o, o, val); }).join('') + '</select></div>';
   }
@@ -7132,7 +7154,7 @@ if (typeof module !== 'undefined') module.exports = XW;
     return '<div class="nv-form">' +
       '<div class="dr-sec"><h4>Công việc</h4><div class="form-grid g3">' +
       field('fId', 'Mã NV <i class="req">*</i>', isNew ? nextId(u) : e['Mã NV'], isNew ? ' maxlength="20"' : ' maxlength="20" title="Đổi mã: mọi dữ liệu liên quan đổi theo; không đổi sang mã đã có hoặc đã từng có"') +
-      sel('fPb', 'Phòng ban <i class="req">*</i>', pbs, e['Phòng ban']) + sel('fCv', 'Chức vụ', cvs.length ? cvs : ['Nhân viên'], e['Chức vụ'] || (isNew ? 'Nhân viên' : '')) +
+      sel('fPb', 'Phòng ban <i class="req">*</i>', pbs, e['Phòng ban'], 1) + sel('fCv', 'Chức vụ', cvs.length ? cvs : ['Nhân viên'], e['Chức vụ'] || (isNew ? 'Nhân viên' : '')) +
       field('fCd', 'Chức danh công việc <i class="req">*</i>', e['Chức danh công việc']) + dbox('fVao', e['Ngày vào làm'], 'Ngày vào làm <i class="req">*</i>') +
       field('fCa', 'Tổ/Ca', e['Tổ/Ca']) + field('fMcc', 'Mã chấm công', e['Mã chấm công'], ' title="Mã trên máy chấm công, nếu khác Mã NV"') +
       sel('fLd', 'Loại lao động', LD_T, ldOf(e)) + (isNew ? '' : dbox('fDcNg', HR.isoToday(), 'Ngày hiệu lực nếu đổi phòng ban / chức danh')) + '</div><div class="faint ld-hint" id="fLdH" style="font-size:12px;margin-top:6px">' + ldHint(ldOf(e)) + '</div></div>' +
@@ -7245,7 +7267,8 @@ if (typeof module !== 'undefined') module.exports = XW;
     var name = v('fName').replace(/(^|\s)(\S)/g, function (x, a, b) { return a + b.toUpperCase(); });
     if (!name) return bad('fName', 'Chưa có họ và tên');
     if (isNew) { if (!/^[A-Z]{1,6}[-_.]?\d+$/.test(id)) return bad('fId', 'Mã NV chưa đúng', 'Dạng 1–6 chữ cái không dấu + số, ví dụ DS010, NV-25 – để phần mềm đọc lại đúng từ file Excel.'); if (nvIndex(u)[id]) return bad('fId', 'Mã ' + id + ' đã có', 'Gợi ý mã kế tiếp: ' + nextId(u)); var tk0 = maTaken(id); if (tk0) return bad('fId', 'Mã ' + id + (tk0.cu ? ' đã từng dùng' : ' đã có ở ' + shortUnit(tk0.u.name)), 'Mã NV không trùng giữa các công ty và không cấp lại mã cũ. Gợi ý: ' + nextId(u)); }
-    if (!v('fPb')) return bad('fPb', 'Chưa chọn phòng ban');
+    if (!v('fPb')) return bad('fPb', 'Chưa chọn hoặc nhập phòng ban', 'Chọn trong danh sách hoặc gõ tên phòng ban mới.');
+    ensureDept(u, v('fPb'));
     if (!v('fCd')) return bad('fCd', 'Chưa có chức danh công việc', 'Ví dụ: Nhân viên kế toán, Giảng viên. Chức danh ghi trên hợp đồng.');
     var vao = d('fVao'), ns = d('fNs'), nc = d('fNc');
     if (!vao) return bad('fVao', vao === null ? 'Ngày vào làm chưa đúng' : 'Chưa có ngày vào làm', 'Nhập dd/mm/yyyy.');
@@ -14199,7 +14222,7 @@ if (typeof module !== 'undefined') module.exports = XW;
       return '<div class="td-form">' + (isNew ? tdUnitPick(us, u.id) + '<div id="rSug">' + sugHtml(u) + '</div>' : '') +
         '<h4>Vị trí cần tuyển</h4><div class="td-g2">' +
         '<div class="field" style="grid-column:1/-1"><label for="rPos">Tên vị trí đăng tuyển *</label><input class="input" id="rPos" value="' + esc(x.pos) + '" placeholder="Ví dụ: Chuyên viên hành chính – nhân sự"><div class="hint">Tên hiện trên cổng tuyển dụng và tin đăng.</div></div>' +
-        selectBox('rPb', 'Phòng ban *', [['', '— Chọn phòng ban —']].concat(pbs.map(function (p) { return [p, p]; })), x.pb) +
+        '<div class="field"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><label for="rPb" style="margin:0">Phòng ban *</label><button type="button" class="btn btn-sm" id="rPbQuickAdd" style="height:22px;padding:0 8px;font-size:11.5px;border:none;background:var(--pri-soft,#FFF2E8);color:var(--pri,#F47830);cursor:pointer;border-radius:6px;font-weight:600">+ Tạo nhanh phòng ban</button></div><select class="input" id="rPb">' + [['', '— Chọn phòng ban —']].concat(pbs.map(function (p) { return [p, p]; })).map(function (o) { return opt(o[0], o[1], x.pb); }).join('') + '</select></div>' +
         field('rCd', 'Chức danh ghi trên hợp đồng', x.cd, ' placeholder="Ví dụ: Chuyên viên hành chính – nhân sự"') +
         field('rSl', 'Số lượng cần tuyển *', x.sl, ' inputmode="numeric"') +
         selectBox('rReason', 'Lý do tuyển', TD_REASON.map(function (s) { return [s, s]; }), x.reason) +
@@ -14257,6 +14280,40 @@ if (typeof module !== 'undefined') module.exports = XW;
       $('#rProb', m).addEventListener('change', hint); $('#rLd', m).addEventListener('change', function () { if ($('#rLd', m).value === 'Cộng tác viên') $('#rProb', m).value = 'none'; hint(); }); hint();
       function fair() { $('#rFair', m).innerHTML = tdFairHtml(tdFair({ pos: $('#rPos', m).value, desc: $('#rDesc', m).value, reqs: $('#rReqs', m).value, bens: $('#rBens', m).value })); }
       ['rPos', 'rDesc', 'rReqs', 'rBens'].forEach(function (k) { $('#' + k, m).addEventListener('input', fair); }); fair();
+      var pbBtn = $('#rPbQuickAdd', m);
+      if (pbBtn) {
+        pbBtn.addEventListener('click', function () {
+          var mAdd = modal('Tạo nhanh phòng ban', shortUnit(u.name),
+            '<div class="form-grid">' +
+              field('qpbName', 'Tên phòng ban <i class="req">*</i>', '', ' placeholder="Ví dụ: Phòng Digital Marketing"') +
+              field('qpbCode', 'Mã phòng ban', '', ' placeholder="Để trống hệ thống sẽ tự sinh (ví dụ: MKT)"') +
+            '</div>' +
+            '<div class="link-row" style="justify-content:flex-end;margin-top:14px">' +
+              '<button type="button" class="btn" data-close>Hủy</button>' +
+              '<button type="button" class="btn btn-primary" id="qpbSave">Tạo phòng ban</button>' +
+            '</div>', true);
+          $('#qpbSave', mAdd).addEventListener('click', function () {
+            var nm = ($('#qpbName', mAdd).value || '').trim();
+            if (!nm) { $('#qpbName', mAdd).classList.add('bad'); $('#qpbName', mAdd).focus(); toast('Chưa có tên phòng ban', 'err'); return; }
+            var cd = ($('#qpbCode', mAdd).value || '').trim().toUpperCase();
+            var dep = ensureDept(u, nm, cd);
+            commitEdits();
+            mAdd.close();
+            var sel = $('#rPb', m);
+            if (sel) {
+              if (!$('option', sel).some(function (op) { return op.value === dep['Tên phòng ban']; })) {
+                var optEl = document.createElement('option');
+                optEl.value = dep['Tên phòng ban'];
+                optEl.textContent = dep['Tên phòng ban'];
+                sel.appendChild(optEl);
+              }
+              sel.value = dep['Tên phòng ban'];
+              sel.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            toast('Đã tạo phòng ban ' + dep['Tên phòng ban'], 'ok');
+          });
+        });
+      }
     }
     bind();
     function onU() { var up = $('#tdU', m); u = unitById(up.value); x.place = tdOf(u).cfg.addr; x.pb = ''; x.thay = ''; $('#rBody', m).innerHTML = body(u); bind(); var up2 = $('#tdU', m); if (up2) up2.addEventListener('change', onU); }
@@ -14266,6 +14323,7 @@ if (typeof module !== 'undefined') module.exports = XW;
       var bad = function (k, t, s) { var el = $('#' + k, m); if (el) { el.classList.add('bad'); el.focus(); el.addEventListener('input', function () { el.classList.remove('bad'); }, { once: true }); } toast(t, 'err', s || ''); };
       if (!v('rPos')) return bad('rPos', 'Chưa có tên vị trí');
       if (!v('rPb')) return bad('rPb', 'Chưa chọn phòng ban');
+      ensureDept(u, v('rPb'));
       if (!/^\d{1,3}$/.test(v('rSl')) || +v('rSl') < 1) return bad('rSl', 'Số lượng cần tuyển là số từ 1');
       var mn = +v('rMin').replace(/\D/g, '') || 0, mx = +v('rMax').replace(/\D/g, '') || 0;
       if (mn && mx && mn > mx) return bad('rMax', 'Lương "đến" nhỏ hơn lương "từ"');
