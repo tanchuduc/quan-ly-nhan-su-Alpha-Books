@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-color="alpha">
 <head>
+<script>try{var c=localStorage.getItem("qtt-color")||"alpha",t=localStorage.getItem("qtt-theme");document.documentElement.setAttribute("data-color",c);if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){document.documentElement.setAttribute("data-color","alpha");}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Quản lý nhân sự · Alpha Books</title>
@@ -4490,7 +4491,7 @@ if (typeof module !== 'undefined') module.exports = XW;
     else if (act === 'reset-all') openResetModal();
     else if (act === 'nav-show') navAll(); else if (act === 'set-backup') setBackup();
     else if (act === 'set-restore') restoreAll();
-    else if (act === 'br-up') brUpload(); else if (act === 'br-del') brDel(); else if (act === 'br-reset') brReset(); else if (act === 'st-persist') stPersist();
+    else if (act === 'br-save') brSave(); else if (act === 'br-up') brUpload(); else if (act === 'br-del') brDel(); else if (act === 'br-reset') brReset(); else if (act === 'st-persist') stPersist();
     else if (act === 'set-log') setLog();
     else if (act === 'dl-log') downloadLog();
     else if (act === 'clear-log') { LOG = []; log('Đã xóa nhật ký cũ theo yêu cầu người dùng'); render(); }
@@ -5072,7 +5073,9 @@ if (typeof module !== 'undefined') module.exports = XW;
   function applyTheme() {
     var t = S.settings.theme, de = document.documentElement;
     if (t === 'light' || t === 'dark') de.setAttribute('data-theme', t); else de.removeAttribute('data-theme');
-    de.setAttribute('data-color', curColor());
+    var c = curColor();
+    de.setAttribute('data-color', c);
+    try { localStorage.setItem('qtt-color', c); if (t === 'light' || t === 'dark') localStorage.setItem('qtt-theme', t); else localStorage.removeItem('qtt-theme'); } catch (e) {}
   }
 
   /* ---------------- Thương hiệu riêng (16/11/2026 anh: đơn vị tự thay logo, tên; hình minh họa thay Đốm) ----------------
@@ -5104,27 +5107,79 @@ if (typeof module !== 'undefined') module.exports = XW;
     document.title = document.title.replace(/ · [^·]*$/, '') + ' · ' + (b.name || 'Quản lý nhân sự');
     brImgs();
   }
+  var BR_CUR_LOGO = null;
+  function brDirty(dirty) {
+    var st = $('#brStatus'), btn = $('#brSaveBtn');
+    if (dirty) {
+      if (st) st.innerHTML = '<span style="color:var(--pri,#F47830);font-weight:600">● Có thay đổi chưa lưu</span>';
+      if (btn) btn.classList.add('btn-primary');
+    } else {
+      if (st) st.innerHTML = '<span style="color:var(--ok,#067647);font-weight:600">✓ Đã lưu</span>';
+    }
+  }
+  function brSave() {
+    var t = brTgt(), b = brEdit(), g = b._g || b;
+    var n = $('#brN'), s = $('#brS');
+    var nameVal = n ? n.value.trim().slice(0, 40) : '';
+    var subVal = s ? s.value.trim().slice(0, 50) : '';
+    var mEl = $('input[name="brM"]:checked');
+    var mascotVal = mEl ? mEl.value : (b.mascot || g.mascot);
+    var colEl = $('.br-cols .br-col.on');
+    var colVal = colEl ? (colEl.getAttribute('data-brc') || '') : '';
+    var logoVal = (BR_CUR_LOGO !== null) ? BR_CUR_LOGO : (b.logo || (t ? '' : (g.logo || '')));
+
+    var patch = { name: nameVal, sub: subVal, mascot: mascotVal, logo: logoVal };
+    if (t) patch.color = colVal;
+
+    brSet(patch, 'lưu thay đổi');
+    BR_CUR_LOGO = null;
+    toast('Đã lưu thay đổi thương hiệu' + (t ? ' của ' + shortUnit(t.name) : ''), 'ok', 'Áp dụng cho thanh bên trái, tiêu đề và báo cáo.');
+    brRefreshCard(true);
+    render();
+  }
   function brSet(patch, what) { var t = brTgt(); if (t) { t.brand = Object.assign({}, t.brand || {}, patch); saveUnits(); } else { S.settings.brand = Object.assign({}, BR_DEF, S.settings.brand || {}, patch); saveSettings(); } applyTheme(); applyBrand(); ubCss(); if (what) what = (t ? '[' + shortUnit(t.name) + '] ' : '[chung] ') + what; if (what) log('Thương hiệu: ' + what); }
-  function brCardHtml() {
+  function brCardHtml(saved) {
     var t = brTgt(), b = brEdit(), g = b._g || b, multi = S.units.length > 1;
-    var mz = b.mascot || g.mascot, lg = b.logo || (t ? g.logo : ''), opt = function (k, tx, dis) { return '<label' + (dis ? ' class="dis" title="Tải logo lên trước"' : '') + '><input type="radio" name="brM" value="' + k + '"' + (mz === k ? ' checked' : '') + (dis ? ' disabled' : '') + '> ' + tx + '</label>'; };
+    var curLogo = (BR_CUR_LOGO !== null) ? BR_CUR_LOGO : (b.logo || (t ? g.logo : ''));
+    var hasLogo = (BR_CUR_LOGO !== null) ? !!BR_CUR_LOGO : !!b.logo;
+    var mz = b.mascot || g.mascot, lg = curLogo, opt = function (k, tx, dis) { return '<label' + (dis ? ' class="dis" title="Tải logo lên trước"' : '') + '><input type="radio" name="brM" value="' + k + '"' + (mz === k ? ' checked' : '') + (dis ? ' disabled' : '') + '> ' + tx + '</label>'; };
     var tsel = multi ? '<div class="br-tg"><label for="brT">Chỉnh thương hiệu của</label><select class="input" id="brT"><option value="all"' + (t ? '' : ' selected') + '>Thương hiệu chung (khi xem Tổng các công ty)</option>' + S.units.map(function (u) { return '<option value="' + u.id + '"' + (t && t.id === u.id ? ' selected' : '') + '>' + esc(shortUnit(u.name)) + (u.brand && (u.brand.logo || u.brand.color || u.brand.name) ? ' · đã có thương hiệu riêng' : '') + '</option>'; }).join('') + '</select></div>' : '';
     var col = t ? '<div><label>Màu thương hiệu</label><div class="br-cols"><button type="button" class="br-col' + (!b.color ? ' on' : '') + '" data-brc="">Theo màu chung</button>' + COLORS.filter(function (c) { return c.k !== 'dark'; }).map(function (c) { return '<button type="button" class="br-col' + (b.color === c.k ? ' on' : '') + '" data-brc="' + c.k + '"><span class="pal-sw" style="background:' + c.sw + '"></span>' + c.n + '</button>'; }).join('') + '</div></div>' : '';
+    var stHtml = saved ? '<span id="brStatus" style="font-size:12px;color:var(--ok,#067647);font-weight:600">✓ Đã lưu</span>' : '<span id="brStatus" class="faint" style="font-size:12px"></span>';
     return '<div class="card card-pad br-card" id="brCard"><div class="card-head"><div><h3>Thương hiệu' + (t ? ' – ' + esc(shortUnit(t.name)) : multi ? ' chung' : '') + '</h3><p>' + (t ? 'Logo, tên, màu riêng của công ty này: dùng khi chọn công ty ở ô Đơn vị; khi xem Tổng, nhân sự của công ty hiện chấm màu và logo nhỏ của công ty. Ô để trống thì theo thương hiệu chung.' : 'Thay tên, logo của đơn vị. Lưu cùng dữ liệu nên sao lưu, khôi phục hay cập nhật phiên bản mới đều giữ nguyên.' + (multi ? ' Đây là thương hiệu khung khi xem Tổng các công ty; từng công ty có thể đặt thương hiệu riêng ở ô bên dưới.' : '')) + '</p></div></div>' + tsel +
-      '<div class="br-grid"><div><div class="br-prev"><img class="br-logo-ed" src="' + esc(lg || DOM_SRC) + '" alt="Logo"></div><div class="br-lbtn"><button type="button" class="btn btn-sm" data-act="br-up">' + (b.logo ? 'Đổi logo' : 'Tải logo lên') + '</button>' + (b.logo ? '<button type="button" class="btn btn-sm" data-act="br-del">Bỏ logo</button>' : '') + '<small class="faint">PNG, JPG, WebP, SVG · tự thu nhỏ còn 256 px' + (t && !b.logo && g.logo ? ' · đang dùng logo chung' : '') + '</small></div></div>' +
+      '<div class="br-grid"><div><div class="br-prev"><img class="br-logo-ed" src="' + esc(lg || DOM_SRC) + '" alt="Logo"></div><div class="br-lbtn"><button type="button" class="btn btn-sm" data-act="br-up">' + (hasLogo ? 'Đổi logo' : 'Tải logo lên') + '</button>' + (hasLogo ? '<button type="button" class="btn btn-sm" data-act="br-del">Bỏ logo</button>' : '') + '<small class="faint">PNG, JPG, WebP, SVG · tự thu nhỏ còn 256 px' + (t && !hasLogo && g.logo ? ' · đang dùng logo chung' : '') + '</small></div></div>' +
       '<div class="br-f"><div><label for="brN">Tên hiển thị</label><input class="input" id="brN" maxlength="40" placeholder="' + esc(t ? (g.name || shortUnit(t.name)) : 'Quản lý nhân sự') + '" value="' + esc(b.name) + '"></div>' +
       '<div><label for="brS">Dòng phụ dưới tên</label><input class="input" id="brS" maxlength="50" placeholder="' + esc(t ? (g.sub || 'Phần mềm nhân sự') : (b.name ? 'Phần mềm nhân sự' : 'Quản trị tử tế')) + '" value="' + esc(b.sub) + '"></div>' +
       '<div><label>Hình minh họa trong phần mềm</label><div class="br-opts">' + opt('dom', 'Đốm (mặc định)') + opt('logo', t ? 'Logo của công ty' : 'Logo của đơn vị', !lg) + opt('none', 'Không dùng hình') + '</div></div>' + col + '</div></div>' +
-      '<div class="br-foot"><span>Áp dụng cho thanh bên trái, biểu tượng thẻ trình duyệt, lời chào ở Bảng điều hành và ghi chú cuối văn bản mẫu.' + (multi ? ' App nhân viên theo thương hiệu từng công ty: có ở bản sau.' : '') + '</span>' + ((t ? t.brand : S.settings.brand) ? '<button type="button" class="btn btn-sm" data-act="br-reset">' + (t ? 'Bỏ thương hiệu riêng' : 'Về mặc định') + '</button>' : '') + '</div></div>';
+      '<div class="br-foot"><span>Áp dụng cho thanh bên trái, biểu tượng thẻ trình duyệt, lời chào ở Bảng điều hành và ghi chú cuối văn bản mẫu.' + (multi ? ' App nhân viên theo thương hiệu từng công ty: có ở bản sau.' : '') + '</span>' +
+      '<div class="br-acts" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' + stHtml +
+      '<button type="button" class="btn btn-sm btn-primary" data-act="br-save" id="brSaveBtn">' + ic('check', 14) + ' Lưu thay đổi</button>' +
+      ((t ? t.brand : S.settings.brand) ? '<button type="button" class="btn btn-sm" data-act="br-reset">' + (t ? 'Bỏ thương hiệu riêng' : 'Về mặc định') + '</button>' : '') + '</div></div></div>';
   }
-  function brRefreshCard() { var c = $('#brCard'); if (c) { var t = document.createElement('div'); t.innerHTML = brCardHtml(); c.replaceWith(t.firstChild); bindBrand(); } }
+  function brRefreshCard(saved) { var c = $('#brCard'); if (c) { var t = document.createElement('div'); t.innerHTML = brCardHtml(saved); c.replaceWith(t.firstChild); bindBrand(); } }
   function bindBrand() {
     var n = $('#brN'), s = $('#brS'), tg = $('#brT');
-    if (tg) tg.addEventListener('change', function () { BR_T = tg.value; brRefreshCard(); });
-    $$('[data-brc]').forEach(function (x) { x.addEventListener('click', function () { var k = x.getAttribute('data-brc'); brSet({ color: k }, 'màu ' + (k || 'theo màu chung')); brRefreshCard(); render(); }); });
-    if (n) n.addEventListener('change', function () { var v = n.value.trim().slice(0, 40); brSet({ name: v }, 'tên hiển thị "' + v + '"'); brRefreshCard(); });
-    if (s) s.addEventListener('change', function () { var v = s.value.trim().slice(0, 50); brSet({ sub: v }, 'dòng phụ "' + v + '"'); });
-    $$('input[name="brM"]').forEach(function (r) { r.addEventListener('change', function () { if (r.checked) brSet({ mascot: r.value }, 'hình minh họa = ' + r.value); }); });
+    if (tg) tg.addEventListener('change', function () { BR_T = tg.value; BR_CUR_LOGO = null; brRefreshCard(); });
+    $$('[data-brc]').forEach(function (x) {
+      x.addEventListener('click', function () {
+        $$('.br-cols .br-col').forEach(function (c) { c.classList.remove('on'); });
+        x.classList.add('on');
+        brDirty(true);
+      });
+    });
+    if (n) {
+      n.addEventListener('input', function () { brDirty(true); });
+      n.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); brSave(); } });
+    }
+    if (s) {
+      s.addEventListener('input', function () { brDirty(true); });
+      s.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); brSave(); } });
+    }
+    $$('input[name="brM"]').forEach(function (r) {
+      r.addEventListener('change', function () { if (r.checked) brDirty(true); });
+    });
+    var sb = $('#brSaveBtn');
+    if (sb) sb.addEventListener('click', function () { brSave(); });
   }
   function brUpload() {
     var fi = document.createElement('input'); fi.type = 'file'; fi.accept = 'image/png,image/jpeg,image/webp,image/svg+xml,image/gif';
@@ -5148,12 +5203,63 @@ if (typeof module !== 'undefined') module.exports = XW;
       rd.readAsDataURL(f);
     });
     fi.click();
-    function brDone(url) { var b = brEdit(); brSet({ logo: url, mascot: b.mascot === 'dom' && !b.logo ? 'logo' : b.mascot }, 'tải logo mới'); render(); toast('Đã thay logo', 'ok', 'Logo hiện ở thanh bên trái và biểu tượng thẻ trình duyệt'); }
+    function brDone(url) {
+      BR_CUR_LOGO = url;
+      var im = $('#brCard .br-logo-ed'); if (im) im.src = url;
+      var lRad = $('input[name="brM"][value="logo"]');
+      if (lRad) {
+        lRad.disabled = false;
+        var lbl = lRad.closest('label');
+        if (lbl) { lbl.classList.remove('dis'); lbl.removeAttribute('title'); }
+        var domRad = $('input[name="brM"][value="dom"]');
+        if (domRad && domRad.checked) lRad.checked = true;
+      }
+      var lbtn = $('#brCard .br-lbtn');
+      if (lbtn && !lbtn.querySelector('[data-act="br-del"]')) {
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'btn btn-sm';
+        delBtn.setAttribute('data-act', 'br-del');
+        delBtn.textContent = 'Bỏ logo';
+        delBtn.addEventListener('click', brDel);
+        var upBtn = lbtn.querySelector('[data-act="br-up"]');
+        if (upBtn) { upBtn.textContent = 'Đổi logo'; upBtn.after(delBtn); }
+      }
+      brDirty(true);
+      toast('Đã chọn logo mới', 'ok', 'Bấm nút "Lưu thay đổi" bên dưới để lưu.');
+    }
   }
-  function brDel() { var b = brEdit(); brSet({ logo: '', mascot: b.mascot === 'logo' ? 'dom' : b.mascot }, 'bỏ logo'); render(); }
-  function brReset() { confirmBox('Về thương hiệu mặc định?', 'Tên, dòng phụ, logo và hình minh họa trở về mặc định thương hiệu Alpha Books.', 'Về mặc định', function () { var t = brTgt(); if (t) { delete t.brand; saveUnits(); } else { S.settings.brand = null; saveSettings(); } applyTheme(); applyBrand(); ubCss(); log('Thương hiệu: về mặc định' + (t ? ' – ' + t.name : '')); render(); }); }
+  function brDel() {
+    BR_CUR_LOGO = '';
+    var t = brTgt(), b = brEdit(), g = b._g || b;
+    var im = $('#brCard .br-logo-ed'); if (im) im.src = (t ? g.logo : '') || DOM_SRC;
+    var delBtn = $('#brCard .br-lbtn [data-act="br-del"]'); if (delBtn) delBtn.remove();
+    var upBtn = $('#brCard .br-lbtn [data-act="br-up"]'); if (upBtn) upBtn.textContent = 'Tải logo lên';
+    var lRad = $('input[name="brM"][value="logo"]');
+    if (lRad && lRad.checked) {
+      var domRad = $('input[name="brM"][value="dom"]');
+      if (domRad) domRad.checked = true;
+    }
+    brDirty(true);
+    toast('Đã gỡ logo', 'info', 'Bấm nút "Lưu thay đổi" bên dưới để lưu.');
+  }
+  function brReset() {
+    var t = brTgt();
+    var title = t ? 'Bỏ thương hiệu riêng?' : 'Về thương hiệu mặc định?';
+    var desc = t ? 'Xóa logo, tên và màu riêng của ' + shortUnit(t.name) + ', dùng theo thương hiệu chung.' : 'Tên, dòng phụ, logo và hình minh họa trở về mặc định thương hiệu Alpha Books.';
+    var btn = t ? 'Bỏ thương hiệu riêng' : 'Về mặc định';
+    confirmBox(title, desc, btn, function () {
+      if (t) { delete t.brand; saveUnits(); } else { S.settings.brand = null; saveSettings(); }
+      BR_CUR_LOGO = null;
+      applyTheme(); applyBrand(); ubCss();
+      log('Thương hiệu: về mặc định' + (t ? ' – ' + t.name : ''));
+      toast(t ? 'Đã bỏ thương hiệu riêng của ' + shortUnit(t.name) : 'Đã về thương hiệu mặc định', 'ok');
+      render();
+      brRefreshCard(true);
+    });
+  }
 
-  /* ---------------- Dữ liệu & sao lưu (16/11/2026 anh: bản 1 người dùng – ghi rõ nơi lưu, dung lượng, nhắc sao lưu) ---------------- */
+/* ---------------- Dữ liệu & sao lưu (16/11/2026 anh: bản 1 người dùng – ghi rõ nơi lưu, dung lượng, nhắc sao lưu) ---------------- */
   var BK_DAYS = 7;
   function brwName() { var u = navigator.userAgent; return /Edg\//.test(u) ? 'Microsoft Edge' : /coc_coc|CocCoc/i.test(u) ? 'Cốc Cốc' : /OPR\//.test(u) ? 'Opera' : /Firefox\//.test(u) ? 'Firefox' : /Chrome\//.test(u) ? 'Google Chrome' : /Safari\//.test(u) ? 'Safari' : 'trình duyệt này'; }
   function idbKey() { return location.protocol === 'file:' ? 'file__0' : location.protocol.replace(':', '') + '_' + location.hostname + '_' + (location.port || 0); }
