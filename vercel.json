@@ -3,6 +3,10 @@
   "framework": null,
   "rewrites": [
     {
+      "source": "/",
+      "destination": "https://quan-ly-nhan-su.hralpahbooks.workers.dev/"
+    },
+    {
       "source": "/:path*",
       "destination": "https://quan-ly-nhan-su.hralpahbooks.workers.dev/:path*"
     }
