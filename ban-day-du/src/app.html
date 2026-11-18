@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2F7D4F">
+<meta name="theme-color" content="#F47830">
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Chấm công">
@@ -114,7 +114,7 @@
   --bg:#F4EFE5;--surface:#FBF8F2;--surface-2:#F7F2E8;--surface-3:#EFE7D8;
   --border:#E3DACB;--border-strong:#D3C7B4;
   --text:#231E19;--text-muted:#6B6259;--text-faint:#988D80;
-  --accent:#2F7D4F;--accent-2:#3E9A63;--accent-strong:#245F3D;--accent-soft:#E3F1E8;--on-accent:#fff;
+  --accent:#D95F18;--accent-2:#F47830;--accent-strong:#B84A14;--accent-soft:#FDECE1;--on-accent:#fff;
   --info:#2F5F8F;--info-soft:#E2ECF5;--warn:#9A5A16;--warn-soft:#F6E7D3;--danger:#A63A2B;--danger-soft:#F8E3DE;
   --shadow:0 1px 2px rgba(35,30,25,.06),0 10px 28px -12px rgba(35,30,25,.22);
   --f-ui:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
@@ -122,13 +122,13 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#141210;--surface:#1D1A17;--surface-2:#191613;--surface-3:#26221D;--border:#332E28;--border-strong:#443D35;
   --text:#ECE6DB;--text-muted:#A69C8F;--text-faint:#7C7368;
-  --accent:#6CC08C;--accent-2:#58B07C;--accent-strong:#8AD3A6;--accent-soft:#1C2E23;--on-accent:#0E1A12;
+  --accent:#F47830;--accent-2:#E06620;--accent-strong:#FF985C;--accent-soft:#331D11;--on-accent:#fff;
   --info:#8DB6E0;--info-soft:#1B2633;--warn:#E8B06A;--warn-soft:#3A2C1C;--danger:#E58B7C;--danger-soft:#3A1F1A;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#141210;--surface:#1D1A17;--surface-2:#191613;--surface-3:#26221D;--border:#332E28;--border-strong:#443D35;
   --text:#ECE6DB;--text-muted:#A69C8F;--text-faint:#7C7368;
-  --accent:#6CC08C;--accent-2:#58B07C;--accent-strong:#8AD3A6;--accent-soft:#1C2E23;--on-accent:#0E1A12;
+  --accent:#F47830;--accent-2:#E06620;--accent-strong:#FF985C;--accent-soft:#331D11;--on-accent:#fff;
   --info:#8DB6E0;--info-soft:#1B2633;--warn:#E8B06A;--warn-soft:#3A2C1C;--danger:#E58B7C;--danger-soft:#3A1F1A;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);color-scheme:dark}
 *{box-sizing:border-box}
@@ -140,7 +140,7 @@ button{cursor:pointer}
 .wrap{max-width:520px;margin:0 auto;padding:18px 16px calc(28px + env(safe-area-inset-bottom))}
 .wrap.wide{max-width:1080px}
 .top{display:flex;align-items:center;gap:10px;margin-bottom:16px}
-.top img{width:34px;height:34px;border-radius:9px}
+.top img{width:auto;max-width:68px;height:34px;object-fit:contain;border-radius:9px;background:#fff;padding:2px 6px}
 .top .t1{font-weight:650;font-size:16px;line-height:1.2}
 .top .t2{font-size:12.5px;color:var(--text-muted)}
 .top .sp{flex:1}
@@ -276,10 +276,10 @@ td.ipbox,td.num{white-space:nowrap;word-break:normal}
 .lleg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px;font-size:12px;color:var(--text-muted)}.lleg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px}
 
 /* ===== 11/11 app nhân viên (anh duyệt 14:57, góp ý vòng 2 15:32): khung điện thoại trên máy tính, lời chào có cảnh nền ===== */
-.nvx{--m:#3F6B35;--m2:#5C8A4A;--mbg:#F4F2EA;--mcard:#fff;--mline:#EAE6DA;--mtx:#1F2A1C;--mmut:#5F6B5A;--mws:#E3EFD9;--mwt:#2F6B2A;--mwarn:#FFF8EB;--mwarnb:#F0C98A;--mwarnt:#A35F0F;--mwarns:#FCEFD9;--minf:#E1ECF6;--minft:#235E91;--merr:#FDE7E7;--merrt:#B42318;--mhol:#F3E8FB;--mholt:#7A3E9D;--mbh:#E2F2F1;--mbht:#1F6F6A;--moff:#F1EFE8;--shadow:0 1px 2px rgba(31,42,28,.06),0 6px 18px rgba(31,42,28,.06);
+.nvx{--m:#D95F18;--m2:#F47830;--mbg:#F7F4EE;--mcard:#fff;--mline:#EAE3D7;--mtx:#1F1A17;--mmut:#665E55;--mws:#FDECE1;--mwt:#B84A14;--mwarn:#FFF8EB;--mwarnb:#F0C98A;--mwarnt:#A35F0F;--mwarns:#FCEFD9;--minf:#E1ECF6;--minft:#235E91;--merr:#FDE7E7;--merrt:#B42318;--mhol:#F3E8FB;--mholt:#7A3E9D;--mbh:#E2F2F1;--mbht:#1F6F6A;--moff:#F1EFE8;--shadow:0 1px 2px rgba(31,26,23,.06),0 6px 18px rgba(31,26,23,.06);
   position:relative;min-height:100vh;background:var(--mbg);color:var(--mtx);font-family:"Be Vietnam Pro",var(--f-ui);font-size:15px}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .nvx{--m:#8BC17A;--m2:#4E7A40;--mbg:#121410;--mcard:#1C1F19;--mline:#2C3027;--mtx:#E8EBE2;--mmut:#A3AC9C;--mws:#21321B;--mwt:#9BD38A;--mwarn:#2B2416;--mwarnb:#6B5226;--mwarnt:#E8B06A;--mwarns:#3A2C1C;--minf:#1A2532;--minft:#8DB6E0;--merr:#3A1F1A;--merrt:#E58B7C;--mhol:#2C2136;--mholt:#CFA6EA;--mbh:#15302E;--mbht:#7FD1C9;--moff:#22251F;--shadow:0 1px 2px rgba(0,0,0,.4)}}
-:root[data-theme="dark"] .nvx{--m:#8BC17A;--m2:#4E7A40;--mbg:#121410;--mcard:#1C1F19;--mline:#2C3027;--mtx:#E8EBE2;--mmut:#A3AC9C;--mws:#21321B;--mwt:#9BD38A;--mwarn:#2B2416;--mwarnb:#6B5226;--mwarnt:#E8B06A;--mwarns:#3A2C1C;--minf:#1A2532;--minft:#8DB6E0;--merr:#3A1F1A;--merrt:#E58B7C;--mhol:#2C2136;--mholt:#CFA6EA;--mbh:#15302E;--mbht:#7FD1C9;--moff:#22251F;--shadow:0 1px 2px rgba(0,0,0,.4)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .nvx{--m:#F47830;--m2:#D95F18;--mbg:#141210;--mcard:#1E1B18;--mline:#2E2925;--mtx:#ECE7DF;--mmut:#A89F94;--mws:#331D11;--mwt:#FF985C;--mwarn:#2B2416;--mwarnb:#6B5226;--mwarnt:#E8B06A;--mwarns:#3A2C1C;--minf:#1A2532;--minft:#8DB6E0;--merr:#3A1F1A;--merrt:#E58B7C;--mhol:#2C2136;--mholt:#CFA6EA;--mbh:#15302E;--mbht:#7FD1C9;--moff:#24201C;--shadow:0 1px 2px rgba(0,0,0,.4)}}
+:root[data-theme="dark"] .nvx{--m:#F47830;--m2:#D95F18;--mbg:#141210;--mcard:#1E1B18;--mline:#2E2925;--mtx:#ECE7DF;--mmut:#A89F94;--mws:#331D11;--mwt:#FF985C;--mwarn:#2B2416;--mwarnb:#6B5226;--mwarnt:#E8B06A;--mwarns:#3A2C1C;--minf:#1A2532;--minft:#8DB6E0;--merr:#3A1F1A;--merrt:#E58B7C;--mhol:#2C2136;--mholt:#CFA6EA;--mbh:#15302E;--mbht:#7FD1C9;--moff:#24201C;--shadow:0 1px 2px rgba(0,0,0,.4)}
 .nvx a{color:var(--m)}
 .nvx-scr{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .nvx-sb{display:none}
@@ -297,7 +297,7 @@ td.ipbox,td.num{white-space:nowrap;word-break:normal}
   .nvx-hero,.nvx-hd{padding-top:44px!important}
 }
 /* lời chào */
-.nvx-hero{position:relative;overflow:hidden;background:linear-gradient(165deg,#3B6532 0%,#4F7D41 55%,#6A9653 100%);color:#fff;padding:20px 20px 64px;padding-top:calc(20px + var(--sat))}
+.nvx-hero{position:relative;overflow:hidden;background:linear-gradient(165deg,#8F360A 0%,#C84E14 55%,#F47830 100%);color:#fff;padding:20px 20px 64px;padding-top:calc(20px + var(--sat))}
 .nvx-hero.night{background:linear-gradient(165deg,#22381F 0%,#2D4A28 60%,#3E6236 100%)}
 .nvx-scene{position:absolute;inset:0;width:100%;height:100%}
 .nvx-hero .in{position:relative;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
@@ -715,7 +715,7 @@ td.ipbox,td.num{white-space:nowrap;word-break:normal}
   .nvx-wrap.dk .nvx-nav button>span:not(.nvx-avi){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .nvx-wrap.dk .nvx-nav .dot{position:static;margin-left:auto;flex-shrink:0}
   .nvx-wrap.dk .dk-brand{display:flex;align-items:center;gap:10px;padding:2px 8px 14px;margin-bottom:6px;border-bottom:1px solid var(--mline)}
-  .nvx-wrap.dk .dk-brand img{width:36px;height:36px;border-radius:10px}
+  .nvx-wrap.dk .dk-brand img{width:auto;max-width:72px;height:36px;object-fit:contain;border-radius:10px;background:#fff;padding:2px 6px}
   .nvx-wrap.dk .dk-brand>span,.nvx-wrap.dk .dk-me>span:not(.nvx-avi){display:flex;flex-direction:column;min-width:0}
   .nvx-wrap.dk .dk-brand b{font-size:15px;color:var(--mtx)}.nvx-wrap.dk .dk-brand small{font-size:12px;color:var(--mmut);white-space:normal;line-height:1.35}
   .nvx-wrap.dk .nvx-nav .dk-me{display:flex;min-height:56px;margin-bottom:8px;background:var(--mbg)}
@@ -909,7 +909,8 @@ function api(path, body) {
     .catch(function () { return { ok: false, loi: 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.', _status: 0 }; });
 }
 function hdr(sub, right) {
-  return '<div class="top"><img src="/icon.svg" alt=""><div><div class="t1">Chấm công</div><div class="t2">' + esc(sub || '') + '</div></div><div class="sp"></div>' + (right || '') + '</div>';
+  var br = window.QTT_BR || {};
+  return '<div class="top"><img src="' + esc(br.logo || '/icon.svg') + '" alt="Alpha Books"><div><div class="t1">' + esc(br.name || 'Alpha Books') + '</div><div class="t2">' + esc(sub || 'Better Knowledge, Better Success') + '</div></div><div class="sp"></div>' + (right || '') + '</div>';
 }
 function foot() { var br = window.QTT_BR || {}; return '<p class="faint small" style="text-align:center;margin-top:18px">' + (br.name ? esc(br.name) + ' · ' : '') + (window.QTT_BR ? 'bản ' : 'Quản trị tử tế · bản thử nghiệm ') + esc(VER) + (window.QTT_BR ? ' · Tác giả: <a href="https://quantritute.com" target="_blank" rel="noopener" style="color:inherit">Quản trị tử tế</a>' : '') + '</p>'; } // 16/11/2026: máy chủ của đơn vị có thương hiệu riêng + dòng tác giả
 /* ===== BẢN THỬ: thanh đầu trang + khung hướng dẫn từng bước ===== */
@@ -1469,7 +1470,7 @@ function nvView(st) {
   if (T === 'toi') h += toiHtml(st, HS, HSo, ten, cty, av);
   h += '</main></div>';
   var navTabs = DK ? TABS.concat([['toi', 'Bạn']]) : TABS;
-  h += '<nav class="nvx-nav' + (T === 'toi' && !DK ? ' hide' : '') + '" aria-label="Các mục chính">' + (DK ? '<div class="dk-brand"><img src="/icon.svg" alt=""><span><b>Chấm công</b><small>' + esc(String(cty).replace(/^Công ty\s+(TNHH|CP|Cổ phần)\s+/i, '')) + '</small></span></div><button type="button" class="dk-me" data-tab="toi">' + avHtml(av, ten, 'sm') + '<span><b>' + esc(ten) + '</b><small>' + esc(st.me.ma) + '</small></span></button>' : '') + navTabs.map(function (x) { var dot = (x[0] === 'cong' && need) || (x[0] === 'lich' && L && L.mo && L.mo.length) || (x[0] === 'luong' && phNew.length) || (x[0] === 'don' && DU.length) || (x[0] === 'hoc' && st.dt && (st.dt.kh || []).some(function (k) { var e = dtEv(st, k).st; return e === 'chua' || e === 'hoc' || e === 'khong'; })); return '<button type="button" data-tab="' + x[0] + '" class="' + (x[0] === T ? 'on' : '') + '"' + (x[0] === T ? ' aria-current="page"' : '') + '>' + ni(x[0], 21) + '<span>' + x[1] + '</span>' + (dot ? '<i class="dot" aria-label="có việc mới"></i>' : '') + '</button>'; }).join('') +
+  h += '<nav class="nvx-nav' + (T === 'toi' && !DK ? ' hide' : '') + '" aria-label="Các mục chính">' + (DK ? '<div class="dk-brand"><img src="' + esc((window.QTT_BR && window.QTT_BR.logo) || '/icon.svg') + '" alt="Alpha Books"><span><b>' + esc((window.QTT_BR && window.QTT_BR.name) || 'Alpha Books') + '</b><small>' + esc(String(cty || 'Better Knowledge, Better Success').replace(/^Công ty\s+(TNHH|CP|Cổ phần)\s+/i, '')) + '</small></span></div><button type="button" class="dk-me" data-tab="toi">' + avHtml(av, ten, 'sm') + '<span><b>' + esc(ten) + '</b><small>' + esc(st.me.ma) + '</small></span></button>' : '') + navTabs.map(function (x) { var dot = (x[0] === 'cong' && need) || (x[0] === 'lich' && L && L.mo && L.mo.length) || (x[0] === 'luong' && phNew.length) || (x[0] === 'don' && DU.length) || (x[0] === 'hoc' && st.dt && (st.dt.kh || []).some(function (k) { var e = dtEv(st, k).st; return e === 'chua' || e === 'hoc' || e === 'khong'; })); return '<button type="button" data-tab="' + x[0] + '" class="' + (x[0] === T ? 'on' : '') + '"' + (x[0] === T ? ' aria-current="page"' : '') + '>' + ni(x[0], 21) + '<span>' + x[1] + '</span>' + (dot ? '<i class="dot" aria-label="có việc mới"></i>' : '') + '</button>'; }).join('') +
     (DK ? (st.me.qt ? '<button type="button" class="dk-qt" data-qt>' + ni('qt', 21) + '<span>Quản trị</span></button>' : '') + '<span class="dk-sp"></span><button type="button" class="dk-v" data-view="mb">' + ni('mb', 18) + '<span>Xem dạng điện thoại</span></button>' : '') + '</nav>';
   h += '<div class="nvx-sheet" id="sheet" hidden><div class="bd" data-close></div><div class="pn" role="dialog" aria-modal="true" aria-labelledby="sh-t"><div class="hd"><b id="sh-t"></b><button type="button" class="nvx-ib" data-close aria-label="Đóng">' + ni('x', 18) + '</button></div><div class="bdy" id="sh-b"></div></div></div>';
   app.innerHTML = h + '</div></div>';

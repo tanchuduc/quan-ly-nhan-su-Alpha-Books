@@ -6,7 +6,7 @@
    Giờ chấm lấy theo đồng hồ máy chủ (không tin giờ điện thoại). Hiển thị theo giờ Việt Nam (UTC+7). */
 import qrcode from './qrcode.mjs';
 import APP_HTML from './app.html';
-import { ICON_PNG_B64, ICON_SVG } from './icon.js';
+import { ICON_PNG_B64, ICON_SVG, ALPHA_LOGO_URI } from './icon.js';
 import { DEMO, DEMO_PIN } from './demo-data.js';
 import { DEMO_HN } from './demo-hoinhap.js';
 import { DEMO_DT } from './demo-daotao.js'; // 12/11 16:30: khóa đào tạo nội bộ mẫu (0.6.1 bản thử)
@@ -575,7 +575,7 @@ const QR_STEP = 30e3;          // QR đổi mỗi 30 giây
 const QR_GRACE = 5e3;          // mã vừa đổi trong 5 giây vẫn nhận mã ngay trước đó (đang quét đúng lúc đổi)
 const PASS_MS = 120e3;         // quét đúng mã → được 2 phút để đăng nhập/bấm chấm (thẻ qua cửa ký số)
 const DUP_MS = 120e3;          // bấm trùng cùng loại trong 2 phút → không ghi thêm
-const DEF = { che_do: 'wifi_hoac_qr', ip_gio: '72', hien_ip: '1', ten_cty: '' };
+const DEF = { che_do: 'wifi_hoac_qr', ip_gio: '72', hien_ip: '1', ten_cty: 'Alpha Books', br_ten: 'Alpha Books', br_logo: ALPHA_LOGO_URI };
 
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS cfg (k TEXT PRIMARY KEY, v TEXT)`,
@@ -1760,7 +1760,7 @@ self.addEventListener('notificationclick', e => {
 async function brCfg(env) { try { await ensureSchema(env.DB); return await getCfg(env.DB); } catch (e) { return {}; } } // 16/11/2026: thương hiệu riêng (br_ten, br_logo) lưu từ Cài đặt → Thương hiệu
 function brJs(c) { return JSON.stringify({ name: c.br_ten || '', logo: c.br_logo ? '/logo.' + ((/^data:image\/(png|webp|jpeg|svg\+xml)/.exec(c.br_logo) || [])[1] || 'png').replace('jpeg', 'jpg').replace('svg+xml', 'svg') : '', cty: c.ten_cty || '' }).replace(/</g, '\\u003c'); }
 function htmlEsc(s) { return String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch])); }
-const MANIFEST = JSON.stringify({ name: 'Chấm công', short_name: 'Chấm công', start_url: '/', scope: '/', display: 'standalone', background_color: '#F4EFE5', theme_color: '#2F7D4F', icons: [{ src: '/icon.png', sizes: '512x512', type: 'image/png' }, { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' }] });
+const MANIFEST = JSON.stringify({ name: 'Alpha Books · Chấm công', short_name: 'Alpha Books', start_url: '/', scope: '/', display: 'standalone', background_color: '#FBF7F2', theme_color: '#F47830', icons: [{ src: '/icon.png', sizes: '512x512', type: 'image/png' }, { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' }] });
 function b64ToBytes(b64) { const s = atob(b64), a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
 const SEC = { 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer', 'x-frame-options': 'DENY', 'permissions-policy': 'camera=(), microphone=(), geolocation=()' };
 
