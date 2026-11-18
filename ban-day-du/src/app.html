@@ -1328,14 +1328,51 @@ function mkDoiView(st) {
   };
   $('#mk-out').onclick = function (e) { e.preventDefault(); api('/api/dang-xuat', { vai: 'nv' }).then(function () { boot(); }); };
 }
+function coBrand(st) {
+  var HS = (st && st.hs) || null, HSo = (st && st.ho_so) || {};
+  var ctyRaw = String((st && st.cty) || (HS && HS.cty) || HSo.cty || (st && st.me && st.me.cty) || (st && st.ten_cty) || '').trim();
+  var ctyBrands = (st && st.cty_brands) || {};
+  var custom = ctyBrands[ctyRaw] || {};
+  var cleanCty = ctyRaw.replace(/^Công ty\s+(TNHH|CP|Cổ phần)\s+/i, '').replace(/\s*\([^)]*\)/g, '').trim();
+  var isOmega = /omega/i.test(ctyRaw);
+  var isEts = /ets/i.test(ctyRaw);
+  var isGamma = /gamma/i.test(ctyRaw);
+  var isMed = /medinsights/i.test(ctyRaw);
+
+  var brandName = custom.name || (isOmega ? 'Omega Plus' : isEts ? 'ETS Publishing' : isGamma ? 'Gamma Books' : isMed ? 'Medinsights' : cleanCty || (window.QTT_BR && window.QTT_BR.name) || 'Alpha Books');
+  var brandSub = custom.sub || 'Thành viên Alpha Publishing Group';
+  var brandLogo = custom.logo || (window.QTT_BR && window.QTT_BR.logo) || '/icon.svg';
+
+  var m = '#D95F18', m2 = '#F47830', grad = 'linear-gradient(165deg,#8F360A 0%,#C84E14 55%,#F47830 100%)';
+  if (isOmega || custom.color === 'duong') {
+    m = '#1F5F8B'; m2 = '#2468B8'; grad = 'linear-gradient(165deg,#122B44 0%,#1A4366 55%,#2468B8 100%)';
+  } else if (isEts || custom.color === 'ngoc') {
+    m = '#0B5F5A'; m2 = '#17958B'; grad = 'linear-gradient(165deg,#063B37 0%,#0B5F5A 55%,#17958B 100%)';
+  } else if (isGamma || custom.color === 'reu') {
+    m = '#2F4A2B'; m2 = '#557A42'; grad = 'linear-gradient(165deg,#1A2F18 0%,#2F4A2B 55%,#557A42 100%)';
+  } else if (isMed) {
+    m = '#12407A'; m2 = '#1F6FB5'; grad = 'linear-gradient(165deg,#0C2647 0%,#12407A 55%,#1F6FB5 100%)';
+  } else if (custom.color === 'hongdam') {
+    m = '#7E1846'; m2 = '#C93C7A'; grad = 'linear-gradient(165deg,#4A0C28 0%,#7E1846 55%,#C93C7A 100%)';
+  }
+  return { raw: ctyRaw, name: brandName, sub: brandSub, logo: brandLogo, m: m, m2: m2, grad: grad };
+}
 function nvView(st) {
   LAST_ST = st; var DK = dkOn();
   DEMO = !!st.demo;
+  var brd = coBrand(st);
+  var coStyle = document.getElementById('co-brand-css');
+  if (!coStyle) {
+    coStyle = document.createElement('style');
+    coStyle.id = 'co-brand-css';
+    document.head.appendChild(coStyle);
+  }
+  coStyle.textContent = '.nvx{--m:' + brd.m + '!important;--m2:' + brd.m2 + '!important;} .nvx-hero:not(.sang):not(.chieu):not(.night){background:' + brd.grad + '!important;}';
   var today0 = Math.floor((st.now + VN) / 864e5) * 864e5 - VN, q = vp(st.now), tIso = q.y + '-' + q.m + '-' + q.d;
   var mine = st.thang || [], todayList = mine.filter(function (r) { return r.t >= today0; }), pastToday = todayList.filter(function (r) { return r.t <= st.now; });
   var last = pastToday[pastToday.length - 1], next = last && last.loai === 'vao' ? 'ra' : 'vao', other = next === 'vao' ? 'ra' : 'vao';
   var C = st.cong || [], need = C.filter(function (c) { return !c.du_lieu.tam && c.xn === 0; })[0];
-  var HSo = st.ho_so || {}, HS = st.hs || null, ten = (HS && HS.ten) || st.me.ten, cty = st.cty || (HS && HS.cty) || HSo.cty || st.ten_cty || '', phNew = (st.phieu || []).filter(function (p) { return !p.xem_at; });
+  var HSo = st.ho_so || {}, HS = st.hs || null, ten = (HS && HS.ten) || st.me.ten, cty = brd.name, phNew = (st.phieu || []).filter(function (p) { return !p.xem_at; });
   var L = st.lich, DU = st.duyet || [], K = khMap(HS), MS = monthStats(st, HS, HSo), LE = leMap(HS), av = myAv(st);
   var TABS = [['home', 'Home'], ['lich', 'Lịch'], ['cong', 'Công'], ['don', 'Đơn'], ['luong', 'Lương'], ['hoc', 'Học']]; // 12/11 17:42: thêm tab Học (Đào tạo nội bộ)
   if (NVT.tab !== 'toi' && !TABS.some(function (x) { return x[0] === NVT.tab; })) NVT.tab = 'home';
@@ -1470,7 +1507,7 @@ function nvView(st) {
   if (T === 'toi') h += toiHtml(st, HS, HSo, ten, cty, av);
   h += '</main></div>';
   var navTabs = DK ? TABS.concat([['toi', 'Bạn']]) : TABS;
-  h += '<nav class="nvx-nav' + (T === 'toi' && !DK ? ' hide' : '') + '" aria-label="Các mục chính">' + (DK ? '<div class="dk-brand"><img src="' + esc((window.QTT_BR && window.QTT_BR.logo) || '/icon.svg') + '" alt="Alpha Books"><span><b>' + esc((window.QTT_BR && window.QTT_BR.name) || 'Alpha Books') + '</b><small>' + esc(String(cty || 'Better Knowledge, Better Success').replace(/^Công ty\s+(TNHH|CP|Cổ phần)\s+/i, '')) + '</small></span></div><button type="button" class="dk-me" data-tab="toi">' + avHtml(av, ten, 'sm') + '<span><b>' + esc(ten) + '</b><small>' + esc(st.me.ma) + '</small></span></button>' : '') + navTabs.map(function (x) { var dot = (x[0] === 'cong' && need) || (x[0] === 'lich' && L && L.mo && L.mo.length) || (x[0] === 'luong' && phNew.length) || (x[0] === 'don' && DU.length) || (x[0] === 'hoc' && st.dt && (st.dt.kh || []).some(function (k) { var e = dtEv(st, k).st; return e === 'chua' || e === 'hoc' || e === 'khong'; })); return '<button type="button" data-tab="' + x[0] + '" class="' + (x[0] === T ? 'on' : '') + '"' + (x[0] === T ? ' aria-current="page"' : '') + '>' + ni(x[0], 21) + '<span>' + x[1] + '</span>' + (dot ? '<i class="dot" aria-label="có việc mới"></i>' : '') + '</button>'; }).join('') +
+  h += '<nav class="nvx-nav' + (T === 'toi' && !DK ? ' hide' : '') + '" aria-label="Các mục chính">' + (DK ? '<div class="dk-brand"><img src="' + esc(brd.logo) + '" alt="' + esc(brd.name) + '"><span><b>' + esc(brd.name) + '</b><small>' + esc(brd.sub) + '</small></span></div><button type="button" class="dk-me" data-tab="toi">' + avHtml(av, ten, 'sm') + '<span><b>' + esc(ten) + '</b><small>' + esc(st.me.ma) + '</small></span></button>' : '') + navTabs.map(function (x) { var dot = (x[0] === 'cong' && need) || (x[0] === 'lich' && L && L.mo && L.mo.length) || (x[0] === 'luong' && phNew.length) || (x[0] === 'don' && DU.length) || (x[0] === 'hoc' && st.dt && (st.dt.kh || []).some(function (k) { var e = dtEv(st, k).st; return e === 'chua' || e === 'hoc' || e === 'khong'; })); return '<button type="button" data-tab="' + x[0] + '" class="' + (x[0] === T ? 'on' : '') + '"' + (x[0] === T ? ' aria-current="page"' : '') + '>' + ni(x[0], 21) + '<span>' + x[1] + '</span>' + (dot ? '<i class="dot" aria-label="có việc mới"></i>' : '') + '</button>'; }).join('') +
     (DK ? (st.me.qt ? '<button type="button" class="dk-qt" data-qt>' + ni('qt', 21) + '<span>Quản trị</span></button>' : '') + '<span class="dk-sp"></span><button type="button" class="dk-v" data-view="mb">' + ni('mb', 18) + '<span>Xem dạng điện thoại</span></button>' : '') + '</nav>';
   h += '<div class="nvx-sheet" id="sheet" hidden><div class="bd" data-close></div><div class="pn" role="dialog" aria-modal="true" aria-labelledby="sh-t"><div class="hd"><b id="sh-t"></b><button type="button" class="nvx-ib" data-close aria-label="Đóng">' + ni('x', 18) + '</button></div><div class="bdy" id="sh-b"></div></div></div>';
   app.innerHTML = h + '</div></div>';
@@ -2405,15 +2442,17 @@ function tabMc() {
 }
 function tabNv() {
   var d = Object.assign({}, QL.d, { nv: QL.d.nv.filter(function (x) { return qlInCty(x.ma); }) }), multi = qlCtys().length > 1;
-  var h = '<div class="card"><h3 style="font-size:16px">Thêm nhân viên</h3><div class="grid2" style="margin-top:4px"><div><label class="lbl">Mã nhân viên</label><input id="n-ma" type="text" autocapitalize="characters" placeholder="NV001"></div><div><label class="lbl">Họ tên</label><input id="n-ten" type="text"></div></div>' +
-    '<label class="lbl">Mã PIN ban đầu (4–8 chữ số) – báo riêng cho nhân viên</label><input id="n-pin" type="tel" inputmode="numeric" style="max-width:220px"><div style="margin-top:10px"><button class="btn pri" id="n-go">Thêm</button></div></div>';
+  var h = '<div class="card" style="border-left:4px solid #D95F18;background:#FFF9F5"><div style="display:flex;align-items:flex-start;gap:12px"><div style="font-size:24px;line-height:1">ℹ️</div><div><h3 style="font-size:16px;margin:0 0 4px;color:#8F360A">Nguồn dữ liệu nhân sự duy nhất (Single Source of Truth)</h3><p class="muted small" style="margin:0 0 10px;line-height:1.5">Để hồ sơ có đầy đủ công ty con, phòng ban, chức vụ, hợp đồng và lịch làm việc, <b>vui lòng tạo và quản lý nhân sự tại trang Quản trị toàn diện</b>. Dữ liệu sẽ tự động đồng bộ sang trang Chấm công này.</p><a href="/quan-tri#appnv" class="btn pri sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">Sang Trang Quản trị Nhân sự (/quan-tri) &rarr;</a></div></div></div>';
+  h += '<div class="card" style="padding:10px 14px"><details class="muted" style="font-size:13px"><summary style="cursor:pointer;font-weight:600;color:#666">Thêm nhanh kỹ thuật khẩn cấp (Không khuyến khích - chỉ dùng khi lỗi mạng)</summary><div style="margin-top:10px;padding-top:10px;border-top:1px dashed #ddd"><p class="small muted" style="margin:0 0 8px">Lưu ý: Thêm tại đây chỉ cấp tài khoản chấm công nhanh, nhân viên sẽ chưa có hồ sơ ở trang Quản trị.</p><div class="grid2" style="margin-top:4px"><div><label class="lbl">Mã nhân viên</label><input id="n-ma" type="text" autocapitalize="characters" placeholder="AB001"></div><div><label class="lbl">Họ tên</label><input id="n-ten" type="text"></div></div><div class="grid2" style="margin-top:4px"><div><label class="lbl">Mã PIN ban đầu (4–8 chữ số)</label><input id="n-pin" type="tel" inputmode="numeric" style="max-width:220px"></div><div><label class="lbl">Công ty thành viên</label><input id="n-cty" type="text" placeholder="Vd: Sách Alpha, Omega Plus..."></div></div><div style="margin-top:10px"><button class="btn sm" id="n-go">Thêm nhanh</button></div></div></details></div>';
   h += '<div class="card"><h3 style="font-size:16px;margin-bottom:6px">Danh sách (' + d.nv.length + ')</h3><div class="tblw"><table><thead><tr><th>Mã</th><th>Họ tên</th><th>Trạng thái</th><th>Đang đăng nhập trên</th><th></th></tr></thead><tbody>' +
     (d.nv.length ? d.nv.map(function (x) {
       return '<tr><td>' + esc(x.ma) + '</td><td>' + esc(x.ten) + (multi && x.cty ? '<div class="muted small">' + esc(x.cty) + '</div>' : '') + '</td><td>' + (x.active ? (x.khoa ? '<span class="badge err">Tạm khóa (sai PIN)</span>' : '<span class="badge ok">Đang dùng</span>') : '<span class="badge">Đã ngừng</span>') + '</td><td class="small">' + (x.thiet_bi.length ? x.thiet_bi.map(esc).join('<br>') : '<span class="faint">Chưa đăng nhập</span>') + '</td>' +
         '<td><div class="row" style="gap:6px"><button class="btn sm" data-a="pin" data-m="' + esc(x.ma) + '">Đặt lại PIN</button><button class="btn sm" data-a="go" data-m="' + esc(x.ma) + '">Gỡ đăng nhập</button>' + (x.khoa ? '<button class="btn sm" data-a="mo" data-m="' + esc(x.ma) + '">Mở khóa</button>' : '') + '<button class="btn sm ' + (x.active ? 'dan' : '') + '" data-a="act" data-v="' + (x.active ? 0 : 1) + '" data-m="' + esc(x.ma) + '">' + (x.active ? 'Ngừng' : 'Dùng lại') + '</button></div></td></tr>';
     }).join('') : '<tr><td colspan="5" class="empty">Chưa có nhân viên</td></tr>') + '</tbody></table></div><p class="hint">Mỗi điện thoại/trình duyệt đăng nhập là một dòng. Trên iPhone, ứng dụng ghim ở màn hình chính và Safari tính là 2 nơi đăng nhập riêng.</p></div>';
   $('#body').innerHTML = h;
-  $('#n-go').onclick = function () { api('/api/ql/nv', { ma: $('#n-ma').value, ten: $('#n-ten').value, pin: $('#n-pin').value }).then(function (j) { after(j, 'Đã thêm nhân viên.'); }); };
+  if ($('#n-go')) {
+    $('#n-go').onclick = function () { api('/api/ql/nv', { ma: $('#n-ma').value, ten: $('#n-ten').value, pin: $('#n-pin').value, cty: ($('#n-cty') ? $('#n-cty').value : '') }).then(function (j) { after(j, 'Đã thêm nhân viên.'); }); };
+  }
   $('#body').querySelectorAll('[data-a]').forEach(function (b) {
     b.onclick = function () {
       var ma = b.getAttribute('data-m'), a = b.getAttribute('data-a'), body = { ma: ma };

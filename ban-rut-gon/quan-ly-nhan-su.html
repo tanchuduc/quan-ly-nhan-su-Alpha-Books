@@ -2393,9 +2393,9 @@ body.nav-hide .nav-hide-btn{background:var(--pri-soft);border-color:var(--pri);c
     <div class="sb-tools"><span id="sbCount"></span><button type="button" class="sb-all" data-act="nav-all" id="sbAll">Thu gọn tất cả</button></div>
     <nav class="nav" id="nav"></nav>
     <div class="panel-foot">
-      <div class="sb-foot-row"><a href="https://quantritute.com/cong-cu" id="bback">← Bộ công cụ</a><span class="sb-ic"><button class="sb-mini" data-act="cmd" title="Tìm nhanh (Ctrl K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button><button class="sb-mini" data-act="palette" title="Đổi màu giao diện"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 0 0 5-5c0-4-4-7.2-9-7.2Z"/><circle cx="7.5" cy="11.5" r="1.1"/><circle cx="10.5" cy="7.5" r="1.1"/><circle cx="15" cy="7.8" r="1.1"/></svg></button></span></div>
+      <div class="sb-foot-row" style="justify-content:flex-end"><span class="sb-ic"><button class="sb-mini" data-act="cmd" title="Tìm nhanh (Ctrl K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button><button class="sb-mini" data-act="palette" title="Đổi màu giao diện"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 0 0 5-5c0-4-4-7.2-9-7.2Z"/><circle cx="7.5" cy="11.5" r="1.1"/><circle cx="10.5" cy="7.5" r="1.1"/><circle cx="15" cy="7.8" r="1.1"/></svg></button></span></div>
       <span class="sb-note" id="sbNote">Dữ liệu xử lý ngay trên máy anh/chị, không gửi đi đâu.</span>
-      <span class="sb-author">Tác giả: <a href="https://quantritute.com" target="_blank" rel="noopener" title="Quản trị tử tế – quantritute.com">Quản trị tử tế</a></span>
+
     </div>
   </aside>
   <div class="main">
@@ -4020,7 +4020,7 @@ if (typeof module !== 'undefined') module.exports = XW;
   var MODS = [
     { id: 'dash', g: 'tq', t: 'Bảng điều hành', st: 'ok', k: 'tong quan dashboard' },
     { id: 'viec', g: 'tq', t: 'Việc cần xử lý', st: 'ok', k: 'canh bao viec gap' },
-    { id: 'tochuc', g: 'ns', t: 'Sơ đồ tổ chức', st: 'ok', k: 'phong ban so do' },
+    { id: 'tochuc', g: 'ns', t: 'Cơ cấu tổ chức', st: 'ok', k: 'co cau to chuc phong ban so do chuc vu' },
     { id: 'nv', g: 'ns', t: 'Danh sách nhân sự', st: 'ok', k: 'danh sach nhan vien tai khoan dang nhap pin' }, // gộp Tài khoản nhân viên (anh chốt 01/11 23:28)
     { id: 'hoso', g: 'ns', t: 'Hồ sơ nhân sự', st: 'ok', k: 'giay to bang cap ly lich' },
     { id: 'hd', g: 'ns', t: 'Hợp đồng', st: 'ok', k: 'hop dong lao dong het han' },
@@ -6674,18 +6674,98 @@ if (typeof module !== 'undefined') module.exports = XW;
       '<div class="' + (vac ? 'k-vac' : '') + '"><b>' + vac + '</b><span>vị trí còn trống</span></div><div class="' + (noHead ? 'k-warn' : '') + '"><b>' + noHead + '</b><span>bộ phận thiếu người phụ trách</span></div></div>';
     var uFirst = selUnits()[0] || S.units[0];
     var addBtn = uFirst ? '<button class="btn btn-sm btn-primary" data-act="od-add" data-u="' + uFirst.id + '">+ Thêm phòng ban</button>' : '';
-    var tools = '<div class="seg" role="tablist"><button class="' + (f.view === 'chart' ? 'on' : '') + '" data-act="org-view" data-id="chart">Sơ đồ</button><button class="' + (f.view === 'table' ? 'on' : '') + '" data-act="org-view" data-id="table">Bảng phòng ban</button><button class="' + (f.view === 'cv' ? 'on' : '') + '" data-act="org-view" data-id="cv">Chức vụ</button></div>' +
-      (f.view === 'cv' ? '' : '<label class="radio"><input type="checkbox" id="orgLeft"' + (f.left ? ' checked' : '') + '> Hiện người đã nghỉ</label>' +
-      '<button class="btn btn-sm" data-act="org-print">In sơ đồ</button>' + addBtn);
+    var cvAddBtn = uFirst ? '<button class="btn btn-sm btn-primary" data-act="cv-add" data-u="' + uFirst.id + '">+ Thêm chức vụ</button>' : '';
+    var viewTabs = '<div class="seg" role="tablist" style="padding:4px;background:var(--surface-2);border-radius:10px">' +
+      '<button class="' + (f.view === 'chart' ? 'on' : '') + '" data-act="org-view" data-id="chart" style="padding:0 16px;height:34px;font-size:13.5px">Sơ đồ</button>' +
+      '<button class="' + (f.view === 'table' ? 'on' : '') + '" data-act="org-view" data-id="table" style="padding:0 16px;height:34px;font-size:13.5px">Bảng phòng ban</button>' +
+      '<button class="' + (f.view === 'cv' ? 'on' : '') + '" data-act="org-view" data-id="cv" style="padding:0 16px;height:34px;font-size:13.5px">Chức vụ</button>' +
+      '</div>';
+    var viewActions = f.view === 'cv' ? cvAddBtn : (
+      '<label class="radio" style="margin-right:4px"><input type="checkbox" id="orgLeft"' + (f.left ? ' checked' : '') + '> Hiện người đã nghỉ</label>' +
+      '<button class="btn btn-sm" data-act="org-print">In sơ đồ</button>' + addBtn
+    );
+    var subBar = '<div class="org-subbar" style="display:flex;justify-content:space-between;align-items:center;margin:0 0 16px;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--line-2);padding-bottom:12px">' +
+      viewTabs +
+      '<div class="link-row" style="margin:0;align-items:center;gap:8px">' + viewActions + '</div>' +
+      '</div>';
     var body;
-    if (f.view === 'cv') { var cvs = gather('CV'); body = '<div class="card card-pad"><div class="card-head"><div><h3>Chức vụ</h3><p>Đọc từ danh mục chức vụ trong dữ liệu (sheet CV)</p></div></div>' + (cvs.length ? table('dm-CV', uCol().concat(['Mã chức vụ', 'Tên chức vụ', 'Cấp bậc', 'Phụ cấp chức vụ (đồng/tháng)'].map(function (k) { return { t: k, f: function (x) { return x.r[k]; }, r: /Cấp|Phụ cấp/.test(k) ? 1 : 0 }; })), cvs, { title: 'Chức vụ', limit: 1000 }) : '<p class="muted">Chưa có danh mục chức vụ.</p>') + '</div>'; }
+    if (f.view === 'cv') {
+      var cvs = gather('CV');
+      var cvEmptyNotice = !cvs.length ? '<div class="notice" style="margin-bottom:14px">' + ic('info') + '<div>Đơn vị chưa có danh mục chức vụ. Bạn có thể bấm <button type="button" class="btn btn-sm btn-primary" data-act="cv-seed" data-u="' + (uFirst ? uFirst.id : '') + '">Khởi tạo chức vụ mẫu</button> để tích chọn các chức vụ cần dùng, hoặc bấm <b>+ Thêm chức vụ</b> để tự tạo.</div></div>' : '';
+      body = cvEmptyNotice + '<div class="card card-pad"><div class="card-head"><div><h3>Danh mục chức vụ</h3><p>Đọc từ danh mục chức vụ trong dữ liệu (sheet CV) · bấm vào tên hoặc nút Sửa để chỉnh sửa</p></div><div class="link-row" style="margin:0"><button type="button" class="btn btn-sm btn-danger-ghost" id="cvDelBatch" style="display:none">Xóa chức vụ đã chọn</button></div></div>' +
+        (cvs.length ? table('dm-CV', [
+          { t: '<input type="checkbox" id="cvAll" style="width:16px;height:16px;vertical-align:middle" title="Chọn tất cả">', nosort: 1, cls: 'tb-ck-col', h: function (x) { return '<input type="checkbox" class="cv-ck" data-code="' + esc(x.r['Mã chức vụ']) + '" data-u="' + esc(x.u.id) + '" style="width:16px;height:16px;vertical-align:middle">'; } },
+          { t: 'Mã chức vụ', f: function (x) { return x.r['Mã chức vụ']; }, mono: 1 },
+          { t: 'Tên chức vụ', f: function (x) { return x.r['Tên chức vụ']; }, h: function (x) { return '<a href="#" class="plink" data-act="cv-edit" data-u="' + x.u.id + '" data-id="' + esc(x.r['Mã chức vụ']) + '" title="Bấm để sửa hoặc xóa">' + esc(x.r['Tên chức vụ']) + '</a>'; } },
+          { t: 'Cấp bậc', f: function (x) { return x.r['Cấp bậc']; }, r: 1 },
+          { t: 'Phụ cấp chức vụ', r: 1, h: function (x) { var p = +x.r['Phụ cấp chức vụ (đồng/tháng)'] || 0; return p ? fmtInt(p) + ' đ' : '<span class="faint">—</span>'; } },
+          { t: 'Nhân sự', r: 1, h: function (x) { var cnt = (x.u.data.NV || []).filter(function (e) { return e['Chức vụ'] === x.r['Tên chức vụ'] && HR.staffState(e, refDate()) !== 'left'; }).length; return cnt ? '<b>' + cnt + '</b> người' : '<span class="faint">—</span>'; } },
+          { t: 'Thao tác', nosort: 1, cls: 'r', h: function (x) { return '<button type="button" class="btn btn-sm" data-act="cv-edit" data-u="' + x.u.id + '" data-id="' + esc(x.r['Mã chức vụ']) + '">Sửa</button>'; } }
+        ], cvs, { title: 'Chức vụ', limit: 1000 }) : '<p class="muted">Chưa có danh mục chức vụ.</p>') + '</div>';
+    }
     else if (f.view === 'table') body = '<div id="orgTbl"></div>';
     else body = orgs.map(function (o) { return '<div class="card card-pad org-card">' + orgChart(o, f) + '</div>'; }).join('') +
       '<div class="org-leg"><span><i class="lg-head"></i>Trưởng bộ phận</span><span><i class="lg-mat"></i>Nghỉ thai sản</span><span><i class="lg-prob"></i>Thử việc</span><span><i class="lg-vac"></i>Còn trống theo định biên</span><span class="faint">Kéo một người sang ô phòng khác để chuyển phòng · bấm tên phòng để sửa</span></div>';
     var noNvNotice = !gather('NV').length ? '<div class="notice" style="margin-bottom:14px">' + ic('info') + '<div>Đơn vị chưa có hồ sơ nhân viên. Bạn có thể bấm <b>+ Thêm phòng ban</b> để thiết lập trước cơ cấu tổ chức, hoặc vào <a href="#nhap" data-go="nhap">Nhập dữ liệu</a> để nạp hồ sơ nhân viên.</div></div>' : '';
-    return editBar() + noNvNotice + pageHead('Sơ đồ tổ chức', 'Vẽ từ Danh mục phòng ban và Danh sách nhân sự · tính đến ' + vn(R), tools) + kpi + body;
+    var pageSub = f.view === 'cv' ? 'Quản lý danh mục chức vụ, cấp bậc và phân bổ nhân sự · tính đến ' + vn(R)
+      : f.view === 'table' ? 'Danh mục phòng ban, định biên và nhân sự hiện có · tính đến ' + vn(R)
+      : 'Sơ đồ cây cấu trúc tổ chức và nhân sự phụ trách · tính đến ' + vn(R);
+    return editBar() + noNvNotice + pageHead('Cơ cấu tổ chức', pageSub) + subBar + (f.view === 'cv' ? '' : kpi) + body;
   };
   BINDS.tochuc = function () {
+    // CV Batch Checkbox Bindings
+    var allCk = $('#cvAll'), delBtn = $('#cvDelBatch');
+    function updateCvBatch() {
+      var cks = $('.cv-ck:checked');
+      if (delBtn) {
+        delBtn.style.display = cks.length ? 'inline-flex' : 'none';
+        delBtn.textContent = 'Xóa (' + cks.length + ' đã chọn)';
+      }
+      if (allCk) {
+        var allList = $('.cv-ck');
+        allCk.checked = allList.length > 0 && cks.length === allList.length;
+        allCk.indeterminate = cks.length > 0 && cks.length < allList.length;
+      }
+    }
+    if (allCk) {
+      allCk.addEventListener('change', function () {
+        $('.cv-ck').forEach(function (ck) { ck.checked = allCk.checked; });
+        updateCvBatch();
+      });
+    }
+    $('.cv-ck').forEach(function (ck) {
+      ck.addEventListener('change', updateCvBatch);
+    });
+    if (delBtn) {
+      delBtn.addEventListener('click', function () {
+        var cks = $('.cv-ck:checked');
+        if (!cks.length) return;
+        var codes = [].map.call(cks, function (el) { return el.getAttribute('data-code'); });
+        var u = unitById(cks[0].getAttribute('data-u')) || (selUnits()[0] || S.units[0]);
+        var inUse = [];
+        codes.forEach(function (code) {
+          var item = (u.data.CV || []).filter(function (c) { return String(c['Mã chức vụ']).toUpperCase() === String(code).toUpperCase(); })[0];
+          if (item) {
+            var cnt = (u.data.NV || []).filter(function (e) { return e['Chức vụ'] === item['Tên chức vụ'] && HR.staffState(e, refDate()) !== 'left'; }).length;
+            if (cnt > 0) inUse.push(item['Tên chức vụ'] + ' (' + cnt + ' người)');
+          }
+        });
+        if (inUse.length) {
+          toast('Không thể xóa chức vụ đang có người giữ', 'err', 'Chức vụ: ' + inUse.join(', ') + '. Cần đổi chức vụ của nhân viên trước.');
+          return;
+        }
+        confirmBox('Xóa ' + codes.length + ' chức vụ đã chọn?', 'Các chức vụ này sẽ bị xóa khỏi Danh mục chức vụ.', 'Xóa', function () {
+          codes.forEach(function (code) {
+            var item = (u.data.CV || []).filter(function (c) { return String(c['Mã chức vụ']).toUpperCase() === String(code).toUpperCase(); })[0];
+            delRow(u, 'CV', code, 'Xóa chức vụ ' + (item ? item['Tên chức vụ'] : code));
+          });
+          commitEdits();
+          toast('Đã xóa ' + codes.length + ' chức vụ', 'ok');
+          render();
+        });
+      });
+    }
+
     var cb = $('#orgLeft'); if (cb) cb.addEventListener('change', function () { PS.tochuc.left = cb.checked; render(); });
     if ($('#orgTbl')) {
       var R = refDate(), rows = [];
@@ -6816,6 +6896,251 @@ if (typeof module !== 'undefined') module.exports = XW;
       m.close(); commitEdits(); toast('Đã chuyển ' + shortName(e['Họ và tên']) + ' sang ' + toName, 'ok', 'Lưu trong phần mềm. Bấm "Tải file Excel đã cập nhật" để ghi ra file gốc.');
     });
   }
+  // Danh mục chức vụ chuẩn & tiện ích quản lý
+  var DEFAULT_CVS = [
+    { 'Mã chức vụ': 'CT', 'Tên chức vụ': 'Chủ tịch HĐQT', 'Cấp bậc': 1, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'TGD', 'Tên chức vụ': 'Tổng Giám đốc', 'Cấp bậc': 1, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'GD', 'Tên chức vụ': 'Giám đốc', 'Cấp bậc': 1, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'PGD', 'Tên chức vụ': 'Phó Giám đốc', 'Cấp bậc': 2, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'TP', 'Tên chức vụ': 'Trưởng phòng', 'Cấp bậc': 3, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'PP', 'Tên chức vụ': 'Phó phòng', 'Cấp bậc': 4, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'TN', 'Tên chức vụ': 'Trưởng nhóm', 'Cấp bậc': 5, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'CVC', 'Tên chức vụ': 'Chuyên viên chính', 'Cấp bậc': 6, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'CV', 'Tên chức vụ': 'Chuyên viên', 'Cấp bậc': 6, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'NV', 'Tên chức vụ': 'Nhân viên', 'Cấp bậc': 7, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'TTS', 'Tên chức vụ': 'Thực tập sinh', 'Cấp bậc': 8, 'Phụ cấp chức vụ (đồng/tháng)': 0 },
+    { 'Mã chức vụ': 'CTV', 'Tên chức vụ': 'Cộng tác viên', 'Cấp bậc': 9, 'Phụ cấp chức vụ (đồng/tháng)': 0 }
+  ];
+
+  function makeCvCode(u, name) {
+    var raw = HR.stripAcc(String(name || '')).toUpperCase();
+    var words = raw.match(/\b[A-Z0-9]/g);
+    var base = (words && words.length >= 2) ? words.join('') : raw.replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    if (!base) base = 'CV';
+    var code = base.slice(0, 8), k = 1;
+    var exists = function (c) { return (u.data.CV || []).some(function (p) { return String(p['Mã chức vụ']).toUpperCase() === c; }); };
+    while (exists(code)) { k++; code = base.slice(0, 6) + k; }
+    return code;
+  }
+
+  function defaultCvRank(name) {
+    if (/chủ tịch|tổng giám đốc|giám đốc/i.test(name)) return 1;
+    if (/phó giám đốc/i.test(name)) return 2;
+    if (/trưởng (phòng|ban|bộ phận)|kế toán trưởng/i.test(name)) return 3;
+    if (/phó (phòng|ban|bộ phận)/i.test(name)) return 4;
+    if (/trưởng nhóm|tổ trưởng|trưởng ca|quản lý/i.test(name)) return 5;
+    if (/chuyên viên chính/i.test(name)) return 6;
+    if (/chuyên viên/i.test(name)) return 6;
+    if (/thực tập/i.test(name)) return 8;
+    if (/cộng tác/i.test(name)) return 9;
+    return 7;
+  }
+
+  function ensureCv(u, name, rank, pc) {
+    if (!name) return null;
+    name = String(name).trim().replace(/\s+/g, ' ');
+    var existing = (u.data.CV || []).filter(function (c) { return c['Tên chức vụ'] && c['Tên chức vụ'].toLowerCase() === name.toLowerCase(); })[0];
+    if (existing) return existing;
+    var dMatch = DEFAULT_CVS.filter(function (c) { return c['Tên chức vụ'].toLowerCase() === name.toLowerCase(); })[0];
+    var c = dMatch ? dMatch['Mã chức vụ'] : makeCvCode(u, name);
+    var k = 1, baseC = c;
+    while ((u.data.CV || []).some(function (p) { return String(p['Mã chức vụ']).toUpperCase() === c; })) {
+      k++; c = baseC + k;
+    }
+    var r = rank != null ? +rank : (dMatch ? dMatch['Cấp bậc'] : defaultCvRank(name));
+    var pVal = pc != null ? +pc : (dMatch ? dMatch['Phụ cấp chức vụ (đồng/tháng)'] : 0);
+    var row = { 'Mã chức vụ': c, 'Tên chức vụ': name, 'Cấp bậc': r, 'Phụ cấp chức vụ (đồng/tháng)': pVal };
+    editRow(u, 'CV', c, row, 'Tự động thêm chức vụ ' + name + ' (' + c + ')');
+    return row;
+  }
+
+  function rankDesc(r) {
+    switch (+r) {
+      case 1: return 'Lãnh đạo cấp cao (Chủ tịch, TGĐ, Giám đốc)';
+      case 2: return 'Lãnh đạo cấp phó (Phó TGĐ, Phó Giám đốc)';
+      case 3: return 'Quản lý cấp phòng / ban (Trưởng phòng, Kế toán trưởng)';
+      case 4: return 'Quản lý cấp phó phòng (Phó phòng)';
+      case 5: return 'Quản lý cơ sở (Trưởng nhóm, Tổ trưởng, Trưởng ca)';
+      case 6: return 'Chuyên viên chuyên môn (Senior / Specialist)';
+      case 7: return 'Nhân viên thừa hành (Staff)';
+      case 8: return 'Học việc / Thực tập sinh (Intern)';
+      case 9: return 'Cộng tác viên / Vị trí khác';
+      default: return 'Cấp bậc ' + r;
+    }
+  }
+
+  function openCvSeedModal(u) {
+    var existingNames = {};
+    (u.data.CV || []).forEach(function (c) { if (c['Tên chức vụ']) existingNames[c['Tên chức vụ'].toLowerCase()] = 1; });
+
+    var items = DEFAULT_CVS.map(function (d, i) {
+      var isExist = !!existingNames[d['Tên chức vụ'].toLowerCase()];
+      return '<label class="tl-ro" style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;border:1px solid var(--line-2);margin-bottom:6px;cursor:' + (isExist ? 'not-allowed' : 'pointer') + ';background:' + (isExist ? 'var(--surface-2)' : 'var(--surface)') + '">' +
+        '<input type="checkbox" class="cv-seed-ck" value="' + esc(d['Mã chức vụ']) + '"' + (isExist ? ' disabled' : ' checked') + ' style="width:17px;height:17px;cursor:pointer">' +
+        '<div style="flex:1"><b>' + esc(d['Tên chức vụ']) + '</b> <span class="tag" style="margin-left:6px;font-size:11px">Cấp ' + d['Cấp bậc'] + '</span>' +
+        (isExist ? ' <span class="tag tag-ok" style="margin-left:6px;font-size:11px">Đã có trong danh mục</span>' : '') +
+        '<div class="faint" style="font-size:12px;margin-top:2px">' + esc(rankDesc(d['Cấp bậc'])) + '</div></div>' +
+        '<span class="mono faint" style="font-size:12px">Mã: ' + esc(d['Mã chức vụ']) + '</span>' +
+      '</label>';
+    }).join('');
+
+    var body = '<div style="margin-bottom:12px"><p class="muted">Tích chọn các chức vụ phù hợp với mô hình doanh nghiệp của bạn để khởi tạo:</p>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0">' +
+        '<span class="faint" id="cvSeedCount" style="font-weight:600"></span>' +
+        '<span class="link-row" style="margin:0"><button type="button" class="btn btn-sm" id="cvSeedAll">Chọn tất cả</button><button type="button" class="btn btn-sm" id="cvSeedNone">Bỏ chọn tất cả</button></span>' +
+      '</div></div>' +
+      '<div style="max-height:55vh;overflow-y:auto;padding-right:4px">' + items + '</div>' +
+      '<div class="link-row" style="justify-content:flex-end;margin-top:14px">' +
+        '<button type="button" class="btn" data-close>Hủy</button>' +
+        '<button type="button" class="btn btn-primary" id="cvSeedOk">Khởi tạo chức vụ đã chọn</button>' +
+      '</div>';
+
+    var m = modal('Khởi tạo danh mục chức vụ mẫu', isMulti() ? shortUnit(u.name) : '', body, true);
+
+    function updateCount() {
+      var n = m.querySelectorAll('.cv-seed-ck:checked').length;
+      var lbl = $('#cvSeedCount', m);
+      if (lbl) lbl.textContent = 'Đã chọn ' + n + ' chức vụ';
+      var okBtn = $('#cvSeedOk', m);
+      if (okBtn) {
+        okBtn.textContent = 'Khởi tạo (' + n + ' chức vụ)';
+        okBtn.disabled = (n === 0);
+      }
+    }
+    updateCount();
+
+    $('#cvSeedAll', m).addEventListener('click', function () {
+      m.querySelectorAll('.cv-seed-ck:not(:disabled)').forEach(function (ck) { ck.checked = true; });
+      updateCount();
+    });
+    $('#cvSeedNone', m).addEventListener('click', function () {
+      m.querySelectorAll('.cv-seed-ck:not(:disabled)').forEach(function (ck) { ck.checked = false; });
+      updateCount();
+    });
+    m.querySelectorAll('.cv-seed-ck').forEach(function (ck) {
+      ck.addEventListener('change', updateCount);
+    });
+
+    $('#cvSeedOk', m).addEventListener('click', function () {
+      var selCodes = [].map.call(m.querySelectorAll('.cv-seed-ck:checked'), function (el) { return el.value; });
+      if (!selCodes.length) { toast('Chưa chọn chức vụ nào', 'err'); return; }
+      var added = 0;
+      DEFAULT_CVS.forEach(function (d) {
+        if (selCodes.indexOf(d['Mã chức vụ']) >= 0) {
+          if (!(u.data.CV || []).some(function (c) { return String(c['Mã chức vụ']).toUpperCase() === String(d['Mã chức vụ']).toUpperCase() || c['Tên chức vụ'].toLowerCase() === d['Tên chức vụ'].toLowerCase(); })) {
+            editRow(u, 'CV', d['Mã chức vụ'], Object.assign({}, d), 'Khởi tạo chức vụ mẫu: ' + d['Tên chức vụ']);
+            added++;
+          }
+        }
+      });
+      m.close();
+      commitEdits();
+      toast('Đã khởi tạo ' + added + ' chức vụ', 'ok');
+      render();
+    });
+  }
+
+  function cvList(u) {
+    var fromCv = (u && u.data && u.data.CV || []).map(function (c) { return c['Tên chức vụ']; }).filter(Boolean);
+    var fromNv = (u && u.data && u.data.NV || []).map(function (x) { return x['Chức vụ']; }).filter(Boolean);
+    var defs = DEFAULT_CVS.map(function (c) { return c['Tên chức vụ']; });
+    var all = fromCv.concat(fromNv).concat(defs);
+    var seen = {}, res = [];
+    all.forEach(function (x) {
+      var k = String(x).trim();
+      if (k && !seen[k.toLowerCase()]) {
+        seen[k.toLowerCase()] = 1;
+        res.push(k);
+      }
+    });
+    return res;
+  }
+
+  function openCvModal(u, onSaved, onCancel, cvItem) {
+    var isEdit = !!(cvItem && cvItem['Mã chức vụ']);
+    var ranks = [
+      [1, 'Cấp 1 – Lãnh đạo cấp cao (Chủ tịch, TGĐ, Giám đốc)'],
+      [2, 'Cấp 2 – Lãnh đạo cấp phó (Phó TGĐ, Phó Giám đốc)'],
+      [3, 'Cấp 3 – Quản lý cấp phòng / bộ phận (Trưởng phòng, Trưởng ban)'],
+      [4, 'Cấp 4 – Quản lý cấp phó phòng / bộ phận (Phó phòng)'],
+      [5, 'Cấp 5 – Quản lý cơ sở (Trưởng nhóm, Tổ trưởng, Trưởng ca)'],
+      [6, 'Cấp 6 – Chuyên viên / Vị trí chuyên môn'],
+      [7, 'Cấp 7 – Nhân viên thừa hành'],
+      [8, 'Cấp 8 – Học việc / Thực tập sinh'],
+      [9, 'Cấp 9 – Khác / Cộng tác viên']
+    ];
+    var curRank = cvItem && cvItem['Cấp bậc'] != null ? +cvItem['Cấp bậc'] : (cvItem ? defaultCvRank(cvItem['Tên chức vụ']) : 7);
+    var body = '<div class="form-grid">' +
+      field('cvCode', 'Mã chức vụ', cvItem ? cvItem['Mã chức vụ'] : '', isEdit ? ' disabled title="Mã chức vụ không thay đổi khi sửa"' : ' maxlength="12" placeholder="Tự sinh nếu để trống (ví dụ GD, TP, NV…)"') +
+      field('cvName', 'Tên chức vụ <i class="req">*</i>', cvItem ? cvItem['Tên chức vụ'] : '', ' placeholder="Ví dụ: Giám đốc vận hành, Trưởng nhóm…"') +
+      '<div class="field"><label for="cvRank">Cấp bậc quản lý</label><select class="input" id="cvRank">' +
+        ranks.map(function (r) { return opt(r[0], r[1], curRank); }).join('') +
+      '</select></div>' +
+      field('cvPc', 'Phụ cấp chức vụ (đồng/tháng)', cvItem && cvItem['Phụ cấp chức vụ (đồng/tháng)'] ? cvItem['Phụ cấp chức vụ (đồng/tháng)'] : 0, ' inputmode="numeric" placeholder="0"') +
+      '</div>' +
+      '<div class="link-row" style="justify-content:space-between;margin-top:14px">' +
+        (isEdit ? '<button type="button" class="btn btn-danger-ghost" id="cvDel">Xóa chức vụ</button>' : '<span></span>') +
+        '<span class="link-row"><button type="button" class="btn" data-close id="cvCancel">Hủy</button><button type="button" class="btn btn-primary" id="cvSave">' + (isEdit ? 'Lưu thay đổi' : 'Thêm chức vụ') + '</button></span>' +
+      '</div>';
+
+    var m = modal(isEdit ? 'Sửa chức vụ – ' + cvItem['Tên chức vụ'] : 'Thêm chức vụ mới', isMulti() ? shortUnit(u.name) : '', body, true);
+
+    if (onCancel) {
+      var closeBtns = m.querySelectorAll('[data-close]');
+      closeBtns.forEach(function (btn) { btn.addEventListener('click', function () { onCancel(); }); });
+    }
+
+    if (isEdit) {
+      var delBtn = $('#cvDel', m);
+      if (delBtn) delBtn.addEventListener('click', function () {
+        var usedCount = (u.data.NV || []).filter(function (e) { return e['Chức vụ'] === cvItem['Tên chức vụ']; }).length;
+        if (usedCount) {
+          toast('Đang có ' + usedCount + ' nhân sự giữ chức vụ này', 'err', 'Đổi chức vụ của nhân viên trước khi xóa chức vụ.');
+          return;
+        }
+        confirmBox('Xóa chức vụ ' + cvItem['Tên chức vụ'] + '?', 'Chức vụ sẽ bị xóa khỏi Danh mục chức vụ.', 'Xóa', function () {
+          delRow(u, 'CV', cvItem['Mã chức vụ'], 'Xóa chức vụ ' + cvItem['Tên chức vụ']);
+          m.close();
+          commitEdits();
+          toast('Đã xóa ' + cvItem['Tên chức vụ'], 'ok');
+          if (PAGES.tochuc) render();
+        });
+      });
+    }
+
+    $('#cvSave', m).addEventListener('click', function () {
+      var name = ($('#cvName', m).value || '').trim().replace(/\s+/g, ' ');
+      var code = ($('#cvCode', m).value || '').trim().toUpperCase();
+      var rank = +$('#cvRank', m).value || 7;
+      var pc = +String($('#cvPc', m).value || '').replace(/[^\d]/g, '') || 0;
+      if (!name) { toast('Chưa nhập tên chức vụ', 'err'); $('#cvName', m).focus(); return; }
+      if (!isEdit) {
+        if (!code) code = makeCvCode(u, name);
+        if ((u.data.CV || []).some(function (c) { return String(c['Mã chức vụ']).toUpperCase() === code; })) {
+          toast('Mã chức vụ ' + code + ' đã tồn tại', 'err'); $('#cvCode', m).focus(); return;
+        }
+      } else {
+        code = cvItem['Mã chức vụ'];
+      }
+      var row = { 'Mã chức vụ': code, 'Tên chức vụ': name, 'Cấp bậc': rank, 'Phụ cấp chức vụ (đồng/tháng)': pc };
+      if (isEdit) {
+        editRow(u, 'CV', code, row, 'Sửa chức vụ ' + name);
+        if (cvItem['Tên chức vụ'] !== name) {
+          (u.data.NV || []).filter(function (e) { return e['Chức vụ'] === cvItem['Tên chức vụ']; }).forEach(function (e) {
+            editRow(u, 'NV', e['Mã NV'], { 'Chức vụ': name }, 'Cập nhật tên chức vụ: ' + name);
+          });
+        }
+      } else {
+        editRow(u, 'CV', code, row, 'Thêm chức vụ ' + name + ' (' + code + ')');
+      }
+      m.close();
+      commitEdits();
+      toast((isEdit ? 'Đã lưu chức vụ ' : 'Đã thêm chức vụ ') + name, 'ok');
+      if (onSaved) onSaved(name, row);
+      if (PAGES.tochuc && PS.tochuc && PS.tochuc.view === 'cv') render();
+    });
+  }
+
   // Xem / sửa / thêm / xóa phòng ban
     function makeDeptCode(u, name) {
     var raw = HR.stripAcc(String(name || '')).toUpperCase();
@@ -6841,9 +7166,29 @@ if (typeof module !== 'undefined') module.exports = XW;
     var pb = x ? x.pb || {} : (pre || {}), R = refDate(), mat = HR.maternitySet(u.data, R);
     var act = u.data.NV.filter(function (e) { return HR.isActive(e, R, mat); }).sort(function (a, b) { return (a['Phòng ban'] === (x && x.name) ? -1 : 0) - (b['Phòng ban'] === (x && x.name) ? -1 : 0) || cmp(a['Họ và tên'], b['Họ và tên']); });
     var hid = pb['Mã NV trưởng bộ phận'] || '';
-    return '<div class="form-grid">' + field('pbCode', 'Mã phòng ban', pb['Mã phòng ban'], x && x.pb ? ' disabled title="Mã là khóa liên kết, không đổi được"' : ' maxlength="12"') + field('pbName', 'Tên phòng ban', pb['Tên phòng ban'] || (x ? x.name : '')) +
-      '<div class="field"><label for="pbHead">Trưởng bộ phận</label><select class="input" id="pbHead">' + opt('', '— Chưa có —', hid) + act.map(function (e) { return opt(e['Mã NV'], e['Họ và tên'] + ' · ' + (e['Phòng ban'] || '') , hid); }).join('') + '</select></div>' +
-      field('pbPlan', 'Định biên (số người)', pb['Định biên'], ' inputmode="numeric"') + field('pbSch', 'Lịch làm việc', pb['Lịch làm việc'] || 'Thứ Hai – Thứ Sáu') + '</div>';
+    var isEdit = !!(x && x.pb);
+    var uField = '';
+    if (S.units && S.units.length > 1) {
+      if (isEdit) {
+        uField = '<div class="field span2"><label for="pbUnit">Đơn vị (Công ty)</label><input class="input" id="pbUnit" disabled value="' + esc(u.name.replace(/\s*\(dữ liệu mẫu\)/, '')) + '" title="Không đổi đơn vị khi sửa phòng ban"></div>';
+      } else {
+        var curUId = u ? u.id : (S.units[0] ? S.units[0].id : '');
+        uField = '<div class="field span2"><label for="pbUnit">Đơn vị (Công ty) <i class="req">*</i></label><select class="input" id="pbUnit">' +
+          S.units.map(function (un) {
+            return opt(un.id, un.name.replace(/\s*\(dữ liệu mẫu\)/, ''), curUId);
+          }).join('') +
+          '</select></div>';
+      }
+    } else if (S.units && S.units.length === 1) {
+      uField = '<div class="field span2"><label for="pbUnit">Đơn vị (Công ty)</label><input class="input" id="pbUnit" disabled value="' + esc(S.units[0].name.replace(/\s*\(dữ liệu mẫu\)/, '')) + '"></div>';
+    }
+    return '<div class="form-grid">' + uField +
+      field('pbCode', 'Mã phòng ban', pb['Mã phòng ban'], isEdit ? ' disabled title="Mã là khóa liên kết, không đổi được"' : ' maxlength="12" placeholder="Tự sinh nếu để trống"') +
+      field('pbName', 'Tên phòng ban', pb['Tên phòng ban'] || (x ? x.name : '')) +
+      '<div class="field"><label for="pbHead">Trưởng bộ phận</label><select class="input" id="pbHead">' + opt('', '— Chưa có —', hid) + act.map(function (e) { return opt(e['Mã NV'], e['Họ và tên'] + ' · ' + (e['Phòng ban'] || ''), hid); }).join('') + '</select></div>' +
+      field('pbPlan', 'Định biên (số người)', pb['Định biên'], ' inputmode="numeric"') +
+      field('pbSch', 'Lịch làm việc', pb['Lịch làm việc'] || 'Thứ Hai – Thứ Sáu') +
+      '</div>';
   }
   ACTS['od-edit'] = function (a, name, ev) {
     if (ev) ev.preventDefault();
@@ -6866,20 +7211,41 @@ if (typeof module !== 'undefined') module.exports = XW;
     $('#pbSave', m).addEventListener('click', function () { if (saveDept(u, x, m)) { m.close(); commitEdits(); } });
   };
   ACTS['od-add'] = function (a) {
-    var u = unitById(a.getAttribute('data-u')), pre = null;
+    var u = unitById(a.getAttribute('data-u')) || (selUnits()[0] || S.units[0]), pre = null;
     if (a.getAttribute('data-pre') === 'bgd') { var L = orgOf(u, refDate()).leaders; pre = { 'Mã phòng ban': 'BGD', 'Tên phòng ban': 'Ban Giám đốc', 'Mã NV trưởng bộ phận': L[0] ? L[0].id : '', 'Định biên': L.length || 1 }; }
-    var m = modal(pre ? 'Thêm Ban Giám đốc' : 'Thêm phòng ban', (isMulti() ? shortUnit(u.name) + ' · ' : '') + (pre ? 'Lãnh đạo đang ghi ở phòng khác vẫn hiện ở đây, kèm nhãn "kiêm" ở phòng mình phụ trách' : ''), deptForm(u, null, pre) + '<div class="link-row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-close>Hủy</button><button class="btn btn-primary" id="pbSave">Thêm phòng ban</button></div>');
+    var m = modal(pre ? 'Thêm Ban Giám đốc' : 'Thêm phòng ban', (pre ? 'Lãnh đạo đang ghi ở phòng khác vẫn hiện ở đây, kèm nhãn "kiêm" ở phòng mình phụ trách' : ''), deptForm(u, null, pre) + '<div class="link-row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-close>Hủy</button><button class="btn btn-primary" id="pbSave">Thêm phòng ban</button></div>');
+    var unitSel = $('#pbUnit', m);
+    if (unitSel && unitSel.tagName === 'SELECT') {
+      unitSel.addEventListener('change', function () {
+        var nu = unitById(unitSel.value);
+        if (!nu) return;
+        u = nu;
+        var R = refDate(), mat = HR.maternitySet(nu.data, R);
+        var act = nu.data.NV.filter(function (e) { return HR.isActive(e, R, mat); }).sort(function (a, b) { return cmp(a['Họ và tên'], b['Họ và tên']); });
+        var headSel = $('#pbHead', m);
+        if (headSel) {
+          headSel.innerHTML = opt('', '— Chưa có —', '') + act.map(function (e) { return opt(e['Mã NV'], e['Họ và tên'] + ' · ' + (e['Phòng ban'] || ''), ''); }).join('');
+        }
+      });
+    }
     $('#pbSave', m).addEventListener('click', function () { if (saveDept(u, null, m)) { m.close(); commitEdits(); } });
   };
   function saveDept(u, x, m) {
+    var selU = $('#pbUnit', m);
+    if (selU && selU.value && selU.tagName === 'SELECT') {
+      var targetU = unitById(selU.value);
+      if (targetU) u = targetU;
+    }
     var code = ($('#pbCode', m).value || '').trim().toUpperCase(), name = $('#pbName', m).value.trim().replace(/\s+/g, ' '), hid = $('#pbHead', m).value, plan = $('#pbPlan', m).value.trim(), sch = $('#pbSch', m).value.trim();
     var isEdit = !!(x && x.pb); if (isEdit) code = x.code;
     function bad(id, t, s) { var el = $('#' + id, m); el.classList.add('bad'); el.focus(); toast(t, 'err', s); return false; }
-    if (!code) return bad('pbCode', 'Chưa có mã phòng ban', 'Ví dụ KT, TS, SX – mã ngắn, không dấu, không trùng.');
+    if (!name) return bad('pbName', 'Chưa có tên phòng ban', '');
+    if (!code) {
+      code = makeDeptCode(u, name);
+    }
     if (!/^[A-Z0-9_\-]{1,12}$/.test(code)) return bad('pbCode', 'Mã phòng ban chỉ gồm chữ không dấu, số, gạch', 'Tối đa 12 ký tự.');
     if (!isEdit && (u.data.PB || []).some(function (p) { return String(p['Mã phòng ban']).toUpperCase() === code; })) return bad('pbCode', 'Mã ' + code + ' đã có', 'Chọn mã khác.');
-    if (!name) return bad('pbName', 'Chưa có tên phòng ban', '');
-    if ((u.data.PB || []).some(function (p) { return p['Tên phòng ban'] === name && p['Mã phòng ban'] !== code; })) return bad('pbName', 'Tên "' + name + '" đã có', 'Mỗi phòng ban một tên riêng, vì hồ sơ nhân viên ghi phòng ban theo tên.');
+    if ((u.data.PB || []).some(function (p) { return p['Tên phòng ban'] === name && p['Mã phòng ban'] !== code; })) return bad('pbName', 'Tên "' + name + '" đã có ở ' + shortUnit(u.name), 'Mỗi phòng ban trong công ty một tên riêng, vì hồ sơ nhân viên ghi phòng ban theo tên.');
     if (plan && !/^\d{1,4}$/.test(plan)) return bad('pbPlan', 'Định biên là số người', 'Để trống nếu chưa đặt định biên.');
     var hn = hid ? (nvIndex(u)[hid] || {})['Họ và tên'] || '' : '';
     var row = { 'Mã phòng ban': code, 'Tên phòng ban': name, 'Mã NV trưởng bộ phận': hid, 'Trưởng bộ phận': hn, 'Định biên': plan === '' ? '' : +plan, 'Lịch làm việc': sch };
@@ -6894,12 +7260,27 @@ if (typeof module !== 'undefined') module.exports = XW;
       }
     } else {
       if (x && x.orphan) row['Tên phòng ban'] = name;
-      editRow(u, 'PB', code, row, 'Thêm phòng ban ' + name + (plan ? ', định biên ' + plan : ''));
+      editRow(u, 'PB', code, row, 'Thêm phòng ban ' + name + (plan ? ', định biên ' + plan : '') + ' vào ' + shortUnit(u.name));
       if (x && x.orphan && name !== x.name) u.data.NV.filter(function (e) { return (e['Phòng ban'] || '(Chưa ghi phòng ban)') === x.name; }).forEach(function (e) { editRow(u, 'NV', e['Mã NV'], { 'Phòng ban': name }, 'Ghi phòng ban ' + name + ' cho ' + e['Họ và tên']); });
     }
-    toast(isEdit ? 'Đã lưu ' + name : 'Đã thêm ' + name, 'ok');
+    toast(isEdit ? 'Đã lưu ' + name : 'Đã thêm ' + name + ' vào ' + shortUnit(u.name), 'ok');
+  ACTS['cv-add'] = function (a) {
+    var u = unitById(a.getAttribute('data-u')) || (selUnits()[0] || S.units[0]);
+    openCvModal(u);
+  };
+  ACTS['cv-edit'] = function (a, id) {
+    var u = unitById(a.getAttribute('data-u')) || (selUnits()[0] || S.units[0]);
+    var code = id || a.getAttribute('data-code');
+    var item = (u.data.CV || []).filter(function (c) { return String(c['Mã chức vụ']).toUpperCase() === String(code).toUpperCase(); })[0];
+    if (item) openCvModal(u, null, null, item);
+  };
+  ACTS['cv-seed'] = function (a) {
+    var u = unitById(a.getAttribute('data-u')) || (selUnits()[0] || S.units[0]);
+    openCvSeedModal(u);
+  };
     return true;
   }
+
 
   /* ================== Ô NGÀY 3 PHẦN dd / mm / yyyy (quy tắc anh chốt 28/10/2026 – mẫu dateBox của Tờ khai GTGT) ================== */
   function dbox(id, iso, label) {
@@ -7142,19 +7523,19 @@ if (typeof module !== 'undefined') module.exports = XW;
       }, function (er) { b.done(); toast('Chưa đổi được Mã NV', 'err', (er && er.message) || 'Thử lại sau.'); });
     });
   }
-  function sel(id, label, list, val, free) {
+  function sel(id, label, list, val, free, withNew) {
     if (free) return '<div class="field"><label for="' + id + '">' + label + '</label><input class="input" id="' + id + '" list="' + id + '-l" value="' + esc(val || '') + '"' + (id === 'fPb' ? ' placeholder="Chọn hoặc gõ phòng ban mới…"' : '') + '><datalist id="' + id + '-l">' + list.map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist></div>';
     var has = !val || list.indexOf(val) >= 0;
-    return '<div class="field"><label for="' + id + '">' + label + '</label><select class="input" id="' + id + '">' + opt('', '— Chọn —', val) + (has ? '' : opt(val, val + ' (đang ghi)', val)) + list.map(function (o) { return opt(o, o, val); }).join('') + '</select></div>';
+    return '<div class="field"><label for="' + id + '">' + label + '</label><select class="input" id="' + id + '">' + opt('', '— Chọn —', val) + (has ? '' : opt(val, val + ' (đang ghi)', val)) + list.map(function (o) { return opt(o, o, val); }).join('') + (withNew ? opt('__new__', '+ Thêm chức vụ mới…', '') : '') + '</select></div>';
   }
   function uniq(u, k) { var o = {}; u.data.NV.forEach(function (e) { if (e[k]) o[e[k]] = 1; }); return Object.keys(o).sort(); }
   function nvForm(u, e, isNew) {
     e = e || {};
-    var pbs = (u.data.PB || []).map(function (p) { return p['Tên phòng ban']; }), cvs = (u.data.CV || []).map(function (c) { return c['Tên chức vụ']; });
+    var pbs = (u.data.PB || []).map(function (p) { return p['Tên phòng ban']; }), cvs = cvList(u);
     return '<div class="nv-form">' +
       '<div class="dr-sec"><h4>Công việc</h4><div class="form-grid g3">' +
       field('fId', 'Mã NV <i class="req">*</i>', isNew ? nextId(u) : e['Mã NV'], isNew ? ' maxlength="20"' : ' maxlength="20" title="Đổi mã: mọi dữ liệu liên quan đổi theo; không đổi sang mã đã có hoặc đã từng có"') +
-      sel('fPb', 'Phòng ban <i class="req">*</i>', pbs, e['Phòng ban'], 1) + sel('fCv', 'Chức vụ', cvs.length ? cvs : ['Nhân viên'], e['Chức vụ'] || (isNew ? 'Nhân viên' : '')) +
+      sel('fPb', 'Phòng ban <i class="req">*</i>', pbs, e['Phòng ban'], 1) + sel('fCv', 'Chức vụ', cvs, e['Chức vụ'] || (isNew ? 'Nhân viên' : ''), 0, true) +
       field('fCd', 'Chức danh công việc <i class="req">*</i>', e['Chức danh công việc']) + dbox('fVao', e['Ngày vào làm'], 'Ngày vào làm <i class="req">*</i>') +
       field('fCa', 'Tổ/Ca', e['Tổ/Ca']) + field('fMcc', 'Mã chấm công', e['Mã chấm công'], ' title="Mã trên máy chấm công, nếu khác Mã NV"') +
       sel('fLd', 'Loại lao động', LD_T, ldOf(e)) + (isNew ? '' : dbox('fDcNg', HR.isoToday(), 'Ngày hiệu lực nếu đổi phòng ban / chức danh')) + '</div><div class="faint ld-hint" id="fLdH" style="font-size:12px;margin-top:6px">' + ldHint(ldOf(e)) + '</div></div>' +
@@ -7244,7 +7625,7 @@ if (typeof module !== 'undefined') module.exports = XW;
     var qrBar = '<div class="qr-bar" id="fQrBar"><button type="button" class="btn btn-sm" id="fQr">' + ic('files', 15) + 'Điền từ ảnh CCCD</button><span class="faint">Chọn ảnh chụp <b>mặt trước CCCD có mã QR</b> (rõ, không lóa) – phần mềm đọc mã QR ngay trên máy này, ảnh không gửi đi đâu và không được lưu lại.</span><input type="file" id="fQrF" accept="image/*" hidden></div><div id="fQrRes"></div>';
     var m = modal(isNew ? 'Thêm nhân sự' : e['Họ và tên'], isNew ? 'Trường có dấu * là bắt buộc. Thêm xong có thể cấp tài khoản và lập hợp đồng.' : (isMulti() ? shortUnit(u.name) + ' · ' : '') + id + ' · ' + ST_TXT[st], unitPick + qrBar + '<div id="fBody">' + nvForm(u, e, isNew) + '</div>' + foot);
     m.querySelector('.modal').classList.add('lg');
-    function bindAll() { $$('.dbox', m).forEach(bindDbox); var ld = $('#fLd', m); if (ld) ld.addEventListener('change', function () { var h = $('#fLdH', m); if (h) h.innerHTML = ldHint(ld.value); }); }
+    function bindAll() { $('.dbox', m).forEach(bindDbox); var ld = $('#fLd', m); if (ld) ld.addEventListener('change', function () { var h = $('#fLdH', m); if (h) h.innerHTML = ldHint(ld.value); }); var cvSel = $('#fCv', m); if (cvSel) { cvSel.addEventListener('change', function () { if (cvSel.value === '__new__') { openCvModal(u, function (newCvName) { var list = cvList(u); cvSel.innerHTML = opt('', '— Chọn —', newCvName) + list.map(function (o) { return opt(o, o, newCvName); }).join('') + opt('__new__', '+ Thêm chức vụ mới…', ''); cvSel.value = newCvName; }, function () { cvSel.value = e ? (e['Chức vụ'] || 'Nhân viên') : 'Nhân viên'; }); } }); } }
     bindAll();
     $('#fQr', m).addEventListener('click', function () { $('#fQrF', m).click(); });
     $('#fQrF', m).addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) cccdFill(m, f); });
@@ -7269,6 +7650,7 @@ if (typeof module !== 'undefined') module.exports = XW;
     if (isNew) { if (!/^[A-Z]{1,6}[-_.]?\d+$/.test(id)) return bad('fId', 'Mã NV chưa đúng', 'Dạng 1–6 chữ cái không dấu + số, ví dụ DS010, NV-25 – để phần mềm đọc lại đúng từ file Excel.'); if (nvIndex(u)[id]) return bad('fId', 'Mã ' + id + ' đã có', 'Gợi ý mã kế tiếp: ' + nextId(u)); var tk0 = maTaken(id); if (tk0) return bad('fId', 'Mã ' + id + (tk0.cu ? ' đã từng dùng' : ' đã có ở ' + shortUnit(tk0.u.name)), 'Mã NV không trùng giữa các công ty và không cấp lại mã cũ. Gợi ý: ' + nextId(u)); }
     if (!v('fPb')) return bad('fPb', 'Chưa chọn hoặc nhập phòng ban', 'Chọn trong danh sách hoặc gõ tên phòng ban mới.');
     ensureDept(u, v('fPb'));
+    if (v('fCv') && v('fCv') !== '__new__') ensureCv(u, v('fCv'));
     if (!v('fCd')) return bad('fCd', 'Chưa có chức danh công việc', 'Ví dụ: Nhân viên kế toán, Giảng viên. Chức danh ghi trên hợp đồng.');
     var vao = d('fVao'), ns = d('fNs'), nc = d('fNc');
     if (!vao) return bad('fVao', vao === null ? 'Ngày vào làm chưa đúng' : 'Chưa có ngày vào làm', 'Nhập dd/mm/yyyy.');

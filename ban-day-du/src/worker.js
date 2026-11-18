@@ -765,7 +765,7 @@ async function session(db, req, vai) {
   if ((vai === 'ql' || vai === 'qt') && row.created < Date.now() - AGE[vai] * 1000) return null;
   if (row.last < Date.now() - 3600e3) await db.prepare('UPDATE phien SET last = ? WHERE tok = ?').bind(Date.now(), row.tok).run();
   if (vai === 'nv') {
-    const nv = await db.prepare('SELECT ma, ten, active, ncc, qt, mk IS NOT NULL AS co_mk, mk_doi FROM nv WHERE ma = ?').bind(row.ma).first();
+    const nv = await db.prepare('SELECT ma, ten, active, ncc, qt, mk IS NOT NULL AS co_mk, mk_doi, cty, pb FROM nv WHERE ma = ?').bind(row.ma).first();
     if (!nv || !nv.active) return null;
     row.nv = nv;
   }
@@ -930,6 +930,13 @@ async function api(req, env, url) {
       return jc({ ok: true, ver: VER, ten_cty: cfg.ten_cty, che_do: cfg.che_do, so_nv: n.n || 0, co_pin: n.c || 0, now });
     }
     if (r === 'nhan-vien' && req.method === 'POST') {
+      if (body.cty && body.brand) {
+        try {
+          const cur = JSON.parse(cfg.cty_brands || '{}');
+          cur[body.cty] = { name: (body.brand && body.brand.name) || body.cty, sub: (body.brand && body.brand.sub) || '', logo: (body.brand && body.brand.logo) || '', color: (body.brand && body.brand.color) || '' };
+          await setCfg(db, { cty_brands: JSON.stringify(cur) });
+        } catch (e) { }
+      }
       const list = Array.isArray(body.list) ? body.list.slice(0, 2000) : [], out = { them: 0, sua: 0, chua_pin: [] }, st = [];
       for (const x of list) {
         const ma = String(x.ma || '').trim().toUpperCase(), ten = String(x.ten || '').trim().slice(0, 120);
@@ -1183,6 +1190,7 @@ async function api(req, env, url) {
       st.push(db.prepare('INSERT INTO qt_kv (k, ver, at, nguoi, n, z, meta, size) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(k) DO UPDATE SET ver = excluded.ver, at = excluded.at, nguoi = excluded.nguoi, n = excluded.n, z = excluded.z, meta = excluded.meta, size = excluded.size').bind(k, ver, now, U.ten, n, z, meta, v.length));
       for (let i = 0; i < st.length; i += 4) await db.batch(st.slice(i, i + 4));
       if (k === 'settings' && !z) { try { const br = JSON.parse(v).brand || {}, lg = String(br.logo || ''); await setCfg(db, { br_ten: String(br.name || '').slice(0, 40), br_logo: /^data:image\/(png|webp|jpeg|svg\+xml);base64,/.test(lg) && lg.length < 250000 ? lg : '' }); } catch (e) { } } // 16/11/2026: thương hiệu riêng → app nhân viên, trang đăng nhập
+      if (k === 'units' && !z) { try { const units = JSON.parse(v) || []; const brands = {}; for (const u of units) { if (u && (u.name || u.id)) { const ub = u.brand || {}; brands[u.name] = { id: u.id, name: ub.name || u.name, sub: ub.sub || '', logo: ub.logo || '', color: ub.color || '' }; if (u.id) brands[u.id] = brands[u.name]; } } await setCfg(db, { cty_brands: JSON.stringify(brands) }); } catch (e) { } }
       return json({ ok: true, ver, at: now, nguoi: U.ten });
     }
     if (r === 'kv-xoa' && req.method === 'POST') { const k = String(body.k || ''); if (!/^(kho|unit):[A-Za-z0-9._-]{1,80}$/.test(k)) return bad('Chỉ xóa được file kho hoặc dữ liệu một công ty.'); await db.batch([db.prepare('DELETE FROM qt_part WHERE k = ?').bind(k), db.prepare('DELETE FROM qt_kv WHERE k = ?').bind(k)]); return json({ ok: true }); }
@@ -1328,7 +1336,8 @@ async function api(req, env, url) {
         const doc = {}; (await db.prepare('SELECT id, doc_at, xoa FROM tb_doc WHERE ma = ?').bind(s.nv.ma).all()).results.forEach(r => { doc[r.id] = r; });
         o.tb = (await db.prepare('SELECT id, cty, tieu_de, noi_dung, anh IS NOT NULL AS co_anh, popup, den, loai, ref, nguoi, at FROM tb ORDER BY at DESC LIMIT 300').all()).results.filter(r => tbHop(r, s.nv.ma, H2) && !(doc[r.id] && doc[r.id].xoa)).slice(0, 100).map(r => ({ id: r.id, tieu_de: r.tieu_de, noi_dung: r.noi_dung, co_anh: r.co_anh ? 1 : 0, popup: r.popup, loai: r.loai, ref: r.ref, nguoi: r.nguoi, at: r.at, doc_at: doc[r.id] ? doc[r.id].doc_at : null }));
         const vr = await db.prepare('SELECT du_lieu FROM vb WHERE cty = ?').bind(ctyV).first(); if (vr) { try { const V = JSON.parse(vr.du_lieu); V.ds = (V.ds || []).filter(x => x && x.tt !== 'Dự thảo'); o.vb = V; } catch (e) { } } }
-      o.cty = (o.hs && o.hs.cty) || cfg.ten_cty; // 11/11 15:32: tên công ty của chính người đăng nhập (bản thử có 2 công ty mẫu)
+      o.cty = (o.hs && o.hs.cty) || (s.nv && s.nv.cty) || cfg.ten_cty; // 11/11 15:32: tên công ty của chính người đăng nhập (bản thử có 2 công ty mẫu)
+      if (cfg.cty_brands) { try { o.cty_brands = JSON.parse(cfg.cty_brands); } catch (e) { } }
       if (demo) { const e = demoFind(s.nv.ma); if (e) { o.cty = e.cty; o.ho_so = { cty: e.cty, pb: e.pb, cd: e.cd, vao: e.vao, tt: e.tt, email: e.email, hd: e.hd, qp: e.qp, bl: e.bl }; o.don = o.don.concat(e.don.map(d => ({ ...d, mau: 1 }))).slice(0, 20);
         // công tạm tính tháng đang mở = ký hiệu trong dữ liệu mẫu + các ngày sau đó tính từ lượt chấm
         const ymNow = isoVN(now).slice(0, 7), tc = o.cong.find(c => c.ym === ymNow && c.du_lieu.tam);
@@ -1664,7 +1673,7 @@ async function api(req, env, url) {
       return json({ ok: true, demo, ngay0: d0, now, ip, ip_loai: ipKind(ip), wifi: matchOffice(ip, ips), cfg: pub, nv: nv.results.map(x => ({ ...x, thiet_bi: tb[x.ma] || [], khoa: x.lock_until > now })), cham, tu_choi: tc.results, ip_vp: ips, may_chung, may_toi: req.may });
     }
     if (r === 'nv' && req.method === 'POST') {
-      const ma = String(body.ma || '').trim().toUpperCase(), ten = String(body.ten || '').trim().slice(0, 120);
+      const ma = String(body.ma || '').trim().toUpperCase(), ten = String(body.ten || '').trim().slice(0, 120), cty = String(body.cty || '').trim().slice(0, 100);
       if (!/^[A-Z0-9._-]{1,20}$/.test(ma)) return bad('Mã nhân viên chỉ gồm chữ, số, dấu chấm, gạch (tối đa 20 ký tự).');
       const old = await db.prepare('SELECT ma FROM nv WHERE ma = ?').bind(ma).first();
       if (body.pin !== undefined && body.pin !== '' && !/^\d{4,8}$/.test(String(body.pin))) return bad('Mã PIN nhân viên cần 4–8 chữ số.');
@@ -1672,9 +1681,10 @@ async function api(req, env, url) {
         if (!ten) return bad('Nhập họ tên.');
         if (!body.pin) return bad('Đặt mã PIN ban đầu cho nhân viên.');
         const salt = randHex(16);
-        await db.prepare('INSERT INTO nv (ma, ten, pin, salt, active, created) VALUES (?, ?, ?, ?, 1, ?)').bind(ma, ten, await hashPin(String(body.pin), salt), salt, now).run();
+        await db.prepare('INSERT INTO nv (ma, ten, pin, salt, active, created, cty) VALUES (?, ?, ?, ?, 1, ?, ?)').bind(ma, ten, await hashPin(String(body.pin), salt), salt, now, cty || null).run();
       } else {
         if (ten) await db.prepare('UPDATE nv SET ten = ? WHERE ma = ?').bind(ten, ma).run();
+        if (cty) await db.prepare('UPDATE nv SET cty = ? WHERE ma = ?').bind(cty, ma).run();
         if (body.pin) { const salt = randHex(16); await db.prepare('UPDATE nv SET pin = ?, salt = ?, fail = 0, lock_until = 0 WHERE ma = ?').bind(await hashPin(String(body.pin), salt), salt, ma).run(); }
         if (body.active !== undefined) await db.prepare('UPDATE nv SET active = ? WHERE ma = ?').bind(body.active ? 1 : 0, ma).run();
         if (body.mo_khoa) await db.prepare('UPDATE nv SET fail = 0, lock_until = 0 WHERE ma = ?').bind(ma).run();
