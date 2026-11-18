@@ -3162,7 +3162,7 @@ var HR = (function () {
   }
   function maternitySet(d, R) {
     var r = dnum(R), m = { known: false };
-    d.DON.forEach(function (x) {
+    (d.DON || []).forEach(function (x) {
       if (x['Loại nghỉ'] !== 'Nghỉ thai sản' || x['Trạng thái'] !== 'Đã duyệt') return;
       m.known = true;
       var a = dnum(x['Từ ngày']), b = dnum(x['Đến ngày']);
@@ -3225,7 +3225,7 @@ var HR = (function () {
         if (exp < r) res.contracts.overdue.push(rec); else if (exp - r <= N) res.contracts.soon.push(rec);
       });
       // đơn nghỉ chờ duyệt
-      d.DON.forEach(function (x) {
+      (d.DON || []).forEach(function (x) {
         if (x['Trạng thái'] !== 'Chờ duyệt') return;
         var days = x['Từ ngày'] ? dnum(x['Từ ngày']) - r : null;
         res.leaves.pending.push({ unit: u.name, x: x, days: days });
@@ -7665,7 +7665,7 @@ if (typeof module !== 'undefined') module.exports = XW;
     var qrBar = '<div class="qr-bar" id="fQrBar"><button type="button" class="btn btn-sm" id="fQr">' + ic('files', 15) + 'Điền từ ảnh CCCD</button><span class="faint">Chọn ảnh chụp <b>mặt trước CCCD có mã QR</b> (rõ, không lóa) – phần mềm đọc mã QR ngay trên máy này, ảnh không gửi đi đâu và không được lưu lại.</span><input type="file" id="fQrF" accept="image/*" hidden></div><div id="fQrRes"></div>';
     var m = modal(isNew ? 'Thêm nhân sự' : e['Họ và tên'], isNew ? 'Trường có dấu * là bắt buộc. Thêm xong có thể cấp tài khoản và lập hợp đồng.' : (isMulti() ? shortUnit(u.name) + ' · ' : '') + id + ' · ' + ST_TXT[st], unitPick + qrBar + '<div id="fBody">' + nvForm(u, e, isNew) + '</div>' + foot);
     m.querySelector('.modal').classList.add('lg');
-    function bindAll() { $('.dbox', m).forEach(bindDbox); var ld = $('#fLd', m); if (ld) ld.addEventListener('change', function () { var h = $('#fLdH', m); if (h) h.innerHTML = ldHint(ld.value); }); var cvSel = $('#fCv', m); if (cvSel) { cvSel.addEventListener('change', function () { if (cvSel.value === '__new__') { openCvModal(u, function (newCvName) { var list = cvList(u); cvSel.innerHTML = opt('', '— Chọn —', newCvName) + list.map(function (o) { return opt(o, o, newCvName); }).join('') + opt('__new__', '+ Thêm chức vụ mới…', ''); cvSel.value = newCvName; }, function () { cvSel.value = e ? (e['Chức vụ'] || 'Nhân viên') : 'Nhân viên'; }); } }); } }
+    function bindAll() { $$('.dbox', m).forEach(bindDbox); var ld = $('#fLd', m); if (ld) ld.addEventListener('change', function () { var h = $('#fLdH', m); if (h) h.innerHTML = ldHint(ld.value); }); var cvSel = $('#fCv', m); if (cvSel) { cvSel.addEventListener('change', function () { if (cvSel.value === '__new__') { openCvModal(u, function (newCvName) { var list = cvList(u); cvSel.innerHTML = opt('', '— Chọn —', newCvName) + list.map(function (o) { return opt(o, o, newCvName); }).join('') + opt('__new__', '+ Thêm chức vụ mới…', ''); cvSel.value = newCvName; }, function () { cvSel.value = e ? (e['Chức vụ'] || 'Nhân viên') : 'Nhân viên'; }); } }); } }
     bindAll();
     $('#fQr', m).addEventListener('click', function () { $('#fQrF', m).click(); });
     $('#fQrF', m).addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) cccdFill(m, f); });

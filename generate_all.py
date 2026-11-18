@@ -1,5 +1,12 @@
 import os
 import subprocess
+import base64
+import shutil
+
+# Read Nunito font binary and encode to base64
+font_path = 'slides_assets/fonts/Nunito-VariableFont_wght.ttf'
+with open(font_path, 'rb') as f:
+    b64_nunito = base64.b64encode(f.read()).decode('utf-8')
 
 slides_data = [
     {
@@ -86,7 +93,9 @@ slides_data = [
 ]
 
 out_dir = r'F:\1. Vibe Coding\Quản lý nhân sự Alpha Books\anh-gioi-thieu-alpha-hr'
+artifact_dir = r'C:\Users\Admin\.gemini\antigravity\brain\b3f2918a-da0a-4dad-a6bd-05d17c96b0cc\slides'
 os.makedirs(out_dir, exist_ok=True)
+os.makedirs(artifact_dir, exist_ok=True)
 
 for item in slides_data:
     idx_num = item['num']
@@ -132,13 +141,23 @@ for item in slides_data:
 <head>
 <meta charset="utf-8">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
-  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  @font-face {{
+    font-family: 'Nunito';
+    src: url('data:font/truetype;charset=utf-8;base64,{b64_nunito}') format('truetype');
+    font-weight: 200 900;
+    font-style: normal;
+  }}
+  * {{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Nunito', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }}
   body {{
     width: 1080px;
     height: 1350px;
     background: radial-gradient(circle at 85% 15%, rgba(244, 120, 48, 0.09) 0%, transparent 45%), linear-gradient(180deg, #FAF7F2 0%, #F4ECE1 100%);
-    font-family: 'Plus Jakarta Sans', sans-serif;
     padding: 55px 65px 40px 65px;
     display: flex;
     flex-direction: column;
@@ -170,11 +189,11 @@ for item in slides_data:
   }}
   .title {{
     font-size: 52px;
-    font-weight: 800;
+    font-weight: 900;
     line-height: 1.15;
     color: #0F172A;
     margin-top: 12px;
-    letter-spacing: -1px;
+    letter-spacing: -0.5px;
   }}
   .title .highlight {{
     color: #F47830;
@@ -191,14 +210,14 @@ for item in slides_data:
   }}
   .badge-main {{
     font-size: 22px;
-    font-weight: 800;
+    font-weight: 900;
     color: #FFFFFF;
     letter-spacing: 0.5px;
   }}
   .badge-sub {{
     font-size: 16px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.92);
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
     border-left: 2px solid rgba(255, 255, 255, 0.35);
     padding-left: 16px;
   }}
@@ -211,7 +230,7 @@ for item in slides_data:
     padding: 10px 22px;
     border-radius: 30px;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 800;
   }}
   .pill-filled {{
     background: #F47830;
@@ -255,8 +274,8 @@ for item in slides_data:
     height: 16px;
   }}
   .bullet-text {{
-    font-size: 18.5px;
-    font-weight: 600;
+    font-size: 19px;
+    font-weight: 700;
     color: #1E293B;
     line-height: 1.35;
   }}
@@ -284,14 +303,14 @@ for item in slides_data:
   }}
   .footer-url {{
     font-size: 21px;
-    font-weight: 800;
+    font-weight: 900;
     color: #F47830;
     text-decoration: none;
     letter-spacing: 0.5px;
   }}
   .footer-name {{
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     color: #64748B;
   }}
 </style>
@@ -332,6 +351,10 @@ for item in slides_data:
         url
     ]
     subprocess.run(cmd, check=True)
-    print(f'Rendered {item["output_name"]} ({os.path.getsize(out_png)} bytes)')
+    
+    # Also copy to artifact dir for live preview
+    dest_artifact = os.path.join(artifact_dir, item['output_name'])
+    shutil.copy2(out_png, dest_artifact)
+    print(f'Rendered & Copied {item["output_name"]} ({os.path.getsize(out_png)} bytes)')
 
-print('All 6 slides successfully rendered!')
+print('All 6 slides successfully regenerated with embedded Nunito font!')
