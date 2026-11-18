@@ -706,6 +706,8 @@ function shortUA(ua) {
 /* ---------- IP ---------- */
 function clientIP(req, env) {
   if (env.DEV === '1' && req.headers.get('x-test-ip')) return req.headers.get('x-test-ip');
+  const xff = req.headers.get('x-vercel-forwarded-for') || req.headers.get('x-forwarded-for');
+  if (xff && /(^|\.)alphabooks\.vn$/i.test((req.headers.get('x-forwarded-host') || '').split(',')[0].trim())) return xff.split(',')[0].trim();
   return req.headers.get('cf-connecting-ip') || '';
 }
 function expandV6(ip) {
@@ -1768,6 +1770,8 @@ export default {
   async scheduled(ev, env, ctx) { ctx.waitUntil(bcCron(env).catch(e => console.error('bcCron', e))); }, // 16/11: gửi báo cáo định kỳ (cron 15 phút/lần – wrangler.jsonc triggers)
   async fetch(req, env, ctx) {
     const url = new URL(req.url); req.ctx = ctx;
+    const xfh = (req.headers.get('x-forwarded-host') || '').split(',')[0].trim();
+    if (/^[a-z0-9.-]+\.alphabooks\.vn$/i.test(xfh)) { url.host = xfh; url.protocol = 'https:'; }
     let may = cookies(req).qtt_may, newMay = false;
     if (!/^[0-9a-f]{16}$/.test(may || '')) { may = randHex(8); newMay = true; }
     req.may = may;
