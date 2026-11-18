@@ -14061,7 +14061,7 @@ if (typeof module !== 'undefined') module.exports = XW;
   var TD_STN = {}; TD_STG.forEach(function (s) { TD_STN[s[0]] = s[1]; });
   var TD_LIVE = ['new', 'screen', 'iv', 'hold', 'offer', 'hired'];
   function tdClosedSt(s) { return s === 'fail' || s === 'withdraw' || s === 'ivcancel'; }
-  var TD_RST = { draft: 'Nháp', open: 'Đang tuyển', paused: 'Tạm dừng', filled: 'Đã đủ người', closed: 'Đã đóng' };
+  var TD_RST = { draft: 'Nháp', pending: 'Chờ duyệt', open: 'Đang tuyển', rejected: 'Từ chối duyệt', paused: 'Tạm dừng', filled: 'Đã đủ người', closed: 'Đã đóng' };
   var TD_REASON = ['Thay người nghỉ việc', 'Bổ sung theo định biên', 'Mở rộng, thêm vị trí mới', 'Thời vụ', 'Khác'];
   var TD_LD = ['Toàn thời gian', 'Bán thời gian', 'Cộng tác viên'];
   // BLLĐ 2019 Điều 25 – thời gian thử việc tối đa theo loại công việc
@@ -14072,7 +14072,7 @@ if (typeof module !== 'undefined') module.exports = XW;
   var TD_COLORS = ['#1F5F8B', '#2E7D57', '#8A4B9C', '#B4562B', '#2B6F77'];
   var TD_LT = { pv: 'Thư mời phỏng vấn', nv: 'Thư mời nhận việc', tc: 'Thư cảm ơn & thông báo chưa trúng tuyển', dl: 'Thư thông báo dời lịch phỏng vấn' };
   var TD_CV_MAX = 5 * 1024 * 1024;
-  var TD_SCORE = false; // 11/11 16:29 anh: tạm bỏ tiêu chí đánh giá, chấm điểm ở giai đoạn này (dữ liệu điểm cũ vẫn giữ, bật lại = true)
+  var TD_SCORE = true; // Kích hoạt hệ thống chấm điểm và đánh giá tiêu chí phỏng vấn
 
   // Menu: 4 tính năng Tuyển dụng chạy được; "Tin tuyển dụng" đổi thành "Cổng tuyển dụng" (anh chốt 09/11: trang cổng + trang vị trí)
   MODS.forEach(function (m) { if (m.g === 'td') m.st = 'ok'; if (m.id === 'tdtin') { m.t = 'Cổng tuyển dụng'; m.k += ' cong tuyen dung trang chi tiet vi tri link chia se ung tuyen cv'; } if (m.id === 'tdungvien') m.k += ' thu moi phong van thu cam on chuyen nhan vien'; });
@@ -14552,20 +14552,22 @@ if (typeof module !== 'undefined') module.exports = XW;
     us.forEach(function (u, i) { uix[u.id] = i; });
     if (f.co && uix[f.co] === undefined) f.co = '';
     var all = []; us.forEach(function (u) { tdOf(u).rq.forEach(function (r) { all.push({ u: u, r: r }); }); });
+    var pending = all.filter(function (x) { return x.r.st === 'pending'; });
     var open = all.filter(function (x) { return x.r.st === 'open'; }), live = open.filter(function (x) { return tdLive(x.r, R); });
     var needL = open.filter(function (x) { return tdNeedLeft(x) > 0; }), need = needL.reduce(function (s, x) { return s + tdNeedLeft(x); }, 0);
     var cands = open.reduce(function (s, x) { return s + tdCandsOf(x.u, x.r.id).filter(function (c) { return TD_LIVE.indexOf(c.stage) >= 0; }).length; }, 0);
     var soonL = open.filter(function (x) { var d = x.r.deadline ? tdDiff(R, x.r.deadline) : null; return d !== null && d <= 7; });
-    var curK = f.k || (f.f === 'open' ? 'open' : '');
+    var curK = f.k || (f.f === 'open' ? 'open' : f.f === 'pending' ? 'pending' : '');
     var stats = tdStats('td-nk', curK, [
+      { id: 'pending', n: pending.length, label: 'đề xuất chờ duyệt', icon: 'info', tone: pending.length ? 'warn' : '', tip: 'Lọc các phiếu đề xuất tuyển dụng đang chờ duyệt' },
       { id: 'open', n: open.length, label: 'vị trí đang tuyển', icon: 'tdnhucau', tip: 'Xem các phiếu đang tuyển' },
       { id: 'pub', n: live.length, label: 'đang hiện trên cổng', icon: 'td_link', tip: 'Lọc các vị trí đang hiện trên cổng tuyển dụng' },
       { id: 'need', n: need, label: 'người còn cần tuyển', sub: needL.length ? needL.length + ' vị trí còn thiếu' : '', icon: 'td_user', tone: need ? 'warn' : '', tip: 'Lọc các vị trí còn thiếu người' },
       { id: 'cand', n: cands, label: 'hồ sơ đang xét', sub: 'của vị trí đang tuyển', icon: 'tdungvien', tip: 'Mở Ngân hàng ứng viên' },
       { id: 'soon', n: soonL.length, label: 'sắp hết / đã hết hạn nộp', sub: 'còn 7 ngày trở xuống', icon: 'td_cal', tone: soonL.length ? 'warn' : '', tip: 'Lọc các vị trí sắp hết hạn nhận hồ sơ' }]);
-    function stOk(x, k) { var s = x.r.st; return k === 'all' ? true : k === 'open' ? s === 'open' : k === 'wait' ? (s === 'draft' || s === 'paused') : (s === 'filled' || s === 'closed'); }
+    function stOk(x, k) { var s = x.r.st; return k === 'all' ? true : k === 'pending' ? s === 'pending' : k === 'open' ? s === 'open' : k === 'wait' ? (s === 'draft' || s === 'paused' || s === 'rejected') : (s === 'filled' || s === 'closed'); }
     var q = norm(f.q);
-    var base = (f.k === 'pub' ? live : f.k === 'need' ? needL : f.k === 'soon' ? soonL : all.filter(function (x) { return stOk(x, f.f); })).filter(function (x) { return !q || norm([x.r.id, x.r.pos, x.r.pb, x.r.cd].join(' ')).indexOf(q) >= 0; });
+    var base = (f.k === 'pending' ? pending : f.k === 'pub' ? live : f.k === 'need' ? needL : f.k === 'soon' ? soonL : all.filter(function (x) { return stOk(x, f.f); })).filter(function (x) { return !q || norm([x.r.id, x.r.pos, x.r.pb, x.r.cd].join(' ')).indexOf(q) >= 0; });
     var byCo = base.filter(function (x) { return !f.co || x.u.id === f.co; });
     var pbs = {}, pbIx = {}; byCo.forEach(function (x) { pbs[x.r.pb] = (pbs[x.r.pb] || 0) + 1; var di = tdDeptIdx(x.u)[x.r.pb]; pbIx[x.r.pb] = Math.min(pbIx[x.r.pb] === undefined ? 1e6 : pbIx[x.r.pb], (uix[x.u.id] || 0) * 100 + (di === undefined ? 99 : di)); });
     if (f.pb && !pbs[f.pb]) f.pb = '';
@@ -14577,10 +14579,10 @@ if (typeof module !== 'undefined') module.exports = XW;
       us.length > 1 ? { label: 'Công ty', act: 'td-nco', cur: f.co, items: [['', 'Tất cả', base.length]].concat(us.map(function (u) { return [u.id, shortUnit(u.name), base.filter(function (x) { return x.u === u; }).length]; })) } : null,
       { label: 'Phòng ban', act: 'td-npb', cur: f.pb, items: [['', 'Tất cả', byCo.length]].concat(Object.keys(pbs).sort(function (a, b) { return pbIx[a] - pbIx[b] || cmp(a, b); }).map(function (p) { return [p, p, pbs[p]]; })) }
     ]);
-    var bar = '<div class="td-tbar">' + (f.k ? tdFilterChip('Đang lọc: ' + TD_NK[f.k] + ' (' + base.length + ')', 'td-nk') : tdPills('td-nf', f.f, [['open', 'Đang tuyển', stCnt('open')], ['wait', 'Nháp, tạm dừng', stCnt('wait')], ['done', 'Đã đủ người, đã đóng', stCnt('done')], ['all', 'Tất cả', stCnt('all')]], 'st')) +
+    var bar = '<div class="td-tbar">' + (f.k ? tdFilterChip('Đang lọc: ' + (f.k === 'pending' ? 'Đề xuất chờ duyệt' : TD_NK[f.k] || f.k) + ' (' + base.length + ')', 'td-nk') : tdPills('td-nf', f.f, [['open', 'Đang tuyển', stCnt('open')], ['pending', 'Chờ duyệt', stCnt('pending')], ['wait', 'Nháp, tạm dừng, từ chối', stCnt('wait')], ['done', 'Đã đủ người, đã đóng', stCnt('done')], ['all', 'Tất cả', stCnt('all')]], 'st')) +
       '<span class="sp"></span>' + tdSearch('tdNQ', f.q, 'Tìm vị trí, mã phiếu…') + '<button class="btn btn-sm" data-go="tdtin">' + ic('eye', 14) + 'Xem cổng tuyển dụng</button></div>';
     var body = rows.length ? tdReqTable(rows, R, bar) : '<div class="card td-rtbl">' + bar + '<div class="empty" style="padding:28px;text-align:center"><h2>Không có phiếu nào ở mục này</h2><p class="muted">' + (f.k || f.q ? 'Bấm “Bỏ lọc” hoặc xóa ô tìm để xem lại tất cả.' : 'Bấm “Lập phiếu nhu cầu” để bắt đầu – form có sẵn gợi ý vị trí còn thiếu theo định biên.') + '</p></div></div>';
-    return '<div class="page-head"><div><h1>Nhu cầu tuyển dụng</h1><p class="muted">Mỗi phiếu là một vị trí cần tuyển, ghi đủ thông tin để đăng lên cổng tuyển dụng. Bật “Trên cổng” để ứng viên thấy và nộp hồ sơ.</p></div><div class="link-row" style="margin:0"><button class="btn btn-primary" data-act="td-req-new">' + ic('td_plus', 15) + 'Lập phiếu nhu cầu</button></div></div>' +
+    return '<div class="page-head"><div><h1>Nhu cầu & Đề xuất tuyển dụng</h1><p class="muted">Mỗi phiếu là một vị trí cần tuyển hoặc đề xuất tuyển dụng. Người có thẩm quyền duyệt đề xuất trước khi mở tuyển và đăng cổng.</p></div><div class="link-row" style="margin:0"><button class="btn btn-primary" data-act="td-req-new">' + ic('td_plus', 15) + 'Tạo đề xuất tuyển dụng</button></div></div>' +
       stats + '<div id="tdList"></div>' + sec + body;
   };
   function tdReqTable(rows, R, bar) {
@@ -14589,11 +14591,11 @@ if (typeof module !== 'undefined') module.exports = XW;
     var liveC = function (x) { return tdCandsOf(x.u, x.r.id).filter(function (c) { return TD_LIVE.indexOf(c.stage) >= 0; }).length; };
     return '<div class="card td-rtbl">' + (bar || '') + table('tdReq', [
       { t: 'Mã', f: function (x) { return x.r.id; }, hide: true },
-      { t: 'Vị trí', f: function (x) { return x.r.pos; }, h: function (x) { var fr = tdFair(x.r); return '<a href="#" class="plink td-strong" data-act="td-req-edit" data-u="' + x.u.id + '" data-id="' + x.r.id + '">' + esc(x.r.pos) + '</a><small class="td-sub">' + esc(x.r.id) + ' · ' + esc(x.r.reason || '') + '</small>' + (fr.length ? '<span class="tag tag-warn" style="margin-top:4px" title="' + esc(fr.map(function (z) { return z.what; }).join(', ')) + '">Cần xem lại từ ngữ</span>' : ''); }, wrap: 1 },
+      { t: 'Vị trí', f: function (x) { return x.r.pos; }, h: function (x) { var fr = tdFair(x.r); return '<a href="#" class="plink td-strong" data-act="td-req-edit" data-u="' + x.u.id + '" data-id="' + x.r.id + '">' + esc(x.r.pos) + '</a><small class="td-sub">' + esc(x.r.id) + ' · ' + esc(x.r.reason || '') + (x.r.rejectReason ? ' · <b style="color:var(--danger)">Từ chối: ' + esc(x.r.rejectReason) + '</b>' : '') + '</small>' + (fr.length ? '<span class="tag tag-warn" style="margin-top:4px" title="' + esc(fr.map(function (z) { return z.what; }).join(', ')) + '">Cần xem lại từ ngữ</span>' : ''); }, wrap: 1 },
       { t: 'Công ty', f: function (x) { return shortUnit(x.u.name); }, hide: true },
       { t: 'Phòng ban', f: function (x) { return x.r.pb; }, h: function (x) { return esc(x.r.pb) + (multi ? '<small class="td-sub">' + esc(shortUnit(x.u.name)) + '</small>' : ''); } },
-      { t: 'Trạng thái', f: function (x) { return TD_RST[x.r.st]; }, h: function (x) { var s = x.r.st; return '<span class="tag ' + (s === 'open' ? 'tag-ok' : s === 'draft' ? 'tag-mute' : s === 'paused' ? 'tag-warn' : 'tag-info') + '">' + TD_RST[s] + '</span>'; } },
-      { t: 'Trên cổng', f: function (x) { return x.r.pub ? (tdLive(x.r, R) ? 'Đang hiện' : 'Bật – chưa hiện') : 'Không'; }, h: function (x) { var can = x.r.st !== 'closed' && x.r.st !== 'filled', lv = tdLive(x.r, R); return can ? '<span class="td-pubc"><button class="td-sw' + (x.r.pub ? ' on' : '') + '" data-act="td-pub" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="' + (x.r.pub ? (lv ? 'Đang hiện trên cổng – bấm để tắt' : 'Đã bật nhưng chưa hiện (chưa ở trạng thái Đang tuyển hoặc hết hạn nộp)') : 'Bật để hiện trên cổng') + '"><i></i></button>' + (lv ? '<button class="btn btn-sm td-openlink" data-act="td-open-job" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="Mở trang tin tuyển dụng của vị trí này trên cổng">' + ic('td_link', 13) + 'Mở tin</button>' : '') + '</span>' : '<span class="muted">—</span>'; } },
+      { t: 'Trạng thái', f: function (x) { return TD_RST[x.r.st] || x.r.st; }, h: function (x) { var s = x.r.st; var tagCls = s === 'open' ? 'tag-ok' : s === 'pending' ? 'tag-warn' : s === 'rejected' ? 'tag-bad' : s === 'draft' ? 'tag-mute' : s === 'paused' ? 'tag-warn' : 'tag-info'; return '<span class="tag ' + tagCls + '">' + (TD_RST[s] || s) + '</span>'; } },
+      { t: 'Trên cổng', f: function (x) { return x.r.pub ? (tdLive(x.r, R) ? 'Đang hiện' : 'Bật – chưa hiện') : 'Không'; }, h: function (x) { var can = x.r.st === 'open', lv = tdLive(x.r, R); return can ? '<span class="td-pubc"><button class="td-sw' + (x.r.pub ? ' on' : '') + '" data-act="td-pub" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="' + (x.r.pub ? (lv ? 'Đang hiện trên cổng – bấm để tắt' : 'Đã bật nhưng chưa hiện (hết hạn nộp)') : 'Bật để hiện trên cổng') + '"><i></i></button>' + (lv ? '<button class="btn btn-sm td-openlink" data-act="td-open-job" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="Mở trang tin tuyển dụng của vị trí này trên cổng">' + ic('td_link', 13) + 'Mở tin</button>' : '') + '</span>' : '<span class="muted" title="' + (x.r.st === 'pending' ? 'Cần duyệt đề xuất trước khi mở cổng' : 'Chỉ mở cổng khi đang tuyển') + '">—</span>'; } },
       { t: 'Cần / nhận', title: 'Số cần tuyển / số đã đồng ý nhận việc', f: function (x) { return x.r.sl; }, r: 1, h: function (x) { var h = tdHiredCount(x.u, x.r); return '<b>' + x.r.sl + '</b> / ' + (h >= x.r.sl ? '<span style="color:var(--pri);font-weight:700">' + h + '</span>' : h); } },
       { t: 'Đã nhận', f: function (x) { return tdHiredCount(x.u, x.r); }, hide: true },
       { t: 'Hồ sơ', title: 'Hồ sơ đang xét (chưa đóng)', f: liveC, r: 1, h: function (x) { var n = liveC(x); return n ? '<a href="#" class="plink" data-act="td-req-cands" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="Xem hồ sơ ứng viên của vị trí này">' + n + '</a>' : '0'; } },
@@ -14602,7 +14604,13 @@ if (typeof module !== 'undefined') module.exports = XW;
       { t: 'Hạn nộp', f: function (x) { return x.r.deadline || ''; }, h: function (x) { if (!x.r.deadline) return ''; var d = tdDiff(R, x.r.deadline), on = x.r.st === 'open'; return '<span' + (on && d < 0 ? ' style="color:var(--danger);font-weight:600"' : on && d <= 7 ? ' style="color:var(--warn);font-weight:600"' : '') + '>' + vn(x.r.deadline) + '</span>' + (on && d !== null ? '<small class="td-sub">' + (d < 0 ? 'đã qua ' + (-d) + ' ngày' : 'còn ' + d + ' ngày') + '</small>' : ''); } },
       { t: 'Cần người trước', f: function (x) { return x.r.needBy || ''; }, hide: true },
       { t: 'Lý do', f: function (x) { return x.r.reason || ''; }, hide: true },
-      { t: '', nosort: 1, f: function () { return ''; }, h: function (x) { return '<span class="td-tacts"><button class="btn btn-sm" data-act="td-req-edit" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="Sửa phiếu">' + ic('td_edit', 14) + '</button><button class="btn btn-sm" data-act="td-req-post" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="Sao chép tin đăng fanpage, Zalo">' + ic('td_copy', 14) + '</button></span>'; } }
+      { t: '', nosort: 1, f: function () { return ''; }, h: function (x) {
+        var isP = x.r.st === 'pending';
+        return '<span class="td-tacts">' +
+          (isP ? '<button class="btn btn-sm btn-primary" data-act="td-req-approve" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="Phê duyệt đề xuất tuyển dụng">' + ic('check', 14) + 'Duyệt</button><button class="btn btn-sm" data-act="td-req-reject" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="Từ chối đề xuất">' + ic('x', 14) + 'Từ chối</button>' : '') +
+          '<button class="btn btn-sm" data-act="td-req-edit" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="Chi tiết / Sửa phiếu">' + ic('td_edit', 14) + '</button>' +
+          (x.r.st === 'open' ? '<button class="btn btn-sm" data-act="td-req-post" data-u="' + x.u.id + '" data-id="' + x.r.id + '" title="Sao chép tin đăng fanpage, Zalo">' + ic('td_copy', 14) + '</button>' : '') +
+          '</span>'; } }
     ], rows, { title: 'Nhu cau tuyen dung', limit: 300 }) + '</div>';
   }
   BINDS.tdnhucau = function () { var f = PS.tdn; tdBindSearch('tdNQ', 'tdn', 'q'); if (f && f.scroll) { f.scroll = 0; setTimeout(function () { var el = $('#tdList'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30); } };
@@ -14635,13 +14643,41 @@ if (typeof module !== 'undefined') module.exports = XW;
     $('#tdPE', m).addEventListener('click', function () { m.close(); tdReqForm(u, r); });
   };
 
+  ACTS['td-req-approve'] = function (a, id) {
+    var u = unitById(a.getAttribute('data-u')), r = u && tdReq(u, id); if (!r) return;
+    confirmBox('Phê duyệt đề xuất tuyển dụng?', 'Vị trí "' + r.pos + '" (' + r.sl + ' người) sẽ chuyển sang trạng thái Đang tuyển và sẵn sàng mở nhận hồ sơ.', 'Duyệt đề xuất', function () {
+      r.st = 'open'; r.approvedAt = tdNow(); r.upd = tdNow();
+      tdSave(u, 'Phê duyệt đề xuất tuyển dụng ' + r.id + ' ' + r.pos);
+      render(); toast('Đã duyệt đề xuất ' + r.pos, 'ok', 'Vị trí đã chuyển sang Đang tuyển.');
+    });
+  };
+  ACTS['td-req-reject'] = function (a, id) {
+    var u = unitById(a.getAttribute('data-u')), r = u && tdReq(u, id); if (!r) return;
+    var m = modal('Từ chối đề xuất tuyển dụng', r.pos + ' · ' + r.pb,
+      '<div class="field"><label for="rjWhy">Lý do từ chối phê duyệt <i class="req">*</i></label><textarea class="input" id="rjWhy" placeholder="Nêu rõ lý do: chưa bố trí được ngân sách, định biên đã đủ, hoãn mở rộng..."></textarea></div>' +
+      '<div class="link-row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>Hủy</button><button class="btn btn-danger" id="rjOk">Xác nhận từ chối</button></div>', true);
+    $('#rjOk', m).addEventListener('click', function () {
+      var w = ($('#rjWhy', m).value || '').trim();
+      if (!w) { $('#rjWhy', m).focus(); toast('Chưa nhập lý do từ chối', 'err'); return; }
+      r.st = 'rejected'; r.rejectReason = w; r.rejectedAt = tdNow(); r.upd = tdNow(); r.pub = false;
+      tdSave(u, 'Từ chối đề xuất tuyển dụng ' + r.id + ': ' + w);
+      m.close(); render(); toast('Đã từ chối đề xuất ' + r.pos, 'ok');
+    });
+  };
+
   function tdReqForm(u, r, pre) {
     var isNew = !r, us = selUnits(); pre = pre || {};
-    var x = r ? JSON.parse(JSON.stringify(r)) : { pos: pre.cd || '', pb: pre.pb || '', cd: pre.cd || '', sl: pre.sl || 1, reason: pre.reason || 'Bổ sung theo định biên', thay: pre.thay || '', ld: 'Toàn thời gian', prob: 'cd', salMin: 0, salMax: 0, salShow: true, place: tdOf(u).cfg.addr, time: 'Thứ Hai – Thứ Sáu, 08:00–17:00', deadline: tdAdd(refDate(), 21), needBy: tdAdd(refDate(), 30), owner: tdOf(u).cfg.contact.split(' – ')[0], desc: '', reqs: '', bens: '', st: 'open', pub: false, note: '' };
+    var x = r ? JSON.parse(JSON.stringify(r)) : { pos: pre.cd || '', pb: pre.pb || '', cd: pre.cd || '', sl: pre.sl || 1, reason: pre.reason || 'Bổ sung theo định biên', thay: pre.thay || '', ld: 'Toàn thời gian', prob: 'cd', salMin: 0, salMax: 0, salShow: true, place: tdOf(u).cfg.addr, time: 'Thứ Hai – Thứ Sáu, 08:00–17:00', deadline: tdAdd(refDate(), 21), needBy: tdAdd(refDate(), 30), owner: tdOf(u).cfg.contact.split(' – ')[0], desc: '', reqs: '', bens: '', st: pre.st || 'pending', pub: false, note: '' };
     function body(u) {
       var pbs = u.data.PB.map(function (p) { return p['Tên phòng ban']; }); if (x.pb && pbs.indexOf(x.pb) < 0) pbs.push(x.pb);
       var nvs = u.data.NV.filter(function (e) { return e['Ngày nghỉ việc']; });
-      return '<div class="td-form">' + (isNew ? tdUnitPick(us, u.id) + '<div id="rSug">' + sugHtml(u) + '</div>' : '') +
+      var approveBanner = (x.st === 'pending') ?
+        '<div class="notice warn" style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:10px">' +
+          '<div><b>' + ic('info') + ' Đề xuất đang chờ phê duyệt</b><div style="font-size:12.5px;margin-top:2px">Đề xuất cần được phê duyệt trước khi chuyển sang Đang tuyển và mở cổng nhận hồ sơ.</div></div>' +
+          '<div class="link-row" style="margin:0;flex-shrink:0"><button type="button" class="btn btn-sm btn-primary" id="rApproveFast">' + ic('check', 14) + 'Duyệt đề xuất</button><button type="button" class="btn btn-sm" id="rRejectFast">' + ic('x', 14) + 'Từ chối</button></div>' +
+        '</div>' : (x.st === 'rejected' ?
+        '<div class="notice bad" style="margin-bottom:14px;padding:10px 14px;border-radius:10px"><b>' + ic('info') + ' Đề xuất đã bị từ chối phê duyệt</b>' + (x.rejectReason ? '<div style="font-size:12.5px;margin-top:2px">Lý do: ' + esc(x.rejectReason) + '</div>' : '') + '</div>' : '');
+      return '<div class="td-form">' + approveBanner + (isNew ? tdUnitPick(us, u.id) + '<div id="rSug">' + sugHtml(u) + '</div>' : '') +
         '<h4>Vị trí cần tuyển</h4><div class="td-g2">' +
         '<div class="field" style="grid-column:1/-1"><label for="rPos">Tên vị trí đăng tuyển *</label><input class="input" id="rPos" value="' + esc(x.pos) + '" placeholder="Ví dụ: Chuyên viên hành chính – nhân sự"><div class="hint">Tên hiện trên cổng tuyển dụng và tin đăng.</div></div>' +
         '<div class="field"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><label for="rPb" style="margin:0">Phòng ban *</label><button type="button" class="btn btn-sm" id="rPbQuickAdd" style="height:22px;padding:0 8px;font-size:11.5px;border:none;background:var(--pri-soft,#FFF2E8);color:var(--pri,#F47830);cursor:pointer;border-radius:6px;font-weight:600">+ Tạo nhanh phòng ban</button></div><select class="input" id="rPb">' + [['', '— Chọn phòng ban —']].concat(pbs.map(function (p) { return [p, p]; })).map(function (o) { return opt(o[0], o[1], x.pb); }).join('') + '</select></div>' +
@@ -14734,6 +14770,28 @@ if (typeof module !== 'undefined') module.exports = XW;
             }
             toast('Đã tạo phòng ban ' + dep['Tên phòng ban'], 'ok');
           });
+        });
+      }
+      var apBtn = $('#rApproveFast', m);
+      if (apBtn) {
+        apBtn.addEventListener('click', function () {
+          confirmBox('Phê duyệt đề xuất tuyển dụng?', 'Chuyển vị trí sang Đang tuyển để mở tuyển dụng và nhận hồ sơ.', 'Duyệt đề xuất', function () {
+            x.st = 'open'; x.approvedAt = tdNow(); x.upd = tdNow();
+            if (r) { r.st = 'open'; r.approvedAt = tdNow(); r.upd = tdNow(); tdSave(u, 'Duyệt đề xuất ' + r.id); }
+            m.close(); render(); toast('Đã phê duyệt đề xuất ' + x.pos, 'ok', 'Vị trí đã chuyển sang Đang tuyển.');
+          });
+        });
+      }
+      var rjBtn = $('#rRejectFast', m);
+      if (rjBtn) {
+        rjBtn.addEventListener('click', function () {
+          var why = prompt('Lý do từ chối đề xuất tuyển dụng:');
+          if (why === null) return;
+          why = (why || '').trim();
+          if (!why) { toast('Chưa nhập lý do từ chối', 'err'); return; }
+          x.st = 'rejected'; x.rejectReason = why; x.rejectedAt = tdNow(); x.upd = tdNow(); x.pub = false;
+          if (r) { r.st = 'rejected'; r.rejectReason = why; r.rejectedAt = tdNow(); r.upd = tdNow(); r.pub = false; tdSave(u, 'Từ chối đề xuất ' + r.id + ': ' + why); }
+          m.close(); render(); toast('Đã từ chối đề xuất ' + x.pos, 'ok');
         });
       }
     }
@@ -15169,6 +15227,13 @@ if (typeof module !== 'undefined') module.exports = XW;
       { t: 'Vị trí ứng tuyển', f: function (x) { return x.r.pos; }, h: function (x) { return esc(x.r.pos) + (us.length > 1 ? '<small class="td-sub">' + esc(shortUnit(x.u.name)) + '</small>' : ''); }, wrap: 1 },
       { t: 'Nộp', f: function (x) { return x.c.at; }, h: function (x) { var d = tdDiff(x.c.at, R); return vn(x.c.at) + '<small class="td-sub">' + esc(x.c.src || '') + (x.c.stage === 'new' && d >= 3 ? ' · <b style="color:var(--warn)">chờ ' + d + ' ngày</b>' : '') + '</small>'; } },
       { t: 'Tình trạng', f: function (x) { return TD_STN[x.c.stage]; }, s: function (x) { return stOrd.indexOf(x.c.stage); }, h: function (x) { return '<select class="td-stsel s-' + x.c.stage + '" data-u="' + x.u.id + '" data-id="' + x.c.id + '" title="Đổi nhanh tình trạng">' + TD_STG.map(function (s) { return opt(s[0], s[1], x.c.stage); }).join('') + '</select>'; } },
+      { t: 'Đánh giá', f: function (x) { return tdLastScore(x.c) || 0; }, h: function (x) {
+        var sc = tdLastScore(x.c);
+        if (sc === null) return '<span class="muted" title="Chưa có điểm đánh giá phỏng vấn">—</span>';
+        var cls = sc >= 4 ? 'tag-ok' : sc >= 3 ? 'tag-warn' : 'tag-bad';
+        var rank = sc >= 4.5 ? 'Xuất sắc' : sc >= 4 ? 'Giỏi' : sc >= 3 ? 'Khá' : 'Chưa đạt';
+        return '<span class="tag ' + cls + '" title="' + rank + '">★ ' + String(sc).replace('.', ',') + '</span>';
+      } },
       { t: 'Phỏng vấn', f: function (x) { var p = tdPlanIv(x.c); return p ? p.v.date : (tdLastDone(x.c) ? 'z' : ''); }, h: function (x) { var live = TD_LIVE.indexOf(x.c.stage) >= 0 && x.c.stage !== 'hired'; return '<span class="td-ivc">' + tdIvCell(x.c, R) + (live ? '<button class="btn btn-sm" data-act="td-q" data-x="iv" data-u="' + x.u.id + '" data-id="' + x.c.id + '" title="' + (tdPlanIv(x.c) ? 'Đổi lịch phỏng vấn' : 'Hẹn nhanh lịch phỏng vấn') + '">' + ic('td_cal', 13) + '</button>' : '') + '</span>'; } },
       { t: 'Việc tiếp theo', nosort: 1, f: function () { return ''; }, h: function (x) { return '<span class="td-next">' + tdNextAct(x.u, x.c, R) + '</span>'; } },
       { t: 'Email', f: function (x) { return x.c.email || ''; }, hide: true }, { t: 'Điện thoại', f: function (x) { return tdPhoneFmt(x.c.phone); }, hide: true },
@@ -15620,8 +15685,9 @@ if (typeof module !== 'undefined') module.exports = XW;
       var ltH = '<div class="td-sec"><h3>' + ic('td_mail', 16) + 'Thư gửi ứng viên</h3>' + (lts.length ? '<div class="td-lt">' + lts.map(function (l) { return '<div class="td-lt-i">' + ic('check') + '<span>' + TD_LT[l.t] + ' – ' + tdVnAt(l.at) + (l.ch ? ' · ' + esc(l.ch) : '') + '</span></div>'; }).join('') + '</div>' : '<p class="muted" style="margin:0">Chưa gửi thư nào.</p>') +
         '<div class="td-lbtn"><button class="btn btn-sm" data-lt="pv">' + ic('td_mail', 14) + 'Thư mời phỏng vấn</button><button class="btn btn-sm" data-lt="nv">' + ic('td_mail', 14) + 'Thư mời nhận việc</button><button class="btn btn-sm" data-lt="tc">' + ic('td_mail', 14) + 'Thư cảm ơn, chưa trúng tuyển</button></div></div>';
       var hist = '<div class="td-sec"><h3>Lịch sử</h3><ul class="td-hist">' + (c.hist || []).map(function (h) { return '<li><span>' + tdVnAt(h.at) + '</span>' + esc(h.txt) + '</li>'; }).join('') + '</ul></div>';
+      var aiPortal = '<div class="td-sec" style="background:var(--surface-2);border-radius:10px;padding:12px;margin-top:10px"><h3>' + ic('td_star', 15) + ' Đánh giá AI (Cổng chờ V2.0)</h3><p class="muted" style="margin:0;font-size:12.5px">' + (c.aiScore ? 'Điểm phù hợp: <b>' + c.aiScore + '/100</b> · ' + esc(c.aiSummary || '') : 'Tính năng tự động phân tích và chấm điểm CV so với JD bằng AI sẽ được mở ở phiên bản kế tiếp.') + '</p></div>';
       var nvBtn = c.nvId ? '<span class="link-row" style="margin:0"><span class="tag tag-ok">Đã là nhân sự ' + esc(c.nvId) + '</span><button class="btn" data-act="profile" data-u="' + u.id + '" data-id="' + esc(c.nvId) + '">Mở hồ sơ nhân sự</button><button class="btn" data-act="hd-new" data-u="' + u.id + '" data-id="' + esc(c.nvId) + '">Lập hợp đồng</button></span>' : '<button class="btn ' + (c.stage === 'hired' ? 'btn-primary' : '') + '" data-x="tonv">' + ic('td_arrow', 15) + 'Chuyển thành nhân sự</button>';
-      $('#tdCB', m).innerHTML = steps + (warns.length ? '<div class="td-warn">' + warns.join('') + '</div>' : '') + '<div class="td-cm"><div>' + info + hist + '</div><div>' + iv + off + ltH + '</div></div>' +
+      $('#tdCB', m).innerHTML = steps + (warns.length ? '<div class="td-warn">' + warns.join('') + '</div>' : '') + '<div class="td-cm"><div>' + info + hist + aiPortal + '</div><div>' + iv + off + ltH + '</div></div>' +
         '<div class="link-row nv-foot" style="margin-top:16px"><span class="link-row" style="margin:0"><button class="btn btn-danger-ghost" data-x="del">' + ic('td_trash', 15) + 'Xóa hồ sơ</button><button class="btn" data-x="star">' + (c.starred ? '★ Bỏ đánh dấu' : '☆ Đánh dấu nổi bật') + '</button></span>' + nvBtn + '</div>';
       var nt = $('#tdNote', m); nt.addEventListener('change', function () { c.note = nt.value; tdSave(u); });
       var cf = $('#tdCvF', m); cf.addEventListener('change', function () { var file = cf.files && cf.files[0]; cf.value = ''; if (!file) return; if (!(/^image\/|application\/pdf/.test(file.type) || /\.(pdf|jpe?g|png|webp)$/i.test(file.name)) || file.size > TD_CV_MAX) { toast('CV cần là file PDF hoặc ảnh, tối đa 5 MB', 'err'); return; } var fid = khoId(); khoPut({ id: fid, u: u.id, nv: c.id, kho: 'cv', ref: 'CV', name: file.name, type: file.type || 'application/pdf', size: file.size, at: tdNow().replace(' ', 'T'), blob: file }).then(function () { c.cv = fid; c.cvName = file.name; tdHist(c, 'Tải CV lên: ' + file.name); tdSave(u); draw(); toast('Đã lưu CV', 'ok'); }).catch(function (e) { showErr('Chưa lưu được CV', e); }); });
@@ -15639,7 +15705,7 @@ if (typeof module !== 'undefined') module.exports = XW;
       else if (x === 'ivnew') tdIvForm(u, c, null, draw);
       else if (x === 'ivedit') tdIvForm(u, c, i, draw);
       else if (x === 'ivcancel') confirmBox('Hủy lịch phỏng vấn?', 'Lịch vòng ' + (i + 1) + ' ngày ' + vn(c.ivs[i].date) + ' sẽ đánh dấu Đã hủy. Nhớ báo lại cho ứng viên.', 'Hủy lịch', function () { c.ivs[i].st = 'cancel'; tdHist(c, 'Hủy lịch phỏng vấn vòng ' + (i + 1)); tdSave(u); draw(); });
-      else if (x === 'eval') { m.close(); tdIvPopup(u, c, i); }
+      else if (x === 'eval') tdEvalForm(u, c, i, draw);
       else if (x === 'offer') tdOfferForm(u, c, draw);
       else if (x === 'ansyes' || x === 'ansno') { c.offer.ans = x === 'ansyes' ? 'yes' : 'no'; c.offer.ansAt = tdNow(); if (x === 'ansyes') { c.stage = 'hired'; tdHist(c, 'Đồng ý nhận việc, đi làm từ ' + vn(c.offer.start)); } else { c.stage = 'withdraw'; c.endAt = HR.isoToday(); tdHist(c, 'Từ chối thư mời nhận việc'); } tdSave(u, c.id + (x === 'ansyes' ? ' đồng ý nhận việc' : ' từ chối nhận việc')); draw(); render(); if (x === 'ansyes') toast(c.name + ' đồng ý nhận việc', 'ok', 'Bước tiếp: bấm "Chuyển thành nhân sự" để tạo hồ sơ (thông tin tự điền), rồi lập hợp đồng trước ngày đi làm.'); }
       else if (x === 'tonv') { m.close(); tdToNv(u, c); }
