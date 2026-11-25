@@ -3,6 +3,7 @@
   // Cloudflare Worker + cơ sở dữ liệu D1 trên tài khoản của chính đơn vị.
   // database_id: nút Deploy to Cloudflare hoặc lệnh cai-dat.cmd tự tạo cơ sở dữ liệu và điền vào.
   "name": "quan-ly-nhan-su",
+  "account_id": "1f9a85aabb35d8ddeadec68eb9112492",
   "main": "src/worker.js",
   "compatibility_date": "2025-09-01",
   "workers_dev": true,
