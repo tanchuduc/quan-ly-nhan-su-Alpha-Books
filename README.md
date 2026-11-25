@@ -2,8 +2,9 @@
 
 Phần mềm quản lý nhân sự toàn diện miễn phí, mã nguồn mở, viết bằng tiếng Việt cho doanh nghiệp nhỏ và vừa: hồ sơ, hợp đồng, chấm công, nghỉ phép, lương, bảo hiểm xã hội, tuyển dụng, hội nhập, đào tạo nội bộ, tài sản, thông tin chung.
 
-- Bản hiện tại: **1.0.1** (phát hành 18/11/2026) – xem [CHANGELOG.md](CHANGELOG.md)
+- Bản hiện tại: **1.0.5** (phát hành 25/11/2026) – xem [CHANGELOG.md](CHANGELOG.md)
 - Trang giới thiệu, so sánh 2 bản: https://quantritute.com/quan-ly-nhan-su/so-sanh/
+- **Đọc trước khi dùng** – giới hạn và trách nhiệm khi sử dụng (dữ liệu ở đâu, ai chịu trách nhiệm, giới hạn đã biết, báo sự cố): https://quantritute.com/quan-ly-nhan-su/gioi-han-trach-nhiem/
 - Tác giả: [Quản trị tử tế](https://quantritute.com) · Giấy phép: [AGPL-3.0](LICENSE)
 
 ## Hai phiên bản
