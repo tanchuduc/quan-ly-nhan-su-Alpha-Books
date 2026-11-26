@@ -2436,7 +2436,7 @@ button.qa-add{margin-left:8px!important;border:none!important;background:none!im
 
 /* 17/11 19:23 anh: dòng 1 = vị trí + đơn vị, công ty, ngày (trái) | tài khoản + nút công cụ (phải); dòng 2 = ô tìm kiếm (trái) | ghi chú lưu máy chủ (phải) */
 .tb-r1{flex-wrap:wrap;gap:8px}.tb-r1 .top-status{margin-left:0;gap:6px;flex-wrap:nowrap}
-.tb-r1 .crumb{max-width:200px;overflow:hidden;text-overflow:ellipsis;margin-right:0}.tb-r1 #unitChip select{max-width:150px}.tb-r1 .chip{padding:0 10px}
+.tb-r1 .crumb{max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:0}.tb-r1 .crumb b{display:inline-block;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}.tb-r1 #unitChip select{max-width:150px}.tb-r1 .chip{padding:0 10px}
 @media (max-width:1380px){body:not(.nav-hide) .tb-r1 .crumb{display:none}}
 .tb-tools{display:flex;align-items:center;gap:8px}
 .tb-r1 .top-status{margin-left:auto} /* 17/11 19:41 anh: 3 ô đơn vị, công ty, ngày dồn sát cụm tài khoản + nút công cụ bên phải */
@@ -4046,6 +4046,7 @@ if (typeof module !== 'undefined') module.exports = XW;
     dash: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
     viec: '<path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4.5M12 17.5v.01"/>',
     sotay: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10M6 14h6"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>',
+    gopy: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/>',
     nv: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.6.8 2.6 2.5 3 5.2"/>',
     hd: '<path d="M6 2.5h8.5L19 7v14.5H6z"/><path d="M14 2.5V7h5M9 12h7M9 16h5"/>',
     cc: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
@@ -4137,6 +4138,7 @@ if (typeof module !== 'undefined') module.exports = XW;
     // 17/11: bỏ mục Danh mục – Phòng ban, Chức vụ xem ở Sơ đồ tổ chức
     { id: 'dinhky', g: 'ht', t: 'Việc định kỳ', st: 'ok', k: 'viec dinh ky lap lai hang thang nhac chot cong luong' },
     { id: 'appnv', g: 'ht', t: 'Ứng dụng nhân viên', st: 'ok', k: 'app dien thoai nhan vien tai khoan pin cap khoa mo khoa dang nhap' },
+    { id: 'gopy', g: 'ht', t: 'Hòm thư góp ý, báo lỗi', st: 'ok', k: 'hom thu gop y bao loi phan hoi y kien nhan vien ho tro' },
     { id: 'caidat', g: 'ht', t: 'Cài đặt', st: 'ok', k: 'cai dat nguong xoa du lieu' }
   ];
   var NAV = MODS; // giữ tên cũ cho phần kiểm tra trang hợp lệ
@@ -5841,6 +5843,18 @@ if (typeof module !== 'undefined') module.exports = XW;
 
     var curTab = f.tab || 'all';
 
+    var sotayDl = function (taskId, dueDay, label) {
+      if (ck[taskId]) return '<span class="tag tag-ok" style="font-weight:700">✓ Đã hoàn thành</span>';
+      if (dueDay < 90 && day > dueDay) return '<span class="tag tag-err" style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;font-weight:700">⚠️ Quá hạn (' + label + ')</span>';
+      if (dueDay < 90 && day === dueDay) return '<span class="tag tag-warn" style="background:#fffbeb;color:#b45309;border:1px solid #fde68a;font-weight:700">⏰ Hôm nay đến hạn (' + label + ')</span>';
+      return '<span class="tag tag-warn">' + label + '</span>';
+    };
+    var sotayBox = function (taskId) {
+      return ck[taskId]
+        ? 'background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px;display:flex;gap:12px;align-items:flex-start;transition:all .2s'
+        : 'background:var(--bg,#f8fafc);border:1px solid var(--border,#e2e8f0);border-radius:8px;padding:14px;display:flex;gap:12px;align-items:flex-start;transition:all .2s';
+    };
+
     var html = pageHead(
       'Sổ tay Vận hành Chu kỳ Tháng (SOP HCNS)',
       'Quy trình vận hành chuẩn từng bước cho Phòng Hành chính Nhân sự Alpha Books · Chốt công 1-5 hàng tháng · Chi lương mùng 10 hàng tháng',
@@ -5861,8 +5875,8 @@ if (typeof module !== 'undefined') module.exports = XW;
           '</div>' +
         '</div>' +
         '<div style="min-width:200px;text-align:right">' +
-          '<div style="background:var(--border,#e2e8f0);height:8px;border-radius:99px;overflow:hidden;margin-bottom:4px">' +
-            '<div style="background:var(--pri,#0d9488);height:100%;width:' + pct + '%;transition:width .3s"></div>' +
+          '<div style="background:var(--border,#e2e8f0);height:9px;border-radius:99px;overflow:hidden;margin-bottom:4px;box-shadow:inset 0 1px 2px rgba(0,0,0,0.06)">' +
+            '<div style="background:linear-gradient(90deg,#D95F18,#10b981);height:100%;width:' + pct + '%;border-radius:99px;transition:width .3s ease"></div>' +
           '</div>' +
           '<small style="color:var(--dim,#64748b)">' + (pct === 100 ? '🎉 Đã hoàn thành toàn bộ chu kỳ tháng!' : 'Còn ' + (allTasks.length - doneCount) + ' đầu việc cần hoàn thành') + '</small>' +
         '</div>' +
@@ -5876,7 +5890,7 @@ if (typeof module !== 'undefined') module.exports = XW;
       '<button class="' + (curTab === 'p2' ? 'on' : '') + '" data-act="sotay-tab" data-id="p2">Pha 2: Chi lương & Phiếu lương (06 - 10)</button>' +
       '<button class="' + (curTab === 'p3' ? 'on' : '') + '" data-act="sotay-tab" data-id="p3">Pha 3: BHXH & Thường nhật (11 - 20)</button>' +
       '<button class="' + (curTab === 'p4' ? 'on' : '') + '" data-act="sotay-tab" data-id="p4">Pha 4: Rà soát & Sao lưu (21 - Cuối tháng)</button>' +
-      '<button class="' + (curTab === 'faq' ? 'on' : '') + '" data-act="sotay-tab" data-id="faq">❓ Xử lý sự cố & Gotchas</button>' +
+      '<button class="' + (curTab === 'faq' ? 'on' : '') + '" data-act="sotay-tab" data-id="faq">❓ Xử lý sự cố & Tình huống (FAQ)</button>' +
     '</div>';
 
     html += '<div class="sotay-content" style="display:flex;flex-direction:column;gap:18px">';
@@ -5899,7 +5913,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px">1.1. Đôn đốc duyệt đơn & Xử lý giải trình quên chấm có ảnh</b>' +
-                '<span class="tag tag-warn">Hạn chót: 17h00 Ngày 02</span>' +
+                '' + sotayDl('p1_1', 2, 'Hạn: 17h Ngày 02') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Mở mục <b>Nghỉ phép</b> ➔ Tab <b>Đơn nghỉ</b>: Duyệt hoặc nhắc Trưởng bộ phận duyệt dứt điểm các đơn nghỉ phép, công tác, làm thêm giờ (OT), đổi ca của tháng trước.<br>' +
@@ -5918,7 +5932,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px">1.2. Khóa & Đối soát Bảng Tổng hợp công tháng trước</b>' +
-                '<span class="tag tag-warn">Hạn chót: Ngày 03 hàng tháng</span>' +
+                '' + sotayDl('p1_2', 3, 'Hạn: Ngày 03') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Mở <b>Tổng hợp công</b> ➔ Chọn tháng vừa kết thúc ➔ Bấm <b>Đồng bộ dữ liệu</b>.<br>' +
@@ -5939,7 +5953,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px">1.3. Cập nhật biến động, KPI, Phụ cấp & Chạy Bảng tính lương</b>' +
-                '<span class="tag tag-warn">Hạn chót: Ngày 05 hàng tháng</span>' +
+                '' + sotayDl('p1_3', 5, 'Hạn: Ngày 05') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Thu thập dữ liệu biến động lương từ các bộ phận: Doanh số kinh doanh, KPI biên tập, phụ cấp kiêm nhiệm, tạm ứng, thưởng/phạt dự án hội sách.<br>' +
@@ -5974,7 +5988,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px">2.1. Trình ký duyệt Bảng thanh toán tiền lương nội bộ</b>' +
-                '<span class="tag tag-warn">Hạn chót: Ngày 08 hàng tháng</span>' +
+                '' + sotayDl('p2_1', 8, 'Hạn: Ngày 08') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Xuất Bảng lương tổng hợp chi tiết ra file Excel (`Xuất báo cáo ➔ Bảng lương`).<br>' +
@@ -5993,7 +6007,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px">2.2. Lập Bảng chi lương & Đổ lệnh thanh toán Ngân hàng</b>' +
-                '<span class="tag tag-warn">Hạn chót: Ngày 09 hàng tháng</span>' +
+                '' + sotayDl('p2_2', 9, 'Hạn: Ngày 09') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Vào <b>Bảng chi lương</b> (`chiluong`): Rà soát danh sách nhân sự chuyển khoản ngân hàng (kiểm tra Số tài khoản, Tên ngân hàng, Tên người thụ hưởng).<br>' +
@@ -6012,7 +6026,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px;color:#dc2626">2.3. CHI LƯƠNG & PHÁT HÀNH PHIẾU LƯƠNG LÊN APP CHO CBNV</b>' +
-                '<span class="tag tag-ok" style="font-weight:700">ĐÚNG NGÀY MÙNG 10 HÀNG THÁNG</span>' +
+                '' + sotayDl('p2_3', 10, 'Hạn: Mùng 10') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• <b>Chi lương:</b> Tiền lương được chuyển khoản tới CBNV trong ngày mùng 10 (nếu mùng 10 rơi vào Chủ nhật, chuyển trước vào thứ Bảy).<br>' +
@@ -6048,7 +6062,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px">3.1. Lập hồ sơ Báo tăng / Báo giảm BHXH với Cơ quan Bảo hiểm</b>' +
-                '<span class="tag tag-warn">Hạn chót: Ngày 15 - 20 hàng tháng</span>' +
+                '' + sotayDl('p3_1', 20, 'Hạn: Ngày 15-20') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Mở mục <b>Bảo hiểm xã hội</b> (`bhxh`) ➔ Tab <b>Danh sách tham gia</b>: Rà soát biến động lao động trong tháng.<br>' +
@@ -6068,7 +6082,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px">3.2. Quản lý Hợp đồng lao động, Tái ký & Cấp tài khoản mới</b>' +
-                '<span class="tag tag-info">Thực hiện liên tục</span>' +
+                '' + sotayDl('p3_2', 99, 'Thực hiện liên tục') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Mở <b>Việc cần xử lý</b> (`viec`) & <b>Hợp đồng</b> (`hd`): Xem danh sách HĐLĐ sắp hết hạn trong 30 ngày tới.<br>' +
@@ -6088,7 +6102,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px">3.3. Giám sát Chấm công Wi-Fi/QR hàng ngày & Sự kiện</b>' +
-                '<span class="tag tag-info">Hàng ngày</span>' +
+                '' + sotayDl('p3_3', 99, 'Hàng ngày') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Hàng ngày kiểm tra <b>Bảng điều hành</b> (`dash`) để nắm quân số hiện diện, số người nghỉ phép, công tác.<br>' +
@@ -6123,7 +6137,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px">4.1. Đánh giá hết hạn thử việc & Ký HĐLĐ chính thức</b>' +
-                '<span class="tag tag-warn">Hạn chót: Ngày 25 hàng tháng</span>' +
+                '' + sotayDl('p4_1', 25, 'Hạn: Ngày 25') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Lọc danh sách nhân viên sắp hết hạn thử việc trong tháng.<br>' +
@@ -6143,7 +6157,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px">4.2. Phát thông báo nhắc CBNV rà soát công & Nộp đơn giải trình</b>' +
-                '<span class="tag tag-warn">Hạn chót: Ngày 28 hàng tháng</span>' +
+                '' + sotayDl('p4_2', 28, 'Hạn: Ngày 28') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Mở mục <b>Thông báo</b> (`thongbao`): Gửi thông báo đẩy toàn công ty qua ứng dụng:<br>' +
@@ -6162,7 +6176,7 @@ if (typeof module !== 'undefined') module.exports = XW;
             '<div style="flex:1">' +
               '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
                 '<b style="font-size:14px;color:#dc2626">4.3. Đóng sổ tháng, Lập lịch tháng mới & SAO LƯU DỮ LIỆU</b>' +
-                '<span class="tag tag-bad" style="font-weight:700">NGÀY CUỐI CÙNG CỦA THÁNG</span>' +
+                '' + sotayDl('p4_3', 31, 'Hạn: Cuối tháng') + '' +
               '</div>' +
               '<p style="margin:6px 0 8px;font-size:13px;color:var(--dim,#475569);line-height:1.5">' +
                 '• Vào <b>Thiết lập chấm công ➔ Khối sản xuất/vận hành</b> (`tlsx`): Xếp lịch ca làm việc tháng tới cho nhân sự kho/bán lẻ/hội sách (nếu có ca xoay).<br>' +
@@ -6185,8 +6199,8 @@ if (typeof module !== 'undefined') module.exports = XW;
     if (curTab === 'all' || curTab === 'faq') {
       html += '<div class="card card-pad">' +
         '<div style="display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border,#e2e8f0);padding-bottom:10px;margin-bottom:14px">' +
-          '<span style="background:#475569;color:#fff;border-radius:8px;padding:4px 10px;font-weight:700;font-size:13px">HỖ TRỢ</span>' +
-          '<h2 style="margin:0;font-size:16px;font-weight:700">CẨM NANG XỬ LÝ SỰ CỐ & GOTCHAS THƯỜNG GẶP DÀNH CHO ADMIN HCNS</h2>' +
+          '<span style="background:var(--pri,#D95F18);color:#fff;border-radius:8px;padding:4px 10px;font-weight:700;font-size:13px">HỖ TRỢ HCNS</span>' +
+          '<h2 style="margin:0;font-size:16px;font-weight:700">CẨM NANG XỬ LÝ SỰ CỐ & CÁC TÌNH HUỐNG THƯỜNG GẶP (FAQ ADMIN)</h2>' +
         '</div>' +
 
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px">' +
@@ -6289,6 +6303,268 @@ if (typeof module !== 'undefined') module.exports = XW;
       toast('Đã đặt lại checklist chu kỳ tháng ' + ym, 'ok');
       render();
     } catch (e) {}
+  };
+
+  
+  /* ==========================================================================
+     TRANG QUẢN TRỊ: HÒM THƯ GÓP Ý & BÁO LỖI NỘI BỘ (/quan-tri#gopy)
+     ========================================================================== */
+  var GOPY_CACHE = null;
+
+  PAGES.gopy = function () {
+    var f = ps('gopy', { tab: 'all', q: '', loai: '' });
+
+    var html = pageHead(
+      'Hòm thư Góp ý & Báo lỗi',
+      'Theo dõi, phân loại và xử lý các phản hồi, thắc mắc và báo lỗi kỹ thuật được gửi từ ứng dụng nhân viên Alpha Books.',
+      '<button class="btn btn-sm" data-act="gopy-reload" title="Tải lại danh sách mới nhất">' + ic('rescan', 16) + ' Làm mới</button>' +
+      '<button class="btn btn-sm" data-act="gopy-export" title="Tải danh sách ra file Excel">' + ic('xuat', 16) + ' Xuất Excel</button>'
+    );
+
+    // Khu vực thống kê nhanh
+    html += '<div id="gopy-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">' +
+      '<div class="card card-pad" style="text-align:center;padding:12px"><small style="color:var(--dim,#64748b)">Tổng phản hồi</small><div id="st-all" style="font-size:22px;font-weight:700;color:var(--tx,#0f172a)">…</div></div>' +
+      '<div class="card card-pad" style="text-align:center;padding:12px;border-left:3px solid #dc2626"><small style="color:#dc2626;font-weight:600">🔴 Mới / Chưa xử lý</small><div id="st-moi" style="font-size:22px;font-weight:700;color:#dc2626">…</div></div>' +
+      '<div class="card card-pad" style="text-align:center;padding:12px;border-left:3px solid #d97706"><small style="color:#d97706;font-weight:600">🟡 Đang xử lý</small><div id="st-dang" style="font-size:22px;font-weight:700;color:#d97706">…</div></div>' +
+      '<div class="card card-pad" style="text-align:center;padding:12px;border-left:3px solid #16a34a"><small style="color:#16a34a;font-weight:600">🟢 Đã xử lý xong</small><div id="st-xong" style="font-size:22px;font-weight:700;color:#16a34a">…</div></div>' +
+    '</div>';
+
+    // Thanh lọc và tìm kiếm
+    html += '<div class="card card-pad" style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">' +
+      '<div class="seg" id="gopy-tabs">' +
+        '<button class="' + (f.tab === 'all' ? 'on' : '') + '" data-st-tab="all">Tất cả</button>' +
+        '<button class="' + (f.tab === 'moi' ? 'on' : '') + '" data-st-tab="moi">Chưa xử lý (Mới)</button>' +
+        '<button class="' + (f.tab === 'dang_xu_ly' ? 'on' : '') + '" data-st-tab="dang_xu_ly">Đang xử lý</button>' +
+        '<button class="' + (f.tab === 'da_xu_ly' ? 'on' : '') + '" data-st-tab="da_xu_ly">Đã xử lý</button>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex:1;min-width:280px;justify-content:flex-end">' +
+        '<select class="input" id="gopy-type-sel" style="max-width:180px">' +
+          '<option value="">Tất cả phân loại</option>' +
+          '<option value="Báo lỗi"' + (f.loai === 'Báo lỗi' ? ' selected' : '') + '>Báo lỗi</option>' +
+          '<option value="Thắc mắc quy chế"' + (f.loai === 'Thắc mắc quy chế' ? ' selected' : '') + '>Thắc mắc quy chế</option>' +
+          '<option value="Đề xuất tính năng"' + (f.loai === 'Đề xuất tính năng' ? ' selected' : '') + '>Đề xuất tính năng</option>' +
+        '</select>' +
+        '<input class="input" id="gopy-q" value="' + esc(f.q || '') + '" placeholder="Tìm theo tên, mã NV, SĐT, nội dung…" style="max-width:320px">' +
+      '</div>' +
+    '</div>';
+
+    // Danh sách phản hồi
+    html += '<div id="gopy-list" style="display:flex;flex-direction:column;gap:14px">' +
+      '<div class="card card-pad" style="text-align:center;padding:32px"><p class="muted">Đang tải danh sách hòm thư…</p></div>' +
+    '</div>';
+
+    return html;
+  };
+
+  BINDS.gopy = function () {
+    var f = ps('gopy', { tab: 'all', q: '', loai: '' });
+
+    function renderGopyList(list) {
+      GOPY_CACHE = list || [];
+      var nAll = list.length;
+      var nMoi = list.filter(function (x) { return !x.trang_thai || x.trang_thai === 'moi'; }).length;
+      var nDang = list.filter(function (x) { return x.trang_thai === 'dang_xu_ly'; }).length;
+      var nXong = list.filter(function (x) { return x.trang_thai === 'da_xu_ly'; }).length;
+
+      var elAll = $('#st-all'), elMoi = $('#st-moi'), elDang = $('#st-dang'), elXong = $('#st-xong');
+      if (elAll) elAll.textContent = nAll;
+      if (elMoi) elMoi.textContent = nMoi;
+      if (elDang) elDang.textContent = nDang;
+      if (elXong) elXong.textContent = nXong;
+
+      var q = (f.q || '').toLowerCase().trim();
+      var filtered = list.filter(function (x) {
+        if (f.tab === 'moi' && (x.trang_thai && x.trang_thai !== 'moi')) return false;
+        if (f.tab === 'dang_xu_ly' && x.trang_thai !== 'dang_xu_ly') return false;
+        if (f.tab === 'da_xu_ly' && x.trang_thai !== 'da_xu_ly') return false;
+        if (f.loai && x.loai !== f.loai) return false;
+        if (q) {
+          var t = (x.ten || '') + ' ' + (x.ma || '') + ' ' + (x.phone || '') + ' ' + (x.noi_dung || '') + ' ' + (x.ghi_chu || '');
+          if (t.toLowerCase().indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+
+      var box = $('#gopy-list');
+      if (!box) return;
+
+      if (!filtered.length) {
+        box.innerHTML = '<div class="card card-pad" style="text-align:center;padding:48px">' +
+          '<div style="font-size:36px;margin-bottom:8px">📭</div>' +
+          '<h3 style="margin:0 0 6px">Không tìm thấy phản hồi nào</h3>' +
+          '<p class="muted" style="margin:0">Chưa có góp ý/báo lỗi phù hợp với bộ lọc hiện tại.</p>' +
+        '</div>';
+        return;
+      }
+
+      var h = '';
+      filtered.forEach(function (x) {
+        var isXong = x.trang_thai === 'da_xu_ly';
+        var isDang = x.trang_thai === 'dang_xu_ly';
+        var stCls = isXong ? 'background:#eaf5ec;color:#2f7d4f' : isDang ? 'background:#fdf3e5;color:#c2740e' : 'background:#fdeceb;color:#d93025';
+        var stTxt = isXong ? '✓ Đã xử lý' : isDang ? '⚡ Đang xử lý' : '● Mới';
+
+        var typeCls = x.loai === 'Báo lỗi' ? 'background:#fee2e2;color:#991b1b' : x.loai === 'Thắc mắc quy chế' ? 'background:#fef3c7;color:#92400e' : 'background:#e0f2fe;color:#075985';
+
+        var d = new Date(x.tao);
+        var dStr = ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+
+        h += '<div class="card card-pad" style="border:1px solid var(--border,#e2e8f0);border-radius:10px;padding:16px;background:var(--card-bg,#fff);box-shadow:0 1px 3px rgba(0,0,0,0.03)">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">' +
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+              '<span class="tag" style="font-weight:700;font-size:12px;' + typeCls + '">' + esc(x.loai || 'Góp ý') + '</span>' +
+              '<b style="font-size:15px">' + esc(x.ten || 'Người dùng') + '</b>' +
+              (x.ma ? '<span class="muted small">(' + esc(x.ma) + ')</span>' : '') +
+              (x.phone ? '<a href="tel:' + esc(x.phone) + '" class="tag tag-info" style="text-decoration:none;font-size:12px">📞 ' + esc(x.phone) + '</a>' : '') +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:8px">' +
+              '<span style="font-size:12px;padding:3px 10px;border-radius:6px;font-weight:700;' + stCls + '">' + stTxt + '</span>' +
+              '<small class="muted">' + dStr + '</small>' +
+            '</div>' +
+          '</div>' +
+
+          '<div style="font-size:14px;line-height:1.6;white-space:pre-wrap;background:var(--bg,#f8fafc);padding:12px 14px;border-radius:8px;border:1px solid var(--border,#e2e8f0);margin-bottom:10px;color:var(--tx,#0f172a)">' +
+            esc(x.noi_dung || '') +
+          '</div>' +
+
+          '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:12px" class="muted">' +
+            '<div>' +
+              (x.trang ? '<span>📄 ' + esc(x.trang) + '</span> · ' : '') +
+              (x.thiet_bi ? '<span>💻 ' + esc(x.thiet_bi) + '</span>' : '') +
+            '</div>' +
+            '<div style="display:flex;gap:6px">' +
+              (!isDang && !isXong ? '<button type="button" class="btn btn-sm" data-gopy-st="' + x.id + '" data-val="dang_xu_ly">⚡ Nhận xử lý</button>' : '') +
+              (!isXong ? '<button type="button" class="btn btn-sm btn-primary" data-gopy-st="' + x.id + '" data-val="da_xu_ly">✓ Đã xử lý xong</button>' : '') +
+              (isXong ? '<button type="button" class="btn btn-sm" data-gopy-st="' + x.id + '" data-val="dang_xu_ly">Mở lại</button>' : '') +
+            '</div>' +
+          '</div>' +
+
+          // Khung ghi chú nội bộ của admin
+          '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border,#e2e8f0);display:flex;gap:8px;align-items:center">' +
+            '<small style="font-weight:600;min-width:90px;color:var(--dim,#64748b)">Ghi chú xử lý:</small>' +
+            '<input class="input" id="gopy-note-' + x.id + '" value="' + esc(x.ghi_chu || '') + '" placeholder="Ghi chú nội bộ admin (VD: Đã gọi điện hỗ trợ, đã fix bug...)" style="font-size:13px;flex:1">' +
+            '<button type="button" class="btn btn-sm" data-gopy-save-note="' + x.id + '">Lưu ghi chú</button>' +
+          '</div>' +
+        '</div>';
+      });
+
+      box.innerHTML = h;
+
+      // Bind status buttons
+      $$('[data-gopy-st]', box).forEach(function (btn) {
+        btn.onclick = function () {
+          var id = btn.getAttribute('data-gopy-st');
+          var stVal = btn.getAttribute('data-val');
+          btn.disabled = true;
+          fetch('/api/qt/gop-y-cap-nhat', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ id: id, trang_thai: stVal })
+          }).then(function () {
+            toast('Đã cập nhật trạng thái', 'ok');
+            loadGopyData();
+          }).catch(function (e) {
+            toast('Lỗi cập nhật: ' + e.message, 'err');
+            btn.disabled = false;
+          });
+        };
+      });
+
+      // Bind save note buttons
+      $$('[data-gopy-save-note]', box).forEach(function (btn) {
+        btn.onclick = function () {
+          var id = btn.getAttribute('data-gopy-save-note');
+          var input = $('#gopy-note-' + id);
+          var noteVal = input ? input.value.trim() : '';
+          btn.disabled = true;
+          fetch('/api/qt/gop-y-cap-nhat', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ id: id, ghi_chu: noteVal })
+          }).then(function () {
+            toast('Đã lưu ghi chú', 'ok');
+            btn.disabled = false;
+          }).catch(function (e) {
+            toast('Lỗi lưu ghi chú: ' + e.message, 'err');
+            btn.disabled = false;
+          });
+        };
+      });
+    }
+
+    function loadGopyData() {
+      fetch('/api/qt/gop-y')
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (res) {
+          renderGopyList(res.list || []);
+        })
+        .catch(function (er) {
+          var box = $('#gopy-list');
+          if (box) box.innerHTML = '<div class="card card-pad" style="text-align:center;padding:32px"><p class="muted">Không thể tải dữ liệu: ' + esc(er.message) + '</p></div>';
+        });
+    }
+
+    loadGopyData();
+
+    // Tabs filter
+    $$('[data-st-tab]').forEach(function (btn) {
+      btn.onclick = function () {
+        var t = btn.getAttribute('data-st-tab');
+        f.tab = t;
+        $$('[data-st-tab]').forEach(function (x) { x.classList.toggle('on', x === btn); });
+        if (GOPY_CACHE) renderGopyList(GOPY_CACHE);
+      };
+    });
+
+    // Type select
+    var typeSel = $('#gopy-type-sel');
+    if (typeSel) {
+      typeSel.onchange = function () {
+        f.loai = typeSel.value;
+        if (GOPY_CACHE) renderGopyList(GOPY_CACHE);
+      };
+    }
+
+    // Search input
+    var qInput = $('#gopy-q');
+    if (qInput) {
+      qInput.oninput = function () {
+        f.q = qInput.value;
+        if (GOPY_CACHE) renderGopyList(GOPY_CACHE);
+      };
+    }
+  };
+
+  ACTS['gopy-reload'] = function () {
+    if (curPage === 'gopy') render();
+    else go('gopy');
+  };
+
+  ACTS['gopy-export'] = function () {
+    if (!GOPY_CACHE || !GOPY_CACHE.length) {
+      toast('Không có dữ liệu để xuất Excel', 'warn');
+      return;
+    }
+    var rows = [['STT', 'Mã NV', 'Họ và tên', 'Số điện thoại', 'Email', 'Phân loại', 'Nội dung', 'Trang gửi', 'Thiết bị', 'Trạng thái', 'Ghi chú xử lý', 'Thời gian gửi']];
+    GOPY_CACHE.forEach(function (x, i) {
+      var d = new Date(x.tao);
+      var dStr = ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+      var st = x.trang_thai === 'da_xu_ly' ? 'Đã xử lý' : x.trang_thai === 'dang_xu_ly' ? 'Đang xử lý' : 'Mới';
+      rows.push([i + 1, x.ma || '', x.ten || '', x.phone || '', x.email || '', x.loai || '', x.noi_dung || '', x.trang || '', x.thiet_bi || '', st, x.ghi_chu || '', dStr]);
+    });
+    var csvContent = "\\uFEFF" + rows.map(function (e) {
+      return e.map(function (val) {
+        return '"' + String(val).replace(/"/g, '""') + '"';
+      }).join(",");
+    }).join("\\n");
+    var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "Danh_sach_gop_y_bao_loi_AlphaBooks_" + new Date().toISOString().slice(0, 10) + ".csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast('Đã xuất file dữ liệu thành công', 'ok');
   };
 
   PAGES.dinhky = function () {
@@ -22285,7 +22561,7 @@ var rows = [];
   function pqAdmin() { var c = pqCtx(); return !c || !!(c.role && c.role.sys && !c.none); }
   function pqLvl(id) {
     var c = pqCtx(); if (!c) return 's'; if (c.role.sys) return 's';
-    if (id === 'sotay') return 'x';
+    if (id === 'sotay' || id === 'gopy') return 'x';
     if (id === 'phanquyen' || !modOf(id)) return '';
     var v = (c.role.q || {})[id] || ''; if (v === 's' && c.pb && c.pb.length) v = 'x';
     return v;

@@ -719,8 +719,20 @@ td.ipbox,td.num{white-space:nowrap;word-break:normal}
   .nvx-wrap.dk .dk-brand>span,.nvx-wrap.dk .dk-me>span:not(.nvx-avi){display:flex;flex-direction:column;min-width:0;justify-content:center}
   .nvx-wrap.dk .dk-brand b{font-size:15.5px;font-weight:700;color:var(--mtx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
   .nvx-wrap.dk .dk-brand small{font-size:11.5px;font-weight:500;color:var(--mmut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;margin-top:2px}
-  .nvx-wrap.dk .nvx-nav .dk-me{display:flex;min-height:56px;margin-bottom:8px;background:var(--mbg)}
-  .nvx-wrap.dk .dk-me b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nvx-wrap.dk .dk-me small{font-size:11.5px;color:var(--mmut);font-weight:500}
+  .nvx-wrap.dk .nvx-nav .dk-me{display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 12px;margin-top:8px;margin-bottom:6px;background:var(--moff);border:1px solid var(--mline);border-radius:14px;cursor:pointer;transition:all .15s ease;text-align:left;box-sizing:border-box}
+  .nvx-wrap.dk .nvx-nav .dk-me:hover{background:var(--mcard);border-color:var(--mpri);box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .nvx-wrap.dk .nvx-nav .dk-me.on{background:var(--mws);color:var(--mwt);border-color:var(--mpri)}
+  .nvx-wrap.dk .dk-me b{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nvx-wrap.dk .dk-me small{font-size:11.5px;color:var(--mmut);font-weight:500;margin-top:1px}
+  .nvx-wrap.dk .dk-me.on small{color:currentColor;opacity:.85}
+  .nvx-wrap.dk .dk-me svg{margin-left:auto;opacity:.4;flex-shrink:0}
+  .nvx-wrap.dk .dk-me:hover svg{opacity:.9;transform:translateX(2px);transition:transform .15s}
+  .nvx-seg-switch{display:flex;background:var(--moff);padding:4px;border-radius:14px;border:1px solid var(--mline);margin-bottom:14px;gap:4px}
+  .nvx-seg-switch .seg-btn{flex:1;min-height:36px;border:0;border-radius:10px;background:none;font:600 13.5px/1 "Be Vietnam Pro",system-ui,sans-serif;color:var(--mmut);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+  .nvx-seg-switch .seg-btn.on{background:var(--mcard);color:var(--mtx);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .nvx-seg-switch .seg-btn:hover:not(.on){color:var(--mtx)}
+  .nvx-hero .nvx-avb{position:relative;border:2px solid rgba(255,255,255,.35);border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.15);cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .nvx-hero .nvx-avb:hover{transform:scale(1.05);box-shadow:0 3px 8px rgba(0,0,0,.25)}
   .nvx-wrap.dk .nvx-nav .dk-tb{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border:0;border-radius:12px;background:none;box-shadow:none;color:var(--mtx);font:600 14px/1.2 "Be Vietnam Pro",system-ui,sans-serif;text-align:left;cursor:pointer;margin-bottom:6px;transition:background .15s}
   .nvx-wrap.dk .nvx-nav .dk-tb:hover{background:var(--moff)}
   .nvx-wrap.dk .nvx-nav .dk-tb svg{color:inherit;flex-shrink:0}
@@ -1693,7 +1705,7 @@ function nvView(st) {
   var T = NVT.tab, hh = +q.h, chao = hh < 11 ? 'Chào buổi sáng' : hh < 13 ? 'Chào buổi trưa' : hh < 18 ? 'Chào buổi chiều' : 'Chào buổi tối';
   var caHom = ''; if (L) { var rr = L.d.filter(function (x) { return x.ngay === L.hom_nay; })[0]; if (rr) caHom = lParts(L, rr.ca).map(function (x) { var sm = x.kh ? 0 : lSom(x, q.wd), a0 = x.kh ? null : lMin(x.vao); return x.kh ? x.ten : lShort(x) + ' ' + (x.vao || '') + '–' + (x.ra || '') + (sm && a0 !== null ? ' (có mặt ' + lM2(a0 - sm) + ')' : ''); }).join(' + '); }
   else if (LE[tIso]) caHom = 'Nghỉ lễ – ' + LE[tIso]; else if (HS && HS.lich && HS.lich.ca) caHom = (HS.lich.tuan || [1, 2, 3, 4, 5]).indexOf(q.wd) >= 0 ? vpCaT(HS.lich.ca, q.wd) : 'Ngày nghỉ hằng tuần';
-  var avBtn = '<button type="button" class="nvx-avb" data-tab="toi" aria-label="Mở mục Bạn">' + avHtml(av, ten, '') + '</button>';
+  var avBtn = '<button type="button" class="nvx-avb" data-tab="toi" aria-label="Mở hồ sơ cá nhân" title="Hồ sơ cá nhân">' + avHtml(av, ten, '') + '</button>';
   var allN = allNotis(st), TBN = allN.filter(function (x) { return !x.doc_at; }).length, bellBtn = '<button type="button" class="nvx-bell" data-bell aria-label="Thông báo' + (TBN ? ', ' + TBN + ' chưa đọc' : '') + '">' + ni('bell', 21) + (TBN ? '<i>' + (TBN > 9 ? '9+' : TBN) + '</i>' : '') + '</button>', helpBtn = '<button type="button" class="nvx-bell nvx-btn-help" data-go-help aria-label="Hướng dẫn & Hỏi đáp" title="Cẩm nang & Hỏi đáp">' + ni('help', 21) + '</button>'; // 16/11 anh: chuông thông báo góc trên bên phải
   var TT = { lich: ['Lịch làm việc', (HS && HS.pb) || ''], cong: ['Công', 'Bảng chấm công của bạn'], don: ['Đơn', 'Nghỉ phép, nghỉ không lương'], luong: ['Lương', 'Phiếu lương của bạn'], hoc: ['Khóa học', 'Đào tạo nội bộ'] };
   var h = '<div class="nvx-wrap' + (DK ? ' dk' : '') + '">' + (DEMO ? '<div class="nvx-demo">' + ni('leaf', 13) + 'Bản thử theo dữ liệu mẫu</div>' : '') + (!DK && dkCan() ? '<button type="button" class="dk-sw" data-view="dk">' + ni('pc', 16) + 'Xem dạng máy tính</button>' : '') + '<div class="nvx"><div class="nvx-scr"><div class="nvx-sb" aria-hidden="true"><b id="sbclk">' + q.h + ':' + q.mi + '</b><span><i></i><i></i><i></i><i></i><em></em></span></div>';
@@ -1701,7 +1713,7 @@ function nvView(st) {
   if (T === 'home') h += '<header class="nvx-hero' + (hh >= 18 || hh < 5 ? ' night' : hh < 10 ? ' sang' : hh >= 16 ? ' chieu' : '') + '">' + (DK ? heroSceneDk(hh) : heroScene(hh)) + '<div class="in"><div class="r1">' + avBtn + '<div class="g"><span class="d">' + THU[q.wd] + ', ' + (+q.d) + ' tháng ' + (+q.m) + '</span><h1>' + chao + ', ' + esc(givenOf(ten)) + '</h1>' + (DK ? '<span class="sub">' + nbw(heroSub(hh)) + '</span>' : '') + '</div>' +
     (DK ? helpBtn + bellBtn : '<span class="nvx-hr" style="align-self:flex-start">' + helpBtn + bellBtn + '</span>') + '</div>' +
     '<div class="r2"><b id="clk">' + q.h + ':' + q.mi + '</b><span class="cty">' + esc(cty) + '</span></div>' + (caHom ? '<div class="r3"><span class="ca">' + ni('clock', 14) + esc(caHom) + '</span></div>' : '') + '</div></header>';
-  else if (T === 'toi') h += '<header class="nvx-hd"><button type="button" class="nvx-back" data-sub="' + (NVT.sub && NVT.sub !== 'bp' ? '' : '-') + '" aria-label="Quay lại">' + ni('back') + '</button><h1>' + ({ bp: 'Bộ phận của tôi', org: 'Sơ đồ tổ chức', hs: 'Hồ sơ cá nhân', hd: 'Hợp đồng', ht: 'Hành trình làm việc', ts: 'Thiết bị, tài sản', vb: 'Thông tin chung công ty', pin: st.me.mk ? 'Đổi mật khẩu' : 'Đổi mã PIN', help: 'Cẩm nang & Hỏi đáp (FAQ)' }[NVT.sub] || 'Bạn') + '</h1><span class="nvx-hr">' + (NVT.sub !== 'help' ? helpBtn : '') + bellBtn + '</span></header>';
+  else if (T === 'toi') h += '<header class="nvx-hd">' + (NVT.sub ? '<button type="button" class="nvx-back" data-sub="' + (NVT.sub !== 'bp' ? '' : '-') + '" aria-label="Quay lại">' + ni('back') + '</button>' : '') + '<h1>' + ({ bp: 'Bộ phận của tôi', org: 'Sơ đồ tổ chức', hs: 'Hồ sơ cá nhân', hd: 'Hợp đồng', ht: 'Hành trình làm việc', ts: 'Thiết bị, tài sản', vb: 'Thông tin chung công ty', pin: st.me.mk ? 'Đổi mật khẩu' : 'Đổi mã PIN', help: 'Cẩm nang & Hỏi đáp (FAQ)' }[NVT.sub] || 'Hồ sơ cá nhân') + '</h1><span class="nvx-hr">' + (NVT.sub !== 'help' ? helpBtn : '') + bellBtn + '</span></header>';
   else h += '<header class="nvx-hd"><div><span class="d">' + esc(TT[T][1]) + '</span><h1>' + TT[T][0] + '</h1></div><span class="nvx-hr">' + helpBtn + bellBtn + avBtn + '</span></header>';
   h += '<main class="nvx-main t-' + T + (T === 'home' ? ' up' : '') + '"><div id="gmsg"></div>';
   /* ---------- TRANG CHỦ ---------- */
@@ -2334,6 +2346,7 @@ function nvBind(st, X) {
   app.querySelectorAll('[data-view]').forEach(function (b) { b.onclick = function () { dkSet(b.getAttribute('data-view')); }; }); // giao diện máy tính / điện thoại
   if (T === 'toi' && NVT.sub === 'bp') bpLoad(st);
   function openSheet(title, body, cls) { var tEl = $('#sh-t'); if (typeof title === 'string' && title.indexOf('<') >= 0) tEl.innerHTML = title; else tEl.textContent = title; $('#sh-b').innerHTML = body; sh.className = 'nvx-sheet' + (cls ? ' ' + cls : ''); sh.hidden = false; requestAnimationFrame(function () { sh.classList.add('on'); }); var f = sh.querySelector('[data-close].nvx-ib'); if (f) f.focus(); }
+  window.openSheet = openSheet;
   /* 16/11/2026 anh: CHUÔNG THÔNG BÁO – tổng hợp thông báo công ty (mới, chưa đọc, đã đọc), xóa; popup khi mở app */
   var TBL = st.tb || [];
   function tbDoc(x) { if (x.doc_at) return; x.doc_at = Date.now(); api('/api/tb', { id: x.id }); }
@@ -2524,6 +2537,7 @@ function nvBind(st, X) {
       ov.innerHTML = '<div class="tbp-c">' + (pop.co_anh ? '<img src="/api/tb-anh?id=' + encodeURIComponent(pop.id) + '" alt="">' : '') + '<div class="tbp-b"><span class="tbp-k">' + ni('bell', 15) + 'Thông báo từ công ty</span><h3>' + esc(pop.tieu_de) + '</h3><p>' + esc(pop.noi_dung || '') + '</p></div><div class="tbp-f">' + (pd && pd.fid ? '<a class="btn" href="/api/vb-file?id=' + encodeURIComponent(pd.fid) + '" target="_blank" rel="noopener">Xem tài liệu</a>' : '<button type="button" class="btn" data-tbp="sau">Để sau</button>') + '<button type="button" class="btn pri" data-tbp="ok">Đã xem</button></div></div>';
       document.body.appendChild(ov); ov.querySelectorAll('[data-tbp]').forEach(function (b) { b.onclick = function () { if (b.getAttribute('data-tbp') === 'ok') { tbDoc(pop); tbBadge(); } ov.remove(); }; }); var fb = ov.querySelector('[data-tbp="ok"]'); if (fb) fb.focus(); } }
   function closeSheet() { qrStop(); var lov = document.querySelector('.lk-ov'); if (lov) lov.remove(); sh.classList.remove('on', 'full', 'dt', 'is-tb'); setTimeout(function () { sh.hidden = true; }, 180); }
+  window.closeSheet = closeSheet;
   sh.querySelectorAll('[data-close]').forEach(function (b) { b.onclick = closeSheet; });
   if (window._nvKey) document.removeEventListener('keydown', window._nvKey); window._nvKey = function (e) { if (e.key === 'Escape' && !sh.hidden) closeSheet(); }; document.addEventListener('keydown', window._nvKey);
   app.querySelectorAll('[data-tab]').forEach(function (b) { b.onclick = function () { NVT.tab = b.getAttribute('data-tab'); NVT.sub = ''; try { sessionStorage.setItem('nv-tab', NVT.tab); } catch (e) { } nvView(st); scrTop(0); }; });
@@ -2875,6 +2889,7 @@ function helpHtml(st) {
 }
 
 function openFeedbackSheet(st) {
+  st = st || (typeof LAST_ST !== 'undefined' ? LAST_ST : {});
   var types = ['Báo lỗi', 'Thắc mắc quy chế', 'Đề xuất tính năng'];
   var formHtml = '<div class="nvx-form">' +
     '<label class="lbl">Loại phản hồi</label>' +
@@ -2890,7 +2905,37 @@ function openFeedbackSheet(st) {
     '<div id="app-fb-msg" style="margin-top:8px"></div>' +
     '<button type="button" class="btn pri full" id="app-fb-send" style="margin-top:12px">Gửi phản hồi</button>' +
     '</div>';
-  openSheet('Góp ý & Báo lỗi', formHtml);
+
+  var fnOpen = window.openSheet || (typeof openSheet === 'function' ? openSheet : null);
+  var fnClose = window.closeSheet || (typeof closeSheet === 'function' ? closeSheet : null);
+  if (!fnOpen) {
+    fnOpen = function (title, body, cls) {
+      var sh = $('#sheet'); if (!sh) return;
+      var tEl = $('#sh-t');
+      if (typeof title === 'string' && title.indexOf('<') >= 0) tEl.innerHTML = title;
+      else if (tEl) tEl.textContent = title;
+      var bEl = $('#sh-b'); if (bEl) bEl.innerHTML = body;
+      sh.className = 'nvx-sheet' + (cls ? ' ' + cls : '');
+      sh.hidden = false;
+      requestAnimationFrame(function () { sh.classList.add('on'); });
+      var f = sh.querySelector('[data-close].nvx-ib'); if (f) f.focus();
+    };
+  }
+  if (!fnClose) {
+    fnClose = function () {
+      var sh = $('#sheet'); if (!sh) return;
+      sh.classList.remove('on');
+      setTimeout(function () { sh.hidden = true; }, 180);
+    };
+  }
+
+  fnOpen('Góp ý & Báo lỗi', formHtml);
+
+  var sh = $('#sheet');
+  if (sh) {
+    sh.querySelectorAll('[data-close]').forEach(function (b) { b.onclick = fnClose; });
+  }
+
   var curType = 'Báo lỗi';
   var seg = $('#app-fb-types');
   if (seg) seg.onclick = function (e) {
@@ -2911,6 +2956,8 @@ function openFeedbackSheet(st) {
     }
     sendBtn.disabled = true;
     if (msg) msg.innerHTML = '<div class="msg">Đang gửi phản hồi…</div>';
+    var userMa = (st && st.me) ? st.me.ma : '';
+    var userTab = (typeof NVT !== 'undefined') ? NVT.tab : '';
     api('/api/feedback', {
       type: curType,
       loai: curType,
@@ -2918,11 +2965,11 @@ function openFeedbackSheet(st) {
       noi_dung: c,
       phone: p,
       an_danh: an,
-      page: 'App Nhân viên · ' + (st.me ? st.me.ma : '') + ' · tab ' + NVT.tab
+      page: 'App Nhân viên · ' + userMa + ' · tab ' + userTab
     }).then(function (j) {
       if (j.ok) {
         if (msg) msg.innerHTML = '<div class="msg ok">✓ Cảm ơn bạn! Phản hồi đã được gửi tới quản trị viên.</div>';
-        setTimeout(function () { closeSheet(); }, 1600);
+        setTimeout(function () { fnClose(); }, 1600);
       } else {
         sendBtn.disabled = false;
         if (msg) msg.innerHTML = '<div class="msg err">' + esc(j.loi || 'Chưa gửi được, vui lòng thử lại.') + '</div>';
@@ -2933,6 +2980,15 @@ function openFeedbackSheet(st) {
     });
   };
 }
+
+// Bắt sự kiện click toàn cục cho nút Góp ý & Báo lỗi
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('#help-fb-btn, #app-fb-btn');
+  if (b) {
+    e.preventDefault();
+    openFeedbackSheet(typeof LAST_ST !== 'undefined' ? LAST_ST : {});
+  }
+});
 // thu nhỏ ảnh đại diện 256×256 (cắt vuông giữa ảnh) → JPEG
 function avResize(file, cb) {
   var rd = new FileReader(); rd.onload = function () { var im = new Image(); im.onload = function () { var s = Math.min(im.width, im.height), c = document.createElement('canvas'); c.width = c.height = 256; var g = c.getContext('2d'); g.drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, 0, 0, 256, 256); cb(c.toDataURL('image/jpeg', 0.82)); }; im.onerror = function () { cb(''); }; im.src = rd.result; }; rd.onerror = function () { cb(''); }; rd.readAsDataURL(file);
