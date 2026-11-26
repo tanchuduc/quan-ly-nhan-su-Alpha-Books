@@ -659,6 +659,7 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS cham (id INTEGER PRIMARY KEY AUTOINCREMENT, ma TEXT NOT NULL, t INTEGER NOT NULL, loai TEXT NOT NULL, cach TEXT NOT NULL, ip TEXT, wifi INTEGER, tb TEXT, ghi TEXT, huy INTEGER DEFAULT 0, nguoi TEXT)`,
   `CREATE INDEX IF NOT EXISTS cham_t ON cham(t)`,
   `CREATE TABLE IF NOT EXISTS tu_choi (id INTEGER PRIMARY KEY AUTOINCREMENT, t INTEGER, ma TEXT, ip TEXT, ly_do TEXT, tb TEXT)`,
+  `CREATE INDEX IF NOT EXISTS tu_choi_ip_t ON tu_choi(ip, t)`,
   /* 0.2: mã máy – mỗi trình duyệt một mã riêng (cookie qtt_may), đăng xuất không mất. Một máy dùng cho ≥ 2 nhân viên → cảnh báo chấm hộ */
   `CREATE TABLE IF NOT EXISTS may_nv (may TEXT NOT NULL, ma TEXT NOT NULL, nhan TEXT, first INTEGER, last INTEGER, so_dn INTEGER DEFAULT 0, so_cham INTEGER DEFAULT 0, PRIMARY KEY (may, ma))`,
   `CREATE TABLE IF NOT EXISTS may_bo_qua (may TEXT PRIMARY KEY, ghi TEXT, t INTEGER)`,
@@ -807,9 +808,9 @@ function shortUA(ua) {
 /* ---------- IP ---------- */
 function clientIP(req, env) {
   if (env.DEV === '1' && req.headers.get('x-test-ip')) return req.headers.get('x-test-ip');
-  const xff = req.headers.get('x-vercel-forwarded-for') || req.headers.get('x-forwarded-for');
-  if (xff && /(^|\.)alphabooks\.vn$/i.test((req.headers.get('x-forwarded-host') || '').split(',')[0].trim())) return xff.split(',')[0].trim();
-  return req.headers.get('cf-connecting-ip') || '';
+  const cf = (req.headers.get('cf-connecting-ip') || '').trim();
+  if (cf) return cf;
+  return (req.headers.get('x-real-ip') || '').trim();
 }
 function expandV6(ip) {
   ip = ip.split('%')[0].toLowerCase();
@@ -986,6 +987,79 @@ function qtDeptClone(u, pbs) {
   };
   if (c.td) { const keepRq = {}; c.td.rq = (c.td.rq || []).filter(r => { const k = inPb(r.pb); if (k) keepRq[r.id] = 1; return k; }); c.td.cd = (c.td.cd || []).filter(x => !!keepRq[x.rq]); }
   Object.keys(c).forEach(k => { if (['base', 'data', 'ovr', 'report', 'handle', 'lgset'].indexOf(k) < 0) prune(c[k], 5); });
+  return c;
+}
+
+// 26/11/2026: Kiểm tra giới hạn tần suất thao tác theo địa chỉ IP (chống dò quét mã PIN, brute force, spam)
+async function checkIpRateLimit(db, ip, now, limit = 15, windowMs = 600e3, reasonPattern = 'Đăng nhập sai%') {
+  if (!ip) return false;
+  try {
+    const row = await db.prepare("SELECT COUNT(*) AS c FROM tu_choi WHERE ip = ? AND t > ? AND ly_do LIKE ?").bind(ip, now - windowMs, reasonPattern).first();
+    return !!(row && row.c >= limit);
+  } catch (e) {
+    return false;
+  }
+}
+
+// 26/11/2026: Lọc dữ liệu nhạy cảm phía máy chủ cho tài khoản không có quyền xem lương / hợp đồng / hồ sơ cá nhân
+function qtSanitizeUnit(u, QS) {
+  if (!u || typeof u !== 'object' || QS.sys) return u;
+  const c = JSON.parse(JSON.stringify(u));
+  const canSalary = QS.can ? (QS.can(['bl', 'chiluong', 'phieuluong']) || (QS.q && (QS.q.bl === 's' || QS.q.bl === 'x' || QS.q.chiluong === 's' || QS.q.chiluong === 'x'))) : false;
+  const canContract = QS.can ? (QS.can(['hd']) || (QS.q && (QS.q.hd === 's' || QS.q.hd === 'x'))) : false;
+  const canDossier = QS.can ? (QS.can(['hoso', 'nv']) || (QS.q && (QS.q.hoso === 's' || QS.q.hoso === 'x' || QS.q.nv === 's' || QS.q.nv === 'x'))) : false;
+
+  // Lọc bảng lương & chi lương
+  if (!canSalary) {
+    delete c.bl;
+    delete c.chiluong;
+    delete c.congthuc;
+    delete c.cocau;
+    if (c.data) {
+      delete c.data.BL;
+      delete c.data.CHILUONG;
+      delete c.data.CONGTHUC;
+    }
+    if (c.base) {
+      delete c.base.BL;
+      delete c.base.CHILUONG;
+      delete c.base.CONGTHUC;
+    }
+  }
+
+  // Lọc hợp đồng
+  if (!canContract) {
+    delete c.hd;
+    if (c.data) delete c.data.HD;
+    if (c.base) delete c.base.HD;
+  }
+
+  // Làm sạch các trường nhạy cảm trong danh sách nhân viên nếu không có quyền lương hoặc hồ sơ
+  const cleanNvList = list => {
+    if (!Array.isArray(list)) return;
+    list.forEach(row => {
+      if (!row || typeof row !== 'object') return;
+      if (!canSalary) {
+        delete row['Lương cơ bản'];
+        delete row['Mức lương'];
+        delete row['Lương đóng BH'];
+        delete row['Hệ số lương'];
+        delete row['Số tài khoản'];
+        delete row['Ngân hàng'];
+        delete row['Chi nhánh NH'];
+        delete row['Tài khoản ngân hàng'];
+      }
+      if (!canDossier && !canSalary) {
+        if (row['Số CCCD']) row['Số CCCD'] = '***';
+        if (row['CCCD']) row['CCCD'] = '***';
+        if (row['CMND']) row['CMND'] = '***';
+      }
+    });
+  };
+
+  if (c.data && c.data.NV) cleanNvList(c.data.NV);
+  if (c.base && c.base.NV) cleanNvList(c.base.NV);
+
   return c;
 }
 // /api/sync/* gọi bằng phiên đăng nhập trang quản trị: thao tác ghi cần quyền SỬA một trong các tính năng sau (ccwifi = Chấm công Wi‑Fi, nơi chạy tự động đồng bộ)
@@ -1298,18 +1372,32 @@ async function api(req, env, url) {
     const r = p.slice(8);
     if (demo && r !== 'toi') return bad('Bản thử không lưu dữ liệu phần mềm quản trị trên máy chủ chung. Phần mềm bản thử chạy với dữ liệu mẫu trên trình duyệt của anh/chị.', 403);
     if (r === 'dang-nhap' && req.method === 'POST') {
+      if (await checkIpRateLimit(db, ip, now, 15, 600e3, 'Đăng nhập sai%')) return bad('Địa chỉ IP này đã nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.', 429);
       const ma = String(body.ma || '').trim().toUpperCase(), mk = String(body.mk || '');
       if (ma === 'QUANTRI') {
         if (!isSetup) return bad('Máy chủ chưa cài đặt lần đầu. Mở trang /quan-ly để cài đặt.', 409);
         const lock = Number(cfg.ql_lock || 0); if (lock > now) return bad('Nhập sai nhiều lần. Thử lại sau ' + Math.ceil((lock - now) / 60e3) + ' phút.', 429);
-        if (!await checkPw(mk, cfg.ql_salt, cfg.ql_pin)) { const f = Number(cfg.ql_fail || 0) + 1; await setCfg(db, f >= 5 ? { ql_fail: 0, ql_lock: now + 15 * 60e3 } : { ql_fail: f }); return bad('Tên đăng nhập hoặc mật khẩu chưa đúng.', 401); }
+        if (!await checkPw(mk, cfg.ql_salt, cfg.ql_pin)) {
+          await logReject(db, 'QUANTRI', ip, 'Đăng nhập sai: sai mật khẩu quản trị', req);
+          const f = Number(cfg.ql_fail || 0) + 1;
+          await setCfg(db, f >= 5 ? { ql_fail: 0, ql_lock: now + 15 * 60e3 } : { ql_fail: f });
+          return bad('Tên đăng nhập hoặc mật khẩu chưa đúng.', 401);
+        }
         await setCfg(db, { ql_fail: 0, ql_lock: 0 });
         return json({ ok: true }, 200, { 'set-cookie': await newSession(db, 'qt', null, req) });
       }
       const nv = await db.prepare('SELECT * FROM nv WHERE ma = ?').bind(ma).first();
-      if (!nv || !nv.active || !nv.mk || !qtOf(nv)) return bad('Tên đăng nhập hoặc mật khẩu chưa đúng, hoặc tài khoản chưa được cấp quyền vào trang quản trị.', 401);
+      if (!nv || !nv.active || !nv.mk || !qtOf(nv)) {
+        await logReject(db, ma, ip, 'Đăng nhập sai: không có quyền quản trị', req);
+        return bad('Tên đăng nhập hoặc mật khẩu chưa đúng, hoặc tài khoản chưa được cấp quyền vào trang quản trị.', 401);
+      }
       if (nv.lock_until > now) return bad('Nhập sai nhiều lần. Thử lại sau ' + Math.ceil((nv.lock_until - now) / 60e3) + ' phút hoặc nhờ quản trị viên mở khóa.', 429);
-      if (!await checkPw(mk, nv.mk_salt, nv.mk)) { const f = nv.fail + 1; await db.prepare('UPDATE nv SET fail = ?, lock_until = ? WHERE ma = ?').bind(f >= 5 ? 0 : f, f >= 5 ? now + 15 * 60e3 : 0, ma).run(); return bad('Tên đăng nhập hoặc mật khẩu chưa đúng, hoặc tài khoản chưa được cấp quyền vào trang quản trị.', 401); }
+      if (!await checkPw(mk, nv.mk_salt, nv.mk)) {
+        await logReject(db, ma, ip, 'Đăng nhập sai: sai mật khẩu', req);
+        const f = nv.fail + 1;
+        await db.prepare('UPDATE nv SET fail = ?, lock_until = ? WHERE ma = ?').bind(f >= 5 ? 0 : f, f >= 5 ? now + 15 * 60e3 : 0, ma).run();
+        return bad('Tên đăng nhập hoặc mật khẩu chưa đúng, hoặc tài khoản chưa được cấp quyền vào trang quản trị.', 401);
+      }
       await db.prepare('UPDATE nv SET fail = 0, lock_until = 0, login_at = ? WHERE ma = ?').bind(now, ma).run();
       return json({ ok: true }, 200, { 'set-cookie': await newSession(db, 'qt', ma, req) });
     }
@@ -1436,8 +1524,22 @@ async function api(req, env, url) {
     if (r === 'kv' && req.method === 'GET') {
       const k = String(url.searchParams.get('k') || ''); const row = await db.prepare('SELECT k, ver, at, nguoi, n, z FROM qt_kv WHERE k = ?').bind(k).first(); if (!row) return bad('Chưa có dữ liệu này trên máy chủ.', 404);
       if (k.indexOf('unit:') === 0 && !QS.unitOk(k.slice(5))) { await qtLog(db, U, 'từ chối đọc', k, 'công ty không được giao'); return bad('Tài khoản không được giao công ty này.', 403); }
-      if (k.indexOf('unit:') === 0 && QS.pb.length) { // giới hạn phòng ban: máy chủ chỉ gửi phần của phòng ban được xem
-        let raw = await qtKvText(db, k); try { raw = row.z ? await gunzipB64(raw) : raw; return json({ ok: true, k, ver: row.ver + '~' + QS.pb.slice().sort().join('|'), at: row.at, nguoi: row.nguoi, z: 0, v: JSON.stringify(qtDeptClone(JSON.parse(raw), QS.pb)) }); } catch (e) { return bad('Không đọc được dữ liệu công ty trên máy chủ.', 500); }
+      if (k.indexOf('unit:') === 0) { // giới hạn phòng ban & lọc dữ liệu nhạy cảm (bảng lương, CCCD, hợp đồng)
+        let raw = await qtKvText(db, k);
+        try {
+          raw = row.z ? await gunzipB64(raw) : raw;
+          let unitObj = JSON.parse(raw);
+          if (QS.pb && QS.pb.length) {
+            unitObj = qtDeptClone(unitObj, QS.pb);
+          }
+          if (!QS.sys) {
+            unitObj = qtSanitizeUnit(unitObj, QS);
+          }
+          const verSuffix = (QS.pb && QS.pb.length ? '~' + QS.pb.slice().sort().join('|') : '') + (!QS.sys ? '~sanitized' : '');
+          return json({ ok: true, k, ver: row.ver + verSuffix, at: row.at, nguoi: row.nguoi, z: 0, v: JSON.stringify(unitObj) });
+        } catch (e) {
+          return bad('Không đọc được dữ liệu công ty trên máy chủ.', 500);
+        }
       }
       const parts = (await db.prepare('SELECT v FROM qt_part WHERE k = ? ORDER BY i').bind(k).all()).results.map(x => x.v);
       return json({ ok: true, k, ver: row.ver, at: row.at, nguoi: row.nguoi, z: row.z, v: parts.join('') });
@@ -1502,6 +1604,9 @@ async function api(req, env, url) {
   if (p === '/api/feedback' || p === '/api/gop-y') {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
     if (req.method === 'POST') {
+      if (body.website || body.hp) return jc({ ok: true }); // honeypot chống bot
+      const fbCount = (await db.prepare("SELECT COUNT(*) AS c FROM gop_y WHERE ip = ? AND tao > ?").bind(ip, now - 600e3).first())?.c || 0;
+      if (fbCount >= 5) return jc({ ok: false, loi: 'Bạn đã gửi nhiều phản hồi gần đây. Vui lòng thử lại sau 10 phút.' }, 429);
       const s_nv = await session(db, req, 'nv');
       const s_qt = await session(db, req, 'qt');
       const an_danh = !!body.an_danh;
@@ -1526,8 +1631,8 @@ async function api(req, env, url) {
       ).bind(ma, ten, phone, email, loai, noi_dung, trang, thiet_bi, ip, now, initLog).run();
 
       // Thông báo Telegram nếu có cấu hình
-      const teleToken = (env && env.TELEGRAM_BOT_TOKEN) || cfg.tele_bot_token || '9088339560:AAHOFmR1fiiPy6PYpI_gb461cMQ5S2k4NPw';
-      const teleChat = (env && env.TELEGRAM_CHAT_ID) || cfg.tele_chat_id || '1891298910';
+      const teleToken = (env && env.TELEGRAM_BOT_TOKEN) || cfg.tele_bot_token || '';
+      const teleChat = (env && env.TELEGRAM_CHAT_ID) || cfg.tele_chat_id || '';
       if (teleToken && teleChat) {
         const teleTxt = `📌 <b>[GÓP Ý / BÁO LỖI NỘI BỘ]</b>\n👤 <b>Người gửi:</b> ${htmlEsc(ten)} (${htmlEsc(ma)})\n🏷 <b>Phân loại:</b> ${htmlEsc(loai)}\n📄 <b>Trang:</b> ${htmlEsc(trang || 'Chung')}\n💬 <b>Nội dung:</b>\n${htmlEsc(noi_dung)}\n${phone ? '📞 SĐT: ' + htmlEsc(phone) + '\n' : ''}${email ? '✉️ Email: ' + htmlEsc(email) + '\n' : ''}⏱ <i>${vnParts(now).d}/${vnParts(now).m}/${vnParts(now).y} ${vnParts(now).h}:${vnParts(now).mi}</i>`;
         later(req, fetch(`https://api.telegram.org/bot${teleToken}/sendMessage`, {
@@ -1778,12 +1883,17 @@ async function api(req, env, url) {
   }
 
   if (p === '/api/dang-nhap' && req.method === 'POST') {
+    if (await checkIpRateLimit(db, ip, now, 15, 600e3, 'Đăng nhập sai%')) return bad('Địa chỉ IP này đã nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.', 429);
     const ma = String(body.ma || '').trim().toUpperCase(), pin = String(body.pin || '');
     const nv = await db.prepare('SELECT * FROM nv WHERE ma = ?').bind(ma).first();
-    if (!nv || !nv.active || !(nv.pin || nv.mk)) return bad('Sai mã nhân viên hoặc mã PIN, mật khẩu.', 401);
+    if (!nv || !nv.active || !(nv.pin || nv.mk)) {
+      await logReject(db, ma, ip, 'Đăng nhập sai: không tồn tại hoặc chưa kích hoạt', req);
+      return bad('Sai mã nhân viên hoặc mã PIN, mật khẩu.', 401);
+    }
     if (nv.lock_until > now) return bad('Nhập sai nhiều lần. Thử lại sau ' + Math.ceil((nv.lock_until - now) / 60e3) + ' phút hoặc nhờ kế toán mở khóa.', 429);
     // 13/11: tài khoản có quyền quản trị đăng nhập bằng mật khẩu (không dùng mã PIN nữa)
     if (nv.mk ? !await checkPw(pin, nv.mk_salt, nv.mk) : await hashPin(pin, nv.salt) !== nv.pin) {
+      await logReject(db, ma, ip, 'Đăng nhập sai: ' + (nv.mk ? 'sai mật khẩu' : 'sai PIN'), req);
       if (demo) return bad('Sai mã PIN. Bản thử: mã PIN của mọi tài khoản mẫu là ' + DEMO_PIN + '.', 401);
       const f = nv.fail + 1;
       await db.prepare('UPDATE nv SET fail = ?, lock_until = ? WHERE ma = ?').bind(f >= 5 ? 0 : f, f >= 5 ? now + 15 * 60e3 : 0, ma).run();
@@ -1797,9 +1907,11 @@ async function api(req, env, url) {
   if (p === '/api/dang-nhap-ql' && req.method === 'POST') {
     if (demo) return json({ ok: true });
     if (!isSetup) return bad('Chưa cài đặt.', 409);
+    if (await checkIpRateLimit(db, ip, now, 15, 600e3, 'Đăng nhập sai%')) return bad('Địa chỉ IP này đã nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.', 429);
     const lock = Number(cfg.ql_lock || 0);
     if (lock > now) return bad('Nhập sai nhiều lần. Thử lại sau ' + Math.ceil((lock - now) / 60e3) + ' phút.', 429);
     if (!await checkPw(String(body.pin || ''), cfg.ql_salt, cfg.ql_pin)) {
+      await logReject(db, 'quantri', ip, 'Đăng nhập sai: sai mật khẩu quản trị cũ', req);
       const f = Number(cfg.ql_fail || 0) + 1;
       await setCfg(db, f >= 5 ? { ql_fail: 0, ql_lock: now + 15 * 60e3 } : { ql_fail: f });
       return bad('Mật khẩu quản trị hệ thống chưa đúng.', 401);

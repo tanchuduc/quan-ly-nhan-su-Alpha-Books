@@ -13,9 +13,5 @@
   ],
   // Gửi báo cáo định kỳ: máy chủ tự kiểm tra 15 phút/lần, đến giờ thì gửi
   "triggers": { "crons": ["*/15 * * * *"] },
-  "observability": { "enabled": true },
-  "vars": {
-    "TELEGRAM_BOT_TOKEN": "9088339560:AAHOFmR1fiiPy6PYpI_gb461cMQ5S2k4NPw",
-    "TELEGRAM_CHAT_ID": "1891298910"
-  }
+  "observability": { "enabled": true }
 }
