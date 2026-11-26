@@ -47,14 +47,17 @@ const server = http.createServer(async (req, res) => {
       const proxyRes = await fetch(targetUrl.href, fetchOpts);
       const resHeaders = {};
       proxyRes.headers.forEach((val, key) => {
-        if (key.toLowerCase() === 'set-cookie') {
+        const k = key.toLowerCase();
+        if (k === 'content-encoding' || k === 'content-length' || k === 'transfer-encoding') return;
+        if (k === 'set-cookie') {
           val = val.replace(/;\s*Secure/gi, '').replace(/;\s*SameSite=None/gi, '; SameSite=Lax');
         }
         resHeaders[key] = val;
       });
 
-      res.writeHead(proxyRes.status, resHeaders);
       const resBuffer = await proxyRes.arrayBuffer();
+      resHeaders['content-length'] = resBuffer.byteLength;
+      res.writeHead(proxyRes.status, resHeaders);
       res.end(Buffer.from(resBuffer));
       return;
     } catch (err) {
