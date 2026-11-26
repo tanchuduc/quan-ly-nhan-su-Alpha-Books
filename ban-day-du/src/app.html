@@ -867,15 +867,76 @@ td.ipbox,td.num{white-space:nowrap;word-break:normal}
 .nvx-bell i{position:absolute;top:-2px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:#D92D20;color:#fff;font:700 10.5px/18px inherit;font-family:inherit;font-style:normal;text-align:center;border:2px solid var(--mbg)}
 .nvx-hero .nvx-bell i{border-color:#4F7D41}
 .nvx-hr{display:flex;align-items:center;gap:10px}.nvx-hd>.nvx-bell{margin-left:auto}
-.tb-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 10px}.tb-bar .chips{margin:0;display:flex;gap:6px;flex-wrap:wrap}
-.tb-bar .chip{border:1px solid var(--mline);background:var(--mcard);color:var(--mmut);padding:5px 11px;border-radius:999px;font:600 12.5px inherit;cursor:pointer;transition:all .15s}
-.tb-bar .chip:hover{border-color:var(--m);color:var(--m)}
-.tb-bar .chip.on{background:var(--mws);border-color:var(--m);color:var(--mwt)}
-.tb-list{display:flex;flex-direction:column;gap:6px}.tb-it{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:12px;border-radius:14px;border:1px solid var(--mline);background:var(--mcard);color:var(--mtx);font:inherit;cursor:pointer;position:relative}
-.tb-it.moi{background:color-mix(in srgb,var(--m) 7%,var(--mcard));border-color:color-mix(in srgb,var(--m) 30%,var(--mline))}.tb-it .ic{flex:none;width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:#FFF3DC;color:#A2541A}.tb-it .ic.vb{background:#E3ECF8;color:#2C5282}
-.tb-it .ic.ok{background:#E8F5E9;color:#2E7D32}.tb-it .ic.err{background:#FFEBEE;color:#C62828}.tb-it .ic.warn{background:#FFF8E1;color:#D97706}.tb-it .ic.inf{background:#E3ECF8;color:#2C56A0}.tb-it .ic.don{background:#F3E8FB;color:#7A3E9D}
-.tb-it .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.tb-it .top-row{display:flex;align-items:center;justify-content:space-between;gap:6px}.tb-it b{font-size:14.5px;line-height:1.35}.tb-it.moi b{font-weight:800}.tb-it small{font-size:12.5px;color:var(--mmut);line-height:1.45}.tb-it em{font-style:normal;font-size:11.5px;color:var(--mmut)}.tb-it .tag-nhom{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap;line-height:1.3}.tb-it .tag-nhom.nv{background:rgba(217,95,24,.12);color:var(--m,#D95F18)}.tb-it .tag-nhom.cty{background:rgba(44,82,130,.12);color:#2C5282}
-.tb-it .dot{position:absolute;top:14px;right:12px;width:9px;height:9px;border-radius:50%;background:#D92D20}.tb-xdd{display:block;margin:12px auto 0}
+.nvx-wrap.dk .nvx-hero{position:relative}
+.nvx-wrap.dk .nvx-hero .nvx-bell{position:absolute;top:22px;right:26px;z-index:15;display:flex!important;width:42px;height:42px;background:rgba(255,255,255,.24);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:all .18s}
+.nvx-wrap.dk .nvx-hero .nvx-bell:hover{background:rgba(255,255,255,.38);transform:scale(1.06)}
+
+/* Popover Thông báo trên PC (neo góc trên bên phải) */
+.nvx-wrap.dk .nvx-sheet.is-tb{position:fixed;inset:0;z-index:150;pointer-events:none}
+.nvx-wrap.dk .nvx-sheet.is-tb .bd{position:absolute;inset:0;background:rgba(0,0,0,.08);opacity:0;pointer-events:auto;transition:opacity .15s}
+.nvx-wrap.dk .nvx-sheet.is-tb.on .bd{opacity:1}
+.nvx-wrap.dk .nvx-sheet.is-tb .pn{position:absolute;left:auto;right:28px;top:74px;bottom:auto;width:440px;max-width:calc(100vw - 48px);max-height:calc(100vh - 96px);overflow-y:auto;overflow-x:hidden;background:var(--mcard,#fff);color:var(--mtx,#1f1a17);border:1px solid var(--mline,#eae3d7);border-radius:18px;box-shadow:0 20px 48px -12px rgba(0,0,0,.22),0 4px 16px rgba(0,0,0,.06);padding:0;transform:translateY(-8px) scale(.98);opacity:0;pointer-events:auto;transition:transform .18s ease-out,opacity .18s ease-out}
+.nvx-wrap.dk .nvx-sheet.is-tb.on .pn{transform:none;opacity:1}
+.nvx-wrap.dk .nvx-sheet.is-tb .hd{position:sticky;top:0;z-index:10;background:var(--mcard,#fff);border-bottom:1px solid var(--mline,#eae3d7);padding:14px 16px 12px;margin:0;border-radius:18px 18px 0 0}
+.nvx-wrap.dk .nvx-sheet.is-tb .bdy{padding:12px 14px 16px}
+
+/* Bottom Sheet Thông báo trên điện thoại */
+.nvx-sheet.is-tb{position:fixed;inset:0;z-index:200}
+.nvx-sheet.is-tb .bd{background:rgba(15,20,12,.5);transition:opacity .2s}
+.nvx-sheet.is-tb .pn{position:absolute;left:0;right:0;bottom:0;top:auto;width:100%;max-width:100%;margin:0;max-height:86vh;border-radius:24px 24px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.3);padding:0 0 24px;background:var(--mcard,#fff);transform:translateY(100%);transition:transform .24s cubic-bezier(.16,1,.3,1)}
+.nvx-sheet.is-tb.on .pn{transform:translateY(0)}
+.nvx-sheet.is-tb .hd{position:sticky;top:0;z-index:10;background:var(--mcard,#fff);padding:12px 16px 10px;margin:0;border-bottom:1px solid var(--mline,#eae3d7);border-radius:24px 24px 0 0}
+.nvx-sheet.is-tb .pn:before{content:"";display:block;width:38px;height:4.5px;border-radius:3px;background:var(--mmut,#ccc);opacity:.5;margin:8px auto 2px}
+.nvx-sheet.is-tb .bdy{padding:10px 14px}
+
+/* Thanh bộ lọc ngang 1 hàng duy nhất */
+.tb-filter-bar{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;margin-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tb-filter-bar::-webkit-scrollbar{display:none}
+.tb-chip{flex:none;display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;border:1px solid var(--mline,#eae3d7);background:var(--mbg,#faf8f5);color:var(--mmut,#665e55);font:600 12.5px inherit;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tb-chip:hover{border-color:var(--m,#d95f18);color:var(--m,#d95f18)}
+.tb-chip.on{background:var(--mws,#fdece1);border-color:var(--m,#d95f18);color:var(--mwt,#b84a14);font-weight:700}
+.tb-chip .num{display:inline-block;padding:1px 5px;border-radius:8px;font-size:11px;background:rgba(0,0,0,.06);line-height:1.2}
+.tb-chip.on .num{background:rgba(217,95,24,.18);color:var(--mwt,#b84a14)}
+
+/* Thẻ thông báo */
+.tb-list{display:flex;flex-direction:column;gap:6px}
+.tb-it{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:12px 14px;border-radius:14px;border:1px solid var(--mline,#eae3d7);background:var(--mcard,#fff);color:var(--mtx,#1f1a17);font:inherit;cursor:pointer;position:relative;width:100%;box-sizing:border-box;transition:all .15s;margin-bottom:4px}
+.tb-it:hover{border-color:color-mix(in srgb,var(--m,#d95f18) 40%,var(--mline,#eae3d7));background:var(--mbg,#faf8f5);transform:translateY(-1px)}
+.tb-it.moi{background:color-mix(in srgb,var(--m,#d95f18) 6%,var(--mcard,#fff));border-color:color-mix(in srgb,var(--m,#d95f18) 32%,var(--mline,#eae3d7))}
+.tb-it .ic{flex:none;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#FFF3DC;color:#A2541A}
+.tb-it .ic.vb{background:#E3ECF8;color:#2C5282}
+.tb-it .ic.ok{background:#E8F5E9;color:#2E7D32}
+.tb-it .ic.err{background:#FFEBEE;color:#C62828}
+.tb-it .ic.warn{background:#FFF8E1;color:#D97706}
+.tb-it .ic.inf{background:#E3ECF8;color:#2C56A0}
+.tb-it .ic.don{background:#F3E8FB;color:#7A3E9D}
+.tb-it .ic.bc{background:#E4F1E0;color:#2F6B2A}
+.tb-it .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.tb-it .top-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.tb-it .tb-title{font-size:14px;line-height:1.35;color:var(--mtx,#1f1a17)}
+.tb-it.moi .tb-title{font-weight:700}
+.tb-it .tb-time{flex:none;font-size:11.5px;color:var(--mmut,#888);white-space:nowrap}
+.tb-it .tb-desc{font-size:12.5px;color:var(--mmut,#555);line-height:1.45;margin:2px 0 4px}
+.tb-it .bottom-row{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--mmut,#888)}
+.tb-it .tag-nhom{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:600}
+.tb-it .tag-nhom.nv{background:rgba(217,95,24,.12);color:var(--m,#D95F18)}
+.tb-it .tag-nhom.cty{background:rgba(44,82,130,.12);color:#2C5282}
+.tb-it .tb-by{font-size:11.5px;color:var(--mmut,#888)}
+.tb-it .tb-stt{font-size:11px;color:var(--mmut,#999)}
+.tb-it .tb-arrow{margin-left:auto;font-size:16px;color:var(--mmut,#aaa);line-height:1}
+.tb-it:hover .tb-arrow{color:var(--m,#d95f18);transform:translateX(2px)}
+.tb-it .dot{position:absolute;top:12px;right:12px;width:9px;height:9px;border-radius:50%;background:#D92D20}
+
+/* Header & Footer */
+.tb-head-wrap{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px}
+.tb-head-t{display:inline-flex;align-items:center;gap:6px;font-size:17px;font-weight:700}
+.tb-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#d92d20;color:#fff;font:700 11px/18px inherit;font-style:normal}
+.tb-head-acts{display:flex;align-items:center;gap:6px;margin-left:auto;margin-right:6px}
+.tb-btn-sub{display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:7px;border:1px solid var(--mline,#eae3d7);background:var(--mbg,#faf8f5);font:600 12px inherit;color:var(--mtx,#333);cursor:pointer;transition:all .15s}
+.tb-btn-sub:hover{background:var(--mws,#fdece1);border-color:var(--m,#d95f18);color:var(--mwt,#b84a14)}
+.tb-foot{text-align:center;padding:10px 0 2px}
+.tb-xdd{font-size:12.5px;color:var(--m,#d95f18);text-decoration:none;cursor:pointer}
+.tb-xdd:hover{text-decoration:underline}
 .tb-dt img{width:100%;border-radius:14px;margin-bottom:12px;max-height:360px;object-fit:cover}.tb-dt h3{margin:0;font-size:18px;line-height:1.35}.tb-dt .meta{margin:4px 0 10px;font-size:12.5px;color:var(--mmut)}.tb-dt .nd{white-space:pre-wrap;font-size:14.5px;line-height:1.65;margin:0 0 14px}
 .tbp{position:fixed;inset:0;z-index:400;background:rgba(15,20,12,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:tbpIn .2s ease-out}@keyframes tbpIn{from{opacity:0}to{opacity:1}}
 .tbp-c{width:100%;max-width:420px;max-height:88vh;overflow:auto;background:#fff;color:#1F2A1C;border-radius:22px;box-shadow:0 30px 60px -20px rgba(0,0,0,.6)}.tbp-c>img{width:100%;max-height:300px;object-fit:cover;display:block}
@@ -883,7 +944,6 @@ td.ipbox,td.num{white-space:nowrap;word-break:normal}
 .tbp .btn{border:1px solid #D9DED4;background:#F6F5EF;color:#1F2A1C;border-radius:12px;font:600 14.5px/1 inherit;font-family:inherit;cursor:pointer}.tbp .btn.pri{background:#3F6B35;border-color:#3F6B35;color:#fff}
 .tbp-f{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 20px 20px}.tbp-f .btn{min-height:46px;display:flex;align-items:center;justify-content:center;text-decoration:none}
 .vb-it.het{opacity:.65}.vb-cvi{flex:none;width:72px;height:54px;border-radius:10px;object-fit:cover;background:var(--mline)}.vb-bt{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}.vb-bt .btn.sm{min-height:32px;padding:0 14px;font-size:13px;display:inline-flex;align-items:center;text-decoration:none}
-.nvx-wrap.dk .nvx-hero .nvx-bell{display:none!important}
 :root[data-theme="dark"] .tbp-c{background:#1C1F19;color:#E8EBE2}:root[data-theme="dark"] .tbp-b p{color:#C9D0C2}:root[data-theme="dark"] .tbp .btn:not(.pri){background:#262A22;border-color:#2C3027;color:#E8EBE2}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tbp-c{background:#1C1F19;color:#E8EBE2}:root:not([data-theme="light"]) .tbp-b p{color:#C9D0C2}:root:not([data-theme="light"]) .tbp .btn:not(.pri){background:#262A22;border-color:#2C3027;color:#E8EBE2}}
 
@@ -1757,7 +1817,7 @@ function nvView(st) {
   if (T === 'toi') h += toiHtml(st, HS, HSo, ten, cty, av);
   h += '</main></div>';
   var navTabs = DK ? TABS.concat([['toi', 'Bạn']]) : TABS;
-  h += '<nav class="nvx-nav' + (T === 'toi' && !DK ? ' hide' : '') + '" aria-label="Các mục chính">' + (DK ? '<div class="dk-brand"><img src="' + esc(brd.logo) + '" alt="' + esc(brd.name) + '"><span><b>' + esc(brd.name) + '</b><small>' + esc(brd.sub) + '</small></span></div><button type="button" class="dk-me" data-tab="toi">' + avHtml(av, ten, 'sm') + '<span><b>' + esc(ten) + '</b><small>' + esc(st.me.ma) + '</small></span></button><button type="button" class="dk-tb" data-bell aria-label="Thông báo">' + ni('bell', 20) + '<span>Thông báo</span>' + (TBN ? '<i class="dot" aria-label="' + TBN + ' chưa đọc"></i>' : '') + '</button>' : '') + navTabs.map(function (x) { var dot = (x[0] === 'cong' && need) || (x[0] === 'lich' && L && L.mo && L.mo.length) || (x[0] === 'luong' && phNew.length) || (x[0] === 'don' && DU.length) || (x[0] === 'hoc' && st.dt && (st.dt.kh || []).some(function (k) { var e = dtEv(st, k).st; return e === 'chua' || e === 'hoc' || e === 'khong'; })); return '<button type="button" data-tab="' + x[0] + '" class="' + (x[0] === T ? 'on' : '') + '"' + (x[0] === T ? ' aria-current="page"' : '') + '>' + ni(x[0], 21) + '<span>' + x[1] + '</span>' + (dot ? '<i class="dot" aria-label="có việc mới"></i>' : '') + '</button>'; }).join('') +
+  h += '<nav class="nvx-nav' + (T === 'toi' && !DK ? ' hide' : '') + '" aria-label="Các mục chính">' + (DK ? '<div class="dk-brand"><img src="' + esc(brd.logo) + '" alt="' + esc(brd.name) + '"><span><b>' + esc(brd.name) + '</b><small>' + esc(brd.sub) + '</small></span></div><button type="button" class="dk-me" data-tab="toi">' + avHtml(av, ten, 'sm') + '<span><b>' + esc(ten) + '</b><small>' + esc(st.me.ma) + '</small></span></button>' : '') + navTabs.map(function (x) { var dot = (x[0] === 'cong' && need) || (x[0] === 'lich' && L && L.mo && L.mo.length) || (x[0] === 'luong' && phNew.length) || (x[0] === 'don' && DU.length) || (x[0] === 'hoc' && st.dt && (st.dt.kh || []).some(function (k) { var e = dtEv(st, k).st; return e === 'chua' || e === 'hoc' || e === 'khong'; })); return '<button type="button" data-tab="' + x[0] + '" class="' + (x[0] === T ? 'on' : '') + '"' + (x[0] === T ? ' aria-current="page"' : '') + '>' + ni(x[0], 21) + '<span>' + x[1] + '</span>' + (dot ? '<i class="dot" aria-label="có việc mới"></i>' : '') + '</button>'; }).join('') +
     (DK ? (st.me.qt ? '<button type="button" class="dk-qt" data-qt>' + ni('qt', 21) + '<span>Quản trị</span></button>' : '') + '<span class="dk-sp"></span><button type="button" class="dk-v" data-view="mb">' + ni('mb', 18) + '<span>Xem dạng điện thoại</span></button>' : '') + '</nav>';
   h += '<div class="nvx-sheet" id="sheet" hidden><div class="bd" data-close></div><div class="pn" role="dialog" aria-modal="true" aria-labelledby="sh-t"><div class="hd"><b id="sh-t"></b><button type="button" class="nvx-ib" data-close aria-label="Đóng">' + ni('x', 18) + '</button></div><div class="bdy" id="sh-b"></div></div></div>';
   app.innerHTML = h + '</div></div>';
@@ -2252,7 +2312,7 @@ function nvBind(st, X) {
   app.querySelectorAll('[data-qt]').forEach(function (b) { b.onclick = function () { qtOpen(st, b); }; }); // 13/11 (0.8.1): mục Quản trị
   app.querySelectorAll('[data-view]').forEach(function (b) { b.onclick = function () { dkSet(b.getAttribute('data-view')); }; }); // giao diện máy tính / điện thoại
   if (T === 'toi' && NVT.sub === 'bp') bpLoad(st);
-  function openSheet(title, body) { $('#sh-t').textContent = title; $('#sh-b').innerHTML = body; sh.hidden = false; requestAnimationFrame(function () { sh.classList.add('on'); }); var f = sh.querySelector('[data-close].nvx-ib'); if (f) f.focus(); }
+  function openSheet(title, body, cls) { var tEl = $('#sh-t'); if (typeof title === 'string' && title.indexOf('<') >= 0) tEl.innerHTML = title; else tEl.textContent = title; $('#sh-b').innerHTML = body; sh.className = 'nvx-sheet' + (cls ? ' ' + cls : ''); sh.hidden = false; requestAnimationFrame(function () { sh.classList.add('on'); }); var f = sh.querySelector('[data-close].nvx-ib'); if (f) f.focus(); }
   /* 16/11/2026 anh: CHUÔNG THÔNG BÁO – tổng hợp thông báo công ty (mới, chưa đọc, đã đọc), xóa; popup khi mở app */
   var TBL = st.tb || [];
   function tbDoc(x) { if (x.doc_at) return; x.doc_at = Date.now(); api('/api/tb', { id: x.id }); }
@@ -2268,15 +2328,14 @@ function nvBind(st, X) {
       if (f === 'cd') return !x.doc_at;
       return true;
     });
-    var b = '<div class="tb-tabs"><button type="button" class="on">Mới</button><button type="button" data-tbluu>' + ni('doc', 15) + 'Lưu trữ thông báo nội bộ</button></div>' +
-      '<div class="tb-bar"><span class="chips">' +
-      '<button class="chip' + (!f ? ' on' : '') + '" data-tbf="">Tất cả (' + allN.length + ')</button>' +
-      '<button class="chip' + (f === 'nv' ? ' on' : '') + '" data-tbf="nv">Xét duyệt & Cá nhân (' + nNv + ')</button>' +
-      '<button class="chip' + (f === 'cty' ? ' on' : '') + '" data-tbf="cty">Tin công ty (' + nCty + ')</button>' +
-      '<button class="chip' + (f === 'cd' ? ' on' : '') + '" data-tbf="cd">Chưa đọc (' + nCd + ')</button>' +
-      '</span>' + (nCd ? '<button type="button" class="lnk" id="tb-all">Đánh dấu đã đọc tất cả</button>' : '') + '</div>';
+    var b = '<div class="tb-filter-bar">' +
+      '<button type="button" class="tb-chip' + (!f ? ' on' : '') + '" data-tbf="">Tất cả <span class="num">' + allN.length + '</span></button>' +
+      '<button type="button" class="tb-chip' + (f === 'cd' ? ' on' : '') + '" data-tbf="cd">Chưa đọc <span class="num">' + nCd + '</span></button>' +
+      '<button type="button" class="tb-chip' + (f === 'nv' ? ' on' : '') + '" data-tbf="nv">Xét duyệt <span class="num">' + nNv + '</span></button>' +
+      '<button type="button" class="tb-chip' + (f === 'cty' ? ' on' : '') + '" data-tbf="cty">Tin công ty <span class="num">' + nCty + '</span></button>' +
+      '</div>';
     if (!L.length) {
-      b += '<div class="nvx-empty" style="padding:30px 10px">' + (f === 'cd' ? 'Bạn đã đọc hết thông báo.' : f === 'nv' ? 'Chưa có thông báo xét duyệt hay việc cá nhân nào.' : f === 'cty' ? 'Chưa có thông báo nội bộ nào từ công ty.' : 'Chưa có thông báo nào.') + '</div>';
+      b += '<div class="nvx-empty" style="padding:36px 12px;text-align:center">' + (f === 'cd' ? 'Tuyệt vời! Bạn đã đọc hết tất cả thông báo.' : f === 'nv' ? 'Chưa có thông báo xét duyệt hay việc cá nhân nào.' : f === 'cty' ? 'Chưa có thông báo nội bộ nào từ công ty.' : 'Chưa có thông báo nào.') + '</div>';
     } else {
       b += '<div class="tb-list">' + L.map(function (x) {
         var isNv = x.nhom === 'nv';
@@ -2285,24 +2344,42 @@ function nvBind(st, X) {
         var tagH = isNv ? '<span class="tag-nhom nv">Xét duyệt</span>' : '<span class="tag-nhom cty">Công ty</span>';
         var attr = isNv ? 'data-tbnv="' + esc(x.id) + '"' : 'data-tbo="' + esc(x.id) + '"';
         var snippet = String(x.noi_dung || '').replace(/\s+/g, ' ');
-        if (snippet.length > 110) snippet = snippet.slice(0, 108) + '…';
+        if (snippet.length > 95) snippet = snippet.slice(0, 92) + '…';
         return '<button type="button" class="tb-it' + (x.doc_at ? '' : ' moi') + '" ' + attr + '>' +
           '<span class="' + icClass + '">' + icIcon + '</span>' +
-          '<span class="tx"><span class="top-row"><b>' + esc(x.tieu_de) + '</b>' + tagH + '</span>' +
-          '<small>' + esc(snippet) + '</small>' +
-          '<em>' + tbAgo(x.at) + (x.nguoi ? ' · ' + esc(x.nguoi) : '') + (x.doc_at ? ' · đã đọc' : '') + '</em></span>' +
-          (x.doc_at ? '' : '<i class="dot" aria-label="Chưa đọc"></i>') + '</button>';
+          '<span class="tx">' +
+            '<span class="top-row"><b class="tb-title">' + esc(x.tieu_de) + '</b><span class="tb-time">' + tbAgo(x.at) + '</span></span>' +
+            '<small class="tb-desc">' + esc(snippet) + '</small>' +
+            '<span class="bottom-row">' +
+              tagH +
+              (x.nguoi ? '<span class="tb-by">· ' + esc(x.nguoi) + '</span>' : '') +
+              '<span class="tb-stt">' + (x.doc_at ? '· đã đọc' : '· mới') + '</span>' +
+              '<span class="tb-arrow">›</span>' +
+            '</span>' +
+          '</span>' +
+          (x.doc_at ? '' : '<i class="dot" aria-label="Chưa đọc"></i>') +
+        '</button>';
       }).join('') + '</div>';
     }
-    if (allN.some(function (x) { return x.doc_at; })) b += '<button type="button" class="lnk tb-xdd" id="tb-xdd">Xóa các thông báo đã đọc</button>';
+    if (allN.some(function (x) { return x.doc_at; })) b += '<div class="tb-foot"><button type="button" class="lnk tb-xdd" id="tb-xdd">Xóa các thông báo đã đọc</button></div>';
     return b;
   }
-  function tbOpen(f) { openSheet('Thông báo', tbList(f)); var B = $('#sh-b');
+  function tbOpen(f) {
+    var allN = allNotis(st);
+    var nCd = allN.filter(function (x) { return !x.doc_at; }).length;
+    var tHtml = '<div class="tb-head-wrap">' +
+      '<span class="tb-head-t">Thông báo' + (nCd ? '<span class="tb-count">' + nCd + '</span>' : '') + '</span>' +
+      '<div class="tb-head-acts">' +
+        (nCd ? '<button type="button" class="tb-btn-sub" id="tb-all" title="Đánh dấu tất cả là đã đọc">✓ Đã đọc hết</button>' : '') +
+        '<button type="button" class="tb-btn-sub" data-tbluu title="Kho lưu trữ thông báo">' + ni('doc', 14) + '<span>Lưu trữ</span></button>' +
+      '</div></div>';
+    openSheet(tHtml, tbList(f), 'is-tb');
+    var B = $('#sh-b'), H = $('#sheet .hd');
     B.querySelectorAll('[data-tbf]').forEach(function (c) { c.onclick = function () { tbOpen(c.getAttribute('data-tbf')); }; });
     B.querySelectorAll('[data-tbo]').forEach(function (c) { c.onclick = function () { tbShow(c.getAttribute('data-tbo'), f); }; });
     B.querySelectorAll('[data-tbnv]').forEach(function (c) {
       c.onclick = function () {
-        var id = c.getAttribute('data-tbnv'), allN = allNotis(st), x = allN.filter(function (z) { return z.id === id; })[0];
+        var id = c.getAttribute('data-tbnv'), aList = allNotis(st), x = aList.filter(function (z) { return z.id === id; })[0];
         if (x) {
           var seen = []; try { seen = JSON.parse(ls('nv-seen-noti') || '[]'); } catch (e) { seen = []; }
           if (seen.indexOf(id) < 0) { seen.push(id); ls('nv-seen-noti', JSON.stringify(seen)); }
@@ -2312,24 +2389,30 @@ function nvBind(st, X) {
         }
       };
     });
-    B.querySelectorAll('[data-tbluu]').forEach(function (c) { c.onclick = function () { tbLuu(''); }; });
-    var a = $('#tb-all'); if (a) a.onclick = function () {
-      TBL.forEach(function (x) { if (!x.doc_at) x.doc_at = Date.now(); });
-      api('/api/tb', { tat_ca: 1 });
-      var allN = allNotis(st), seen = [];
-      try { seen = JSON.parse(ls('nv-seen-noti') || '[]'); } catch (e) { seen = []; }
-      allN.forEach(function (x) { if (x.nhom === 'nv' && seen.indexOf(x.id) < 0) seen.push(x.id); });
-      ls('nv-seen-noti', JSON.stringify(seen));
-      tbBadge();
-      tbOpen(f);
+    var bindHeaderActs = function (ctx) {
+      if (!ctx) return;
+      ctx.querySelectorAll('[data-tbluu]').forEach(function (c) { c.onclick = function () { tbLuu(''); }; });
+      var a = ctx.querySelector('#tb-all');
+      if (a) a.onclick = function () {
+        TBL.forEach(function (x) { if (!x.doc_at) x.doc_at = Date.now(); });
+        api('/api/tb', { tat_ca: 1 });
+        var aList = allNotis(st), seen = [];
+        try { seen = JSON.parse(ls('nv-seen-noti') || '[]'); } catch (e) { seen = []; }
+        aList.forEach(function (x) { if (x.nhom === 'nv' && seen.indexOf(x.id) < 0) seen.push(x.id); });
+        ls('nv-seen-noti', JSON.stringify(seen));
+        tbBadge();
+        tbOpen(f);
+      };
     };
+    bindHeaderActs(H);
+    bindHeaderActs(B);
     var xd = $('#tb-xdd'); if (xd) xd.onclick = function () {
       if (!confirmBox('Xóa các thông báo đã đọc khỏi danh sách của bạn?')) return;
       api('/api/tb', { xoa_da_doc: 1 });
       TBL = st.tb = TBL.filter(function (x) { return !x.doc_at; });
-      var allN = allNotis(st), del = [];
+      var aList = allNotis(st), del = [];
       try { del = JSON.parse(ls('nv-del-noti') || '[]'); } catch (e) { del = []; }
-      allN.forEach(function (x) { if (x.nhom === 'nv' && x.doc_at && del.indexOf(x.id) < 0) del.push(x.id); });
+      aList.forEach(function (x) { if (x.nhom === 'nv' && x.doc_at && del.indexOf(x.id) < 0) del.push(x.id); });
       ls('nv-del-noti', JSON.stringify(del));
       tbBadge();
       tbOpen(f);
@@ -2346,32 +2429,57 @@ function nvBind(st, X) {
   var TBA = { q: '', trang: 0, list: [] };
   function tbLuu(q, them) {
     if (!them) { TBA = { q: q, trang: 0, list: [] }; }
-    var head = '<div class="tb-tabs"><button type="button" data-tbmoi>Mới</button><button type="button" class="on">' + ni('doc', 15) + 'Lưu trữ thông báo nội bộ</button></div><form class="tb-find" id="tba-f"><input type="search" id="tba-q" value="' + esc(TBA.q) + '" placeholder="Gõ từ cần tìm, VD: nghỉ lễ, lương…" autocomplete="off"><button type="submit" class="btn">Tìm</button></form>';
-    if (!them) openSheet('Thông báo', head + '<p class="tba-m">Đang tải…</p>');
+    var head = '<div class="tb-head-wrap">' +
+      '<span class="tb-head-t">Kho lưu trữ thông báo</span>' +
+      '<div class="tb-head-acts"><button type="button" class="tb-btn-sub" data-tbmoi>← Quay lại</button></div>' +
+      '</div>';
+    var formHtml = '<form class="tb-find" id="tba-f"><input type="search" id="tba-q" value="' + esc(TBA.q) + '" placeholder="Gõ từ cần tìm, VD: nghỉ lễ, lương…" autocomplete="off"><button type="submit" class="btn">Tìm</button></form>';
+    if (!them) openSheet(head, formHtml + '<p class="tba-m">Đang tải…</p>', 'is-tb');
     api('/api/tb-luu?q=' + encodeURIComponent(TBA.q) + '&trang=' + TBA.trang).then(function (j) {
       if (sh.hidden) return;
-      if (!j.ok) { $('#sh-b').innerHTML = head + '<p class="tba-m">' + esc(j.loi || 'Chưa tải được lưu trữ.') + '</p>'; tbLuuBind(); return; }
+      if (!j.ok) { $('#sh-b').innerHTML = formHtml + '<p class="tba-m">' + esc(j.loi || 'Chưa tải được lưu trữ.') + '</p>'; tbLuuBind(); return; }
       TBA.list = TBA.list.concat(j.list || []); TBA.het = j.het; TBA.n = j.n; TBA.thang = j.thang;
-      var L = TBA.list, b = head + '<p class="tba-m">' + (TBA.q ? 'Tìm thấy <b>' + TBA.n + '</b> thông báo có “' + esc(TBA.q) + '”' : '<b>' + TBA.n + '</b> thông báo nội bộ đã nhận') + ' · công ty lưu ' + (TBA.thang ? TBA.thang + ' tháng gần nhất' : 'không giới hạn thời gian') + '</p>';
-      b += L.length ? '<div class="tb-list">' + L.map(function (x) { return '<button type="button" class="tb-it" data-tba="' + x.id + '"><span class="ic">' + ni('bell', 18) + '</span><span class="tx"><b>' + esc(x.tieu_de) + '</b><small>' + esc(String(x.noi_dung || '').replace(/\s+/g, ' ').slice(0, 90)) + '</small><small class="tb-when">' + fDate(x.at) + (x.nguoi ? ' · ' + esc(x.nguoi) : '') + '</small></span></button>'; }).join('') + '</div>' : '<p class="tba-m">' + (TBA.q ? 'Không có thông báo nào khớp. Thử từ khác.' : 'Chưa có thông báo nội bộ nào.') + '</p>';
-      if (!TBA.het) b += '<button type="button" class="btn full" id="tba-more">Xem thêm</button>';
+      var L = TBA.list, b = formHtml + '<p class="tba-m">' + (TBA.q ? 'Tìm thấy <b>' + TBA.n + '</b> thông báo có “' + esc(TBA.q) + '”' : '<b>' + TBA.n + '</b> thông báo nội bộ đã nhận') + ' · lưu ' + (TBA.thang ? TBA.thang + ' tháng gần nhất' : 'không giới hạn') + '</p>';
+      b += L.length ? '<div class="tb-list">' + L.map(function (x) { return '<button type="button" class="tb-it" data-tba="' + x.id + '"><span class="ic">' + ni('bell', 18) + '</span><span class="tx"><b class="tb-title">' + esc(x.tieu_de) + '</b><small class="tb-desc">' + esc(String(x.noi_dung || '').replace(/\s+/g, ' ').slice(0, 90)) + '</small><span class="bottom-row"><span class="tb-when">' + fDate(x.at) + (x.nguoi ? ' · ' + esc(x.nguoi) : '') + '</span><span class="tb-arrow">›</span></span></span></button>'; }).join('') + '</div>' : '<p class="tba-m">' + (TBA.q ? 'Không có thông báo nào khớp. Thử từ khác.' : 'Chưa có thông báo nội bộ nào.') + '</p>';
+      if (!TBA.het) b += '<button type="button" class="btn full" id="tba-more" style="margin-top:10px">Xem thêm</button>';
       $('#sh-b').innerHTML = b; tbLuuBind();
-    }).catch(function () { if (!sh.hidden) { $('#sh-b').innerHTML = head + '<p class="tba-m">Chưa tải được – kiểm tra mạng rồi thử lại.</p>'; tbLuuBind(); } });
+    }).catch(function () { if (!sh.hidden) { $('#sh-b').innerHTML = formHtml + '<p class="tba-m">Chưa tải được – kiểm tra mạng rồi thử lại.</p>'; tbLuuBind(); } });
   }
   function tbLuuBind() {
-    var B = $('#sh-b'), fm = $('#tba-f'); if (fm) fm.onsubmit = function (e) { e.preventDefault(); tbLuu($('#tba-q').value.trim()); };
-    B.querySelectorAll('[data-tbmoi]').forEach(function (c) { c.onclick = function () { tbOpen(''); }; });
+    var B = $('#sh-b'), H = $('#sheet .hd'), fm = $('#tba-f');
+    if (fm) fm.onsubmit = function (e) { e.preventDefault(); tbLuu($('#tba-q').value.trim()); };
+    var bindBack = function (ctx) {
+      if (!ctx) return;
+      ctx.querySelectorAll('[data-tbmoi]').forEach(function (c) { c.onclick = function () { tbOpen(''); }; });
+    };
+    bindBack(H);
+    bindBack(B);
     var mo = $('#tba-more'); if (mo) mo.onclick = function () { TBA.trang++; tbLuu(TBA.q, 1); };
-    B.querySelectorAll('[data-tba]').forEach(function (c) { c.onclick = function () { var x = TBA.list.filter(function (z) { return z.id === c.getAttribute('data-tba'); })[0]; if (!x) return;
-      openSheet('Thông báo', '<div class="tb-dt">' + (x.co_anh ? '<img src="/api/tb-anh?id=' + encodeURIComponent(x.id) + '" alt="Ảnh kèm thông báo">' : '') + '<h3>' + esc(x.tieu_de) + '</h3><p class="meta">' + fDate(x.at) + ' ' + fTime(x.at) + (x.nguoi ? ' · ' + esc(x.nguoi) : '') + '</p><p class="nd">' + esc(x.noi_dung || '').replace(/\n/g, '<br>') + '</p><button type="button" class="btn full" id="tba-back">← Lưu trữ thông báo</button></div>');
-      $('#tba-back').onclick = function () { tbLuu(TBA.q); }; }; });
+    B.querySelectorAll('[data-tba]').forEach(function (c) {
+      c.onclick = function () {
+        var x = TBA.list.filter(function (z) { return z.id === c.getAttribute('data-tba'); })[0]; if (!x) return;
+        openSheet('Chi tiết thông báo', '<div class="tb-dt">' + (x.co_anh ? '<img src="/api/tb-anh?id=' + encodeURIComponent(x.id) + '" alt="Ảnh kèm thông báo">' : '') + '<h3>' + esc(x.tieu_de) + '</h3><p class="meta">' + fDate(x.at) + ' ' + fTime(x.at) + (x.nguoi ? ' · ' + esc(x.nguoi) : '') + '</p><p class="nd">' + esc(x.noi_dung || '').replace(/\n/g, '<br>') + '</p><button type="button" class="btn full" id="tba-back">← Quay lại kho lưu trữ</button></div>', 'is-tb');
+        $('#tba-back').onclick = function () { tbLuu(TBA.q); };
+      };
+    });
   }
-  function tbShow(id, f) { var x = TBL.filter(function (z) { return z.id === id; })[0]; if (!x) { tbOpen(f); return; } tbDoc(x); tbBadge();
-    if (x.loai === 'bc') { openSheet('Báo cáo', '<p class="bcr-e">Đang tải báo cáo…</p>'); api('/api/bc?id=' + encodeURIComponent(x.ref)).then(function (j) { if (sh.hidden) return; $('#sh-b').innerHTML = (j.ok ? bcHtml(j.bc) : '<p class="bcr-e">' + esc(j.loi || 'Không tải được báo cáo.') + '</p>') + '<div class="nvx-2" style="margin-top:12px"><button type="button" class="btn" id="tb-back">← Tất cả thông báo</button><button type="button" class="btn" id="tb-del">Xóa thông báo</button></div>';
-      $('#tb-back').onclick = function () { tbOpen(f); }; $('#tb-del').onclick = function () { api('/api/tb', { id: x.id, xoa: 1 }); TBL = st.tb = TBL.filter(function (z) { return z !== x; }); tbBadge(); tbOpen(f); }; }); return; }
+  function tbShow(id, f) {
+    var x = TBL.filter(function (z) { return z.id === id; })[0];
+    if (!x) { tbOpen(f); return; }
+    tbDoc(x); tbBadge();
+    if (x.loai === 'bc') {
+      openSheet('Báo cáo định kỳ', '<p class="bcr-e">Đang tải báo cáo…</p>', 'is-tb');
+      api('/api/bc?id=' + encodeURIComponent(x.ref)).then(function (j) {
+        if (sh.hidden) return;
+        $('#sh-b').innerHTML = (j.ok ? bcHtml(j.bc) : '<p class="bcr-e">' + esc(j.loi || 'Không tải được báo cáo.') + '</p>') + '<div class="nvx-2" style="margin-top:12px"><button type="button" class="btn" id="tb-back">← Tất cả thông báo</button><button type="button" class="btn" id="tb-del">Xóa thông báo</button></div>';
+        $('#tb-back').onclick = function () { tbOpen(f); };
+        $('#tb-del').onclick = function () { api('/api/tb', { id: x.id, xoa: 1 }); TBL = st.tb = TBL.filter(function (z) { return z !== x; }); tbBadge(); tbOpen(f); };
+      });
+      return;
+    }
     var d = x.loai === 'vb' && st.vb && (st.vb.ds || []).filter(function (z) { return z.id === x.ref; })[0];
-    openSheet('Thông báo', '<div class="tb-dt">' + (x.co_anh ? '<img src="/api/tb-anh?id=' + encodeURIComponent(x.id) + '" alt="Ảnh kèm thông báo">' : '') + '<h3>' + esc(x.tieu_de) + '</h3><p class="meta">' + fDate(x.at) + ' ' + fTime(x.at) + (x.nguoi ? ' · ' + esc(x.nguoi) : '') + '</p><p class="nd">' + esc(x.noi_dung || '') + '</p>' +
-      (d && d.fid ? '<a class="btn pri full" href="/api/vb-file?id=' + encodeURIComponent(d.fid) + '" target="_blank" rel="noopener">' + ni('doc', 16) + 'Xem tài liệu</a>' : '') + '<div class="nvx-2"><button type="button" class="btn" id="tb-back">← Tất cả thông báo</button><button type="button" class="btn" id="tb-del">Xóa thông báo</button></div></div>');
+    openSheet('Chi tiết thông báo', '<div class="tb-dt">' + (x.co_anh ? '<img src="/api/tb-anh?id=' + encodeURIComponent(x.id) + '" alt="Ảnh kèm thông báo">' : '') + '<h3>' + esc(x.tieu_de) + '</h3><p class="meta">' + fDate(x.at) + ' ' + fTime(x.at) + (x.nguoi ? ' · ' + esc(x.nguoi) : '') + '</p><p class="nd">' + esc(x.noi_dung || '') + '</p>' +
+      (d && d.fid ? '<a class="btn pri full" href="/api/vb-file?id=' + encodeURIComponent(d.fid) + '" target="_blank" rel="noopener">' + ni('doc', 16) + 'Xem tài liệu</a>' : '') + '<div class="nvx-2" style="margin-top:12px"><button type="button" class="btn" id="tb-back">← Tất cả thông báo</button><button type="button" class="btn" id="tb-del">Xóa thông báo</button></div></div>', 'is-tb');
     $('#tb-back').onclick = function () { tbOpen(f); };
     $('#tb-del').onclick = function () { api('/api/tb', { id: x.id, xoa: 1 }); TBL = st.tb = TBL.filter(function (z) { return z !== x; }); tbBadge(); tbOpen(f); };
   }
@@ -2394,7 +2502,7 @@ function nvBind(st, X) {
     if (pop && !document.querySelector('.tbp')) { TB_SEEN.push(pop.id); var pd = pop.loai === 'vb' && st.vb && (st.vb.ds || []).filter(function (z) { return z.id === pop.ref; })[0], ov = document.createElement('div'); ov.className = 'tbp'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
       ov.innerHTML = '<div class="tbp-c">' + (pop.co_anh ? '<img src="/api/tb-anh?id=' + encodeURIComponent(pop.id) + '" alt="">' : '') + '<div class="tbp-b"><span class="tbp-k">' + ni('bell', 15) + 'Thông báo từ công ty</span><h3>' + esc(pop.tieu_de) + '</h3><p>' + esc(pop.noi_dung || '') + '</p></div><div class="tbp-f">' + (pd && pd.fid ? '<a class="btn" href="/api/vb-file?id=' + encodeURIComponent(pd.fid) + '" target="_blank" rel="noopener">Xem tài liệu</a>' : '<button type="button" class="btn" data-tbp="sau">Để sau</button>') + '<button type="button" class="btn pri" data-tbp="ok">Đã xem</button></div></div>';
       document.body.appendChild(ov); ov.querySelectorAll('[data-tbp]').forEach(function (b) { b.onclick = function () { if (b.getAttribute('data-tbp') === 'ok') { tbDoc(pop); tbBadge(); } ov.remove(); }; }); var fb = ov.querySelector('[data-tbp="ok"]'); if (fb) fb.focus(); } }
-  function closeSheet() { qrStop(); var lov = document.querySelector('.lk-ov'); if (lov) lov.remove(); sh.classList.remove('on', 'full', 'dt'); setTimeout(function () { sh.hidden = true; }, 180); }
+  function closeSheet() { qrStop(); var lov = document.querySelector('.lk-ov'); if (lov) lov.remove(); sh.classList.remove('on', 'full', 'dt', 'is-tb'); setTimeout(function () { sh.hidden = true; }, 180); }
   sh.querySelectorAll('[data-close]').forEach(function (b) { b.onclick = closeSheet; });
   if (window._nvKey) document.removeEventListener('keydown', window._nvKey); window._nvKey = function (e) { if (e.key === 'Escape' && !sh.hidden) closeSheet(); }; document.addEventListener('keydown', window._nvKey);
   app.querySelectorAll('[data-tab]').forEach(function (b) { b.onclick = function () { NVT.tab = b.getAttribute('data-tab'); NVT.sub = ''; try { sessionStorage.setItem('nv-tab', NVT.tab); } catch (e) { } nvView(st); scrTop(0); }; });
