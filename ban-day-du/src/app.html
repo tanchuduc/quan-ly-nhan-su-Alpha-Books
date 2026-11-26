@@ -1757,6 +1757,7 @@ function nvView(st) {
   }
   /* ---------- LỊCH ---------- */
   if (T === 'lich') {
+    h += '<div class="nvx-seg-switch"><button type="button" class="seg-btn" data-tab="cong">' + ni('cong', 16) + '<span>Bảng chấm công</span></button><button type="button" class="seg-btn on">' + ni('lich', 16) + '<span>Lịch làm việc</span></button></div>';
     if (L && L.mo && L.mo.length) h += lkBanner(st); // 12/11 17:55: bỏ lịch tuần + ghi chú; đăng ký lịch mở bảng riêng
     var lym = ymAdd(MS.ym, NVT.lm), tu = (HS && HS.lich && HS.lich.tuan) || [1, 2, 3, 4, 5], nua = (HS && HS.lich && HS.lich.nua) || [], LD = {}, myDon = {}, usedCa = {};
     if (L) L.d.forEach(function (r) { LD[r.ngay] = r.ca; });
@@ -1784,6 +1785,7 @@ function nvView(st) {
   }
   /* ---------- CÔNG ---------- */
   if (T === 'cong') {
+    h += '<div class="nvx-seg-switch"><button type="button" class="seg-btn on">' + ni('cong', 16) + '<span>Bảng chấm công</span></button><button type="button" class="seg-btn" data-tab="lich">' + ni('lich', 16) + '<span>Lịch làm việc</span></button></div>';
     var cChot = C.filter(function (c) { return !c.du_lieu.tam; })[0];
     if (need) {
       var dXn = need.du_lieu || {}, hanXn = dXn.han_xn || '';
@@ -1845,9 +1847,12 @@ function nvView(st) {
   /* ---------- TÔI ---------- */
   if (T === 'toi') h += toiHtml(st, HS, HSo, ten, cty, av);
   h += '</main></div>';
-  var navTabs = DK ? TABS.concat([['toi', 'Bạn']]) : TABS;
-  h += '<nav class="nvx-nav' + (T === 'toi' && !DK ? ' hide' : '') + '" aria-label="Các mục chính">' + (DK ? '<div class="dk-brand"><img src="' + esc(brd.logo) + '" alt="' + esc(brd.name) + '"><span><b>' + esc(brd.name) + '</b><small>' + esc(brd.sub) + '</small></span></div><button type="button" class="dk-me" data-tab="toi">' + avHtml(av, ten, 'sm') + '<span><b>' + esc(ten) + '</b><small>' + esc(st.me.ma) + '</small></span></button>' : '') + navTabs.map(function (x) { var dot = (x[0] === 'cong' && need) || (x[0] === 'lich' && L && L.mo && L.mo.length) || (x[0] === 'luong' && phNew.length) || (x[0] === 'don' && DU.length) || (x[0] === 'hoc' && st.dt && (st.dt.kh || []).some(function (k) { var e = dtEv(st, k).st; return e === 'chua' || e === 'hoc' || e === 'khong'; })); return '<button type="button" data-tab="' + x[0] + '" class="' + (x[0] === T ? 'on' : '') + '"' + (x[0] === T ? ' aria-current="page"' : '') + '>' + ni(x[0], 21) + '<span>' + x[1] + '</span>' + (dot ? '<i class="dot" aria-label="có việc mới"></i>' : '') + '</button>'; }).join('') +
-    (DK ? (st.me.qt ? '<button type="button" class="dk-qt" data-qt>' + ni('qt', 21) + '<span>Quản trị</span></button>' : '') + '<span class="dk-sp"></span><button type="button" class="dk-v" data-view="mb">' + ni('mb', 18) + '<span>Xem dạng điện thoại</span></button>' : '') + '</nav>';
+  var cleanBrandSub = (brd.sub && brd.sub !== st.me.ma && !/^[A-Z]{1,5}\d{2,6}$/i.test(String(brd.sub).trim())) ? brd.sub : 'Cổng thông tin nhân sự';
+  var mbTabs = [['home', 'Home'], ['cong', 'Công'], ['don', 'Đơn'], ['luong', 'Lương'], ['toi', 'Cá nhân']];
+  var dkTabs = [['home', 'Home'], ['lich', 'Lịch'], ['cong', 'Công'], ['don', 'Đơn'], ['luong', 'Lương'], ['hoc', 'Học']];
+  var navTabs = DK ? dkTabs : mbTabs;
+  h += '<nav class="nvx-nav" aria-label="Các mục chính">' + (DK ? '<div class="dk-brand"><img src="' + esc(brd.logo) + '" alt="' + esc(brd.name) + '"><span><b>' + esc(brd.name) + '</b><small>' + esc(cleanBrandSub) + '</small></span></div>' : '') + navTabs.map(function (x) { var dot = (x[0] === 'cong' && (need || (!DK && L && L.mo && L.mo.length))) || (x[0] === 'lich' && L && L.mo && L.mo.length) || (x[0] === 'luong' && phNew.length) || (x[0] === 'don' && DU.length) || (x[0] === 'hoc' && st.dt && (st.dt.kh || []).some(function (k) { var e = dtEv(st, k).st; return e === 'chua' || e === 'hoc' || e === 'khong'; })); return '<button type="button" data-tab="' + x[0] + '" class="' + (x[0] === T ? 'on' : '') + '"' + (x[0] === T ? ' aria-current="page"' : '') + '>' + ni(x[0], 21) + '<span>' + x[1] + '</span>' + (dot ? '<i class="dot" aria-label="có việc mới"></i>' : '') + '</button>'; }).join('') +
+    (DK ? ('<span class="dk-sp"></span><button type="button" class="dk-me' + (T === 'toi' ? ' on' : '') + '" data-tab="toi" title="Xem hồ sơ cá nhân">' + avHtml(av, ten, 'sm') + '<span><b>' + esc(ten) + '</b><small>Mã NV: ' + esc(st.me.ma) + '</small></span>' + ni('go', 16) + '</button>' + (st.me.qt ? '<button type="button" class="dk-qt" data-qt>' + ni('qt', 21) + '<span>Quản trị</span></button>' : '') + '<button type="button" class="dk-v" data-view="mb">' + ni('mb', 18) + '<span>Xem dạng điện thoại</span></button>') : '') + '</nav>';
   h += '<div class="nvx-sheet" id="sheet" hidden><div class="bd" data-close></div><div class="pn" role="dialog" aria-modal="true" aria-labelledby="sh-t"><div class="hd"><b id="sh-t"></b><button type="button" class="nvx-ib" data-close aria-label="Đóng">' + ni('x', 18) + '</button></div><div class="bdy" id="sh-b"></div></div></div>';
   app.innerHTML = h + '</div></div>';
   nvBind(st, { HS: HS, HSo: HSo, K: K, L: L, need: need, next: next, MS: MS, tIso: tIso, ten: ten });
@@ -1875,6 +1880,9 @@ function toiHtml(st, HS, HSo, ten, cty, av) {
     if (st.me.qt) h += '<div class="nvx-grp">Quản trị</div><section class="nvx-card nvx-list nvx-menu nvx-menu2">' + qtItem(st, 'it') + '</section>';
     var VBn = st.vb && (st.vb.ds || []).length, TBN = (st.tb || []).filter(function (x) { return !x.doc_at; }).length; h += '<div class="nvx-grp">Công ty</div><section class="nvx-card nvx-list nvx-menu nvx-menu2"><button type="button" class="it" data-sub="vb"><span class="ic c2">' + ni('doc', 18) + '</span><span class="tx"><b>Kho văn bản chung</b><small>' + (VBn ? VBn + ' tài liệu: nội quy, quy định, quy chế…' : 'Nội quy, quy định, quy chế, KPI') + '</small></span>' + ni('go', 16) + '</button><button type="button" class="it" data-bell><span class="ic c4">' + ni('bell', 18) + '</span><span class="tx"><b>Thông báo</b><small>' + (TBN ? TBN + ' thông báo chưa đọc' : 'Không có thông báo mới') + '</small></span>' + ni('go', 16) + '</button></section>'; // 16/11
     h += '<div class="nvx-grp">Hồ sơ của bạn</div><section class="nvx-card nvx-list nvx-menu nvx-menu2">' + [['org', 'org', 'Sơ đồ tổ chức', 'Phòng ban, quản lý trực tiếp, đồng nghiệp', 'c1'], ['hs', 'user', 'Hồ sơ cá nhân', 'Thông tin, giấy tờ đã nộp', 'c2'], ['hd', 'doc', 'Hợp đồng', (HS && (HS.hop_dong || []).length) ? HS.hop_dong.length + ' hợp đồng' : 'Hợp đồng lao động', 'c3'], ['ht', 'path', 'Hành trình làm việc', 'Các mốc tại công ty', 'c4'], ['ts', 'pc', 'Thiết bị, tài sản', HS && HS.ts && HS.ts.length ? HS.ts.length + ' tài sản bạn đang sử dụng' : 'Máy móc, phần mềm công ty giao cho bạn', 'c5']].map(function (x) { return '<button type="button" class="it" data-sub="' + x[0] + '"><span class="ic ' + x[4] + '">' + ni(x[1], 18) + '</span><span class="tx"><b>' + x[2] + '</b><small>' + esc(x[3]) + '</small></span>' + ni('go', 16) + '</button>'; }).join('') + '</section>' +
+      '<div class="nvx-grp">Tiện ích & Học tập</div><section class="nvx-card nvx-list nvx-menu nvx-menu2">' +
+      '<button type="button" class="it" data-tab="hoc"><span class="ic c6">' + ni('hoc', 18) + '</span><span class="tx"><b>Khóa học nội bộ</b><small>' + (st.dt && (st.dt.kh || []).length ? st.dt.kh.length + ' khóa học được giao' : 'Đào tạo & nâng cao năng lực') + '</small></span>' + ni('go', 16) + '</button>' +
+      '<button type="button" class="it" data-tab="lich"><span class="ic c1">' + ni('lich', 18) + '</span><span class="tx"><b>Lịch làm việc & Ca trực</b><small>Xem lịch làm việc theo tháng, ca đăng ký</small></span>' + ni('go', 16) + '</button></section>' +
       '<div class="nvx-grp">Hỗ trợ & Góp ý</div><section class="nvx-card nvx-list nvx-menu nvx-menu2">' +
       '<button type="button" class="it" data-sub="help"><span class="ic c1">' + ni('help', 18) + '</span><span class="tx"><b>Cẩm nang sử dụng & Hỏi đáp (FAQ)</b><small>Cách cài app, chấm công, gửi đơn, tra cứu</small></span>' + ni('go', 16) + '</button>' +
       '<button type="button" class="it" id="app-fb-btn"><span class="ic c2">' + ni('chat', 18) + '</span><span class="tx"><b>Góp ý & Báo lỗi</b><small>Báo lỗi ứng dụng hoặc đóng góp ý kiến tới quản trị viên</small></span>' + ni('go', 16) + '</button></section>' +
