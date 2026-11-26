@@ -3952,7 +3952,31 @@ if (typeof module !== 'undefined') module.exports = XW;
   function groupLabel() { return 'Tổng các công ty'; }
   function pickIds() { var all = S.units.map(function (u) { return u.id; }), p = (S.settings.pick || []).filter(function (id) { return all.indexOf(id) >= 0; }); return p.length ? p : all; }
   function whoUnits(us) { return us.length <= 3 ? us.map(function (u) { return esc(shortUnit(u.name)); }).join(' + ') : 'gộp ' + us.length + ' công ty'; }
-  function shortUnit(n) { return String(n || '').replace(/\s*\(dữ liệu mẫu\)\s*$/i, '').replace(/^Công ty\s+(TNHH|CP|Cổ phần)\s+/i, ''); }
+  function shortUnit(n) {
+    if (!n) return '';
+    if (typeof n === 'object') {
+      if (n.brand && n.brand.name && String(n.brand.name).trim()) return String(n.brand.name).trim();
+      n = n.name || '';
+    }
+    var str = String(n || '').trim();
+    if (typeof S !== 'undefined' && S.units && S.units.length) {
+      var match = S.units.filter(function (u) {
+        if (!u) return false;
+        if (u.id === str || u.name === str) return true;
+        var unClean = String(u.name || '').replace(/\s*\(dữ liệu mẫu\)\s*$/i, '').trim();
+        var rawClean = unClean.replace(/^Công ty\s+(TNHH|CP|Cổ phần)\s+/i, '').trim();
+        return unClean === str || rawClean === str;
+      })[0];
+      if (match && match.brand && match.brand.name && String(match.brand.name).trim()) {
+        return String(match.brand.name).trim();
+      }
+      if (S.units.length === 1 && S.settings && S.settings.brand && S.settings.brand.name) {
+        var sb = String(S.settings.brand.name).trim();
+        if (sb && sb !== 'Quản lý nhân sự') return sb;
+      }
+    }
+    return str.replace(/\s*\(dữ liệu mẫu\)\s*$/i, '').replace(/^Công ty\s+(TNHH|CP|Cổ phần)\s+/i, '');
+  }
   function unitOrder() { return S.units.slice(); }
   function saveSettings() { return pqSave('settings', function () { return dbSet('settings', S.settings).catch(function (e) { logErr('Lưu cài đặt', e); }); }); } // 0.7.1: pqSave chặn lưu khi tài khoản chỉ có quyền xem (phanquyen.js)
   function saveUnits() {
@@ -8013,7 +8037,7 @@ var rows = [];
     var pin = /^\d{6}$/.test(String(arguments[3] || '')) ? String(arguments[3]) : newPin();
     return hashPin(u.id, id, pin).then(function (hs) { u.acc[id] = { st: 'on', at: nowVn(), pinAt: nowVn(), pin: hs, why: '' }; if (wfOn(u)) wfPushPin(u, id, pin, e); return pin; });
   }
-  function anvSync(u) { if (wfOn(u)) { try { wfCall(u, 'nhan-vien', { list: wfPeople(u) }).then(function () { ANV_AT[u.id] = 0; anvFetch(); }, function () { }); } catch (e) { } } }
+  function anvSync(u) { if (wfOn(u)) { try { wfCall(u, 'nhan-vien', { list: wfPeople(u), cty: u.name, brand: u.brand }).then(function () { ANV_AT[u.id] = 0; anvFetch(); }, function () { }); } catch (e) { } } }
   PAGES.appnv = function () {
     var f = ps('anv', { tab: 'all', q: '' }), us = selUnits(), rows = anvRows(us), multi = us.length > 1;
     var n = { on: 0, lock: 0, off: 0, leftOn: 0, never: 0, tmp: 0 };

@@ -1380,9 +1380,10 @@ function coBrand(st) {
   var isEts = /ets/i.test(ctyRaw);
   var isGamma = /gamma/i.test(ctyRaw);
   var isMed = /medinsights/i.test(ctyRaw);
+  var isAlpha = /alpha/i.test(ctyRaw);
   var isGroupOnly = /tập đoàn|publishing group/i.test(ctyRaw);
 
-  var defaultName = isOmega ? 'Omega Plus' : isEts ? 'ETS Publishing' : isGamma ? 'Gamma Books' : isMed ? 'Medinsights' : isGroupOnly ? 'Alpha Publishing Group' : cleanCty || 'Alpha Books';
+  var defaultName = isOmega ? 'Omega Plus' : isEts ? 'ETS Publishing' : isGamma ? 'Gamma Books' : isMed ? 'Medinsights' : isAlpha ? 'Alpha Books' : isGroupOnly ? 'Alpha Publishing Group' : cleanCty || 'Alpha Books';
   var brandName = custom.name || defaultName;
   var brandSub = custom.sub || (isGroupOnly ? 'Tập đoàn Xuất bản' : 'Alpha Publishing Group');
   var defaultLogo = isOmega ? OMEGA_LOGO : isEts ? ETS_LOGO : isGamma ? GAMMA_LOGO : isMed ? MED_LOGO : isGroupOnly ? ((window.QTT_BR && window.QTT_BR.logo) || ALPHA_LOGO) : ALPHA_LOGO;
