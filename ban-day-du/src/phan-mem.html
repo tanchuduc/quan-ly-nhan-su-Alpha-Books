@@ -6463,7 +6463,7 @@ if (typeof module !== 'undefined') module.exports = XW;
       box.innerHTML = h;
 
       // Bind status buttons
-      $('[data-gopy-st]', box).forEach(function (btn) {
+      $$('[data-gopy-st]', box).forEach(function (btn) {
         btn.onclick = function () {
           var id = btn.getAttribute('data-gopy-st');
           var stVal = btn.getAttribute('data-val');
@@ -6483,7 +6483,7 @@ if (typeof module !== 'undefined') module.exports = XW;
       });
 
       // Bind save note buttons
-      $('[data-gopy-save-note]', box).forEach(function (btn) {
+      $$('[data-gopy-save-note]', box).forEach(function (btn) {
         btn.onclick = function () {
           var id = btn.getAttribute('data-gopy-save-note');
           var input = $('#gopy-note-' + id);
@@ -6519,11 +6519,11 @@ if (typeof module !== 'undefined') module.exports = XW;
     loadGopyData();
 
     // Tabs filter
-    $('[data-st-tab]').forEach(function (btn) {
+    $$('[data-st-tab]').forEach(function (btn) {
       btn.onclick = function () {
         var t = btn.getAttribute('data-st-tab');
         f.tab = t;
-        $('[data-st-tab]').forEach(function (x) { x.classList.toggle('on', x === btn); });
+        $$('[data-st-tab]').forEach(function (x) { x.classList.toggle('on', x === btn); });
         if (GOPY_CACHE) renderGopyList(GOPY_CACHE);
       };
     });
