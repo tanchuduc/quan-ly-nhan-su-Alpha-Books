@@ -1425,6 +1425,11 @@ button.seat{background:none;border:0;padding:0;font:inherit;color:inherit;cursor
 
 /* ===== Module Nhân sự (06/11/2026) – dải thay đổi, Sơ đồ tổ chức ===== */
 .ed-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--dom-soft);border:1px solid color-mix(in srgb,var(--dom) 45%,transparent);border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:13.5px;color:var(--ink)}
+.nv-bulkbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border:1.5px solid var(--pri);box-shadow:0 4px 18px rgba(0,0,0,.1);border-radius:12px;padding:10px 16px;margin:0 0 14px;position:sticky;top:66px;z-index:15;animation:nvBulkFade .15s ease}
+@keyframes nvBulkFade{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.nv-bulkbar .count{font-weight:700;color:var(--pri);display:inline-flex;align-items:center;gap:6px;font-size:13.5px}
+.nv-cb-td{width:38px;text-align:center;padding-left:8px!important;padding-right:8px!important}
+.nv-cb-td input{cursor:pointer;width:17px;height:17px;accent-color:var(--pri)}
 .ed-bar .grow{flex:1;min-width:220px}.ed-ic{color:var(--dom-ink);display:inline-flex}
 .ed-log{margin:0;padding-left:18px;font-size:13px;line-height:1.7;max-height:46vh;overflow:auto}
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
@@ -7613,6 +7618,160 @@ var rows = [];
     m.addEventListener('click', function (ev) { var b = ev.target.closest('[data-pk]'); if (!b) return; var k = b.getAttribute('data-pk'); cur = k === 'def' ? NV_COL_DEF.slice() : k === 'all' ? DEFS.map(function (d) { return d.id; }) : []; $('#pkB', m).innerHTML = body(); });
     $('#pkOk', m).addEventListener('click', function () { var ord = DEFS.map(function (d) { return d.id; }); S.settings.nvCols = ord.filter(function (id) { return cur.indexOf(id) >= 0; }); if (!S.settings.nvCols.length) S.settings.nvCols = ['pb']; saveSettings(); m.close(); render(); toast('Bảng hiện ' + S.settings.nvCols.length + ' cột', 'ok', 'Tải Excel ở góc bảng để lấy đúng các cột này.'); });
   };
+  /* ================== THAO TÁC HÀNG LOẠT (BULK ACTIONS) NHÂN SỰ ================== */
+  var NV_SEL = {};
+  function nvSelKeys() { return Object.keys(NV_SEL).filter(function (k) { return NV_SEL[k]; }); }
+  ACTS['nv-bulk-clear'] = function () { NV_SEL = {}; if (REFRESH) REFRESH(); };
+  ACTS['nv-bulk-dept'] = function () {
+    var selKeys = nvSelKeys(); if (!selKeys.length) return toast('Chưa chọn nhân sự nào', 'warn');
+    var allDepts = depts();
+    var body = '<div class="form-grid">' +
+      '<div class="field span2"><label for="bDept">Chọn phòng ban có sẵn</label><select class="input" id="bDept"><option value="">-- Chọn phòng ban --</option>' +
+      allDepts.map(function (d) { return '<option value="' + esc(d) + '">' + esc(d) + '</option>'; }).join('') +
+      '</select></div>' +
+      '<div class="field span2"><label for="bDeptNew">Hoặc nhập tên phòng ban mới</label><input class="input" id="bDeptNew" placeholder="Ví dụ: Ban Biên tập, Phòng Kỹ thuật..." maxlength="80"></div>' +
+      dbox('bDeptNg', refDate(), 'Ngày hiệu lực điều chuyển') +
+      '</div>' +
+      '<div class="notice" style="margin-top:12px">' + ic('info') + '<div>Bạn đang chuẩn bị đổi phòng ban cho <b>' + selKeys.length + ' nhân sự</b> đã chọn. Hệ thống sẽ tự động cập nhật và ghi nhận lịch sử điều chuyển công tác.</div></div>' +
+      '<div class="link-row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>Hủy</button><button class="btn btn-primary" id="bDeptOk">Xác nhận đổi phòng ban</button></div>';
+    var m = modal('Đổi phòng ban hàng loạt', 'Áp dụng cho ' + selKeys.length + ' nhân sự đã chọn', body, true);
+    $$('.dbox', m).forEach(bindDbox);
+    $('#bDeptOk', m).onclick = function () {
+      var dNew = $('#bDeptNew', m).value.trim(), dOld = $('#bDept', m).value.trim(), finalDept = dNew || dOld;
+      if (!finalDept) return toast('Vui lòng chọn hoặc nhập tên phòng ban', 'err');
+      var ng = $('#bDeptNg', m)._get() || HR.isoToday(), count = 0;
+      selKeys.forEach(function (k) {
+        var p = k.split('|'), u = unitById(p[0]); if (!u) return;
+        var e = nvIndex(u)[p[1]]; if (!e) return;
+        ensureDept(u, finalDept);
+        var oldPb = e['Phòng ban'] || '';
+        if (oldPb !== finalDept) dcAdd(u, e, { ngay: ng, pbCu: oldPb, pbMoi: finalDept, cdCu: e['Chức danh công việc'] || '', cdMoi: e['Chức danh công việc'] || '' });
+        editRow(u, 'NV', p[1], { 'Phòng ban': finalDept }, e['Họ và tên'] + ' – điều chuyển sang ' + finalDept + ' (hiệu lực ' + vn(ng) + ')');
+        count++;
+      });
+      NV_SEL = {}; m.close(); commitEdits();
+      toast('Đã đổi phòng ban thành công', 'ok', 'Đã chuyển ' + count + ' nhân sự sang "' + finalDept + '".');
+    };
+  };
+  ACTS['nv-bulk-title'] = function () {
+    var selKeys = nvSelKeys(); if (!selKeys.length) return toast('Chưa chọn nhân sự nào', 'warn');
+    var cvs = {}; gather('NV').forEach(function (x) { if (x.r['Chức vụ']) cvs[x.r['Chức vụ']] = 1; });
+    var cvList = Object.keys(cvs).sort();
+    var body = '<div class="form-grid">' +
+      '<div class="field"><label for="bCv">Chức vụ (cấp bậc quản lý)</label><input class="input" id="bCv" list="bCvList" placeholder="VD: Trưởng phòng, Chuyên viên..."><datalist id="bCvList">' +
+      cvList.map(function (c) { return '<option value="' + esc(c) + '">'; }).join('') + '</datalist></div>' +
+      '<div class="field"><label for="bCd">Chức danh công việc (ghi HĐ)</label><input class="input" id="bCd" placeholder="VD: Biên tập viên, Chuyên viên TMĐT..." maxlength="80"></div>' +
+      '</div>' +
+      '<p class="faint" style="font-size:12.5px;margin:8px 0 0">Để trống trường nào nếu không muốn thay đổi trường đó.</p>' +
+      '<div class="notice" style="margin-top:12px">' + ic('info') + '<div>Áp dụng chức vụ / chức danh cho <b>' + selKeys.length + ' nhân sự</b> đã chọn.</div></div>' +
+      '<div class="link-row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>Hủy</button><button class="btn btn-primary" id="bTitleOk">Xác nhận cập nhật</button></div>';
+    var m = modal('Đổi chức vụ, chức danh hàng loạt', 'Áp dụng cho ' + selKeys.length + ' nhân sự đã chọn', body, true);
+    $('#bTitleOk', m).onclick = function () {
+      var cv = $('#bCv', m).value.trim(), cd = $('#bCd', m).value.trim();
+      if (!cv && !cd) return toast('Vui lòng nhập ít nhất chức vụ hoặc chức danh cần đổi', 'err');
+      var patch = {}, ch = [];
+      if (cv) { patch['Chức vụ'] = cv; ch.push('chức vụ: ' + cv); }
+      if (cd) { patch['Chức danh công việc'] = cd; ch.push('chức danh: ' + cd); }
+      var count = 0;
+      selKeys.forEach(function (k) {
+        var p = k.split('|'), u = unitById(p[0]); if (!u) return;
+        var e = nvIndex(u)[p[1]]; if (!e) return;
+        if (cv) ensureCv(u, cv);
+        editRow(u, 'NV', p[1], patch, e['Họ và tên'] + ' – ' + ch.join(', '));
+        count++;
+      });
+      NV_SEL = {}; m.close(); commitEdits();
+      toast('Đã cập nhật chức vụ/chức danh', 'ok', 'Đã cập nhật cho ' + count + ' nhân sự.');
+    };
+  };
+  ACTS['nv-bulk-status'] = function () {
+    var selKeys = nvSelKeys(); if (!selKeys.length) return toast('Chưa chọn nhân sự nào', 'warn');
+    var body = '<div class="form-grid">' +
+      '<div class="field span2"><label for="bSt">Trạng thái làm việc mới</label><select class="input" id="bSt">' +
+      '<option value="working">Đang đi làm (Chính thức)</option>' +
+      '<option value="prob">Thử việc</option>' +
+      '<option value="left">Nghỉ việc</option>' +
+      '</select></div>' +
+      '<div id="bLvBox" class="span2" style="display:none">' +
+      '<div class="form-grid">' +
+      dbox('bLvD', refDate(), 'Ngày nghỉ việc (ngày cuối)') +
+      '<div class="field"><label for="bLvR">Lý do nghỉ việc</label><select class="input" id="bLvR"><option value="Người lao động xin nghỉ">Người lao động xin nghỉ</option><option value="Hết hạn hợp đồng">Hết hạn hợp đồng</option><option value="Hai bên thỏa thuận">Hai bên thỏa thuận</option><option value="Không đạt thử việc">Không đạt thử việc</option><option value="Đơn vị chấm dứt hợp đồng">Đơn vị chấm dứt hợp đồng</option><option value="Khác">Khác</option></select></div>' +
+      '</div></div>' +
+      '</div>' +
+      '<div class="notice" style="margin-top:12px">' + ic('info') + '<div>Cập nhật trạng thái cho <b>' + selKeys.length + ' nhân sự</b> đã chọn.</div></div>' +
+      '<div class="link-row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>Hủy</button><button class="btn btn-primary" id="bStOk">Xác nhận đổi trạng thái</button></div>';
+    var m = modal('Đổi trạng thái làm việc hàng loạt', 'Áp dụng cho ' + selKeys.length + ' nhân sự đã chọn', body, true);
+    $$('.dbox', m).forEach(bindDbox);
+    $('#bSt', m).onchange = function () { $('#bLvBox', m).style.display = this.value === 'left' ? 'block' : 'none'; };
+    $('#bStOk', m).onclick = function () {
+      var st = $('#bSt', m).value, count = 0;
+      if (st === 'left') {
+        var lvD = $('#bLvD', m)._get() || HR.isoToday(), lvR = $('#bLvR', m).value;
+        selKeys.forEach(function (k) {
+          var p = k.split('|'), u = unitById(p[0]); if (!u) return;
+          var e = nvIndex(u)[p[1]]; if (!e) return;
+          editRow(u, 'NV', p[1], { 'Trạng thái': 'Đã nghỉ việc', 'Ngày nghỉ việc': lvD, 'Lý do nghỉ việc': lvR }, e['Họ và tên'] + ' – nghỉ việc từ ' + vn(lvD));
+          count++;
+        });
+      } else {
+        var stVal = st === 'prob' ? 'Thử việc' : 'Đang làm việc';
+        selKeys.forEach(function (k) {
+          var p = k.split('|'), u = unitById(p[0]); if (!u) return;
+          var e = nvIndex(u)[p[1]]; if (!e) return;
+          editRow(u, 'NV', p[1], { 'Trạng thái': stVal, 'Ngày nghỉ việc': '', 'Lý do nghỉ việc': '' }, e['Họ và tên'] + ' – trạng thái: ' + stVal);
+          count++;
+        });
+      }
+      NV_SEL = {}; m.close(); commitEdits();
+      toast('Đã cập nhật trạng thái', 'ok', 'Đã đổi trạng thái cho ' + count + ' nhân sự.');
+    };
+  };
+  ACTS['nv-bulk-labor'] = function () {
+    var selKeys = nvSelKeys(); if (!selKeys.length) return toast('Chưa chọn nhân sự nào', 'warn');
+    var body = '<div class="form-grid"><div class="field span2"><label for="bLd">Loại lao động</label><select class="input" id="bLd">' +
+      '<option value="">Toàn thời gian (chuẩn)</option>' +
+      '<option value="Bán thời gian">Bán thời gian</option>' +
+      '<option value="Cộng tác viên">Cộng tác viên</option>' +
+      '</select></div></div>' +
+      '<div class="notice" style="margin-top:12px">' + ic('info') + '<div>Áp dụng loại lao động cho <b>' + selKeys.length + ' nhân sự</b> đã chọn.</div></div>' +
+      '<div class="link-row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>Hủy</button><button class="btn btn-primary" id="bLdOk">Xác nhận</button></div>';
+    var m = modal('Đổi loại lao động hàng loạt', 'Áp dụng cho ' + selKeys.length + ' nhân sự đã chọn', body, true);
+    $('#bLdOk', m).onclick = function () {
+      var ld = $('#bLd', m).value, count = 0;
+      selKeys.forEach(function (k) {
+        var p = k.split('|'), u = unitById(p[0]); if (!u) return;
+        var e = nvIndex(u)[p[1]]; if (!e) return;
+        editRow(u, 'NV', p[1], { 'Loại lao động': ld }, e['Họ và tên'] + ' – loại lao động: ' + (ld || 'Toàn thời gian'));
+        count++;
+      });
+      NV_SEL = {}; m.close(); commitEdits();
+      toast('Đã cập nhật loại lao động', 'ok', 'Đã cập nhật cho ' + count + ' nhân sự.');
+    };
+  };
+  ACTS['nv-bulk-ca'] = function () {
+    var selKeys = nvSelKeys(); if (!selKeys.length) return toast('Chưa chọn nhân sự nào', 'warn');
+    var shifts = [];
+    gather('CA').forEach(function (x) { if (x.r['Tên ca'] && shifts.indexOf(x.r['Tên ca']) < 0) shifts.push(x.r['Tên ca']); });
+    var body = '<div class="form-grid">' +
+      '<div class="field span2"><label for="bCa">Tổ / Ca làm việc</label><input class="input" id="bCa" list="bCaList" placeholder="VD: Ca hành chính, Ca sáng, Tổ 1..."><datalist id="bCaList">' +
+      shifts.map(function (c) { return '<option value="' + esc(c) + '">'; }).join('') + '</datalist></div>' +
+      '</div>' +
+      '<div class="notice" style="margin-top:12px">' + ic('info') + '<div>Gán ca/tổ làm việc cho <b>' + selKeys.length + ' nhân sự</b> đã chọn.</div></div>' +
+      '<div class="link-row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>Hủy</button><button class="btn btn-primary" id="bCaOk">Xác nhận</button></div>';
+    var m = modal('Gán Tổ/Ca làm việc hàng loạt', 'Áp dụng cho ' + selKeys.length + ' nhân sự đã chọn', body, true);
+    $('#bCaOk', m).onclick = function () {
+      var ca = $('#bCa', m).value.trim(), count = 0;
+      selKeys.forEach(function (k) {
+        var p = k.split('|'), u = unitById(p[0]); if (!u) return;
+        var e = nvIndex(u)[p[1]]; if (!e) return;
+        editRow(u, 'NV', p[1], { 'Tổ/Ca': ca }, e['Họ và tên'] + ' – tổ/ca: ' + (ca || 'để trống'));
+        count++;
+      });
+      NV_SEL = {}; m.close(); commitEdits();
+      toast('Đã gán tổ/ca làm việc', 'ok', 'Đã cập nhật cho ' + count + ' nhân sự.');
+    };
+  };
+
   BINDS.nv = function () {
     if (!$('#nArea')) return;
     function refresh() {
@@ -7625,7 +7784,18 @@ var rows = [];
         return true;
       });
       var pick = nvPick(), DEFS = nvColDefs(R, cfgD), byId = {}; DEFS.forEach(function (d) { byId[d.id] = d; });
-      var cols = [{ t: 'Đơn vị', f: function (x) { return x.u.name; }, hide: 1 }].filter(function () { return isMulti(); }).concat([
+      var allSel = rows.length > 0 && rows.every(function (x) { return NV_SEL[x.u.id + '|' + x.e['Mã NV']]; });
+      var selKeys = nvSelKeys();
+      var selCol = {
+        t: '<input type="checkbox" id="nvSelAll" title="Chọn tất cả"' + (allSel ? ' checked' : '') + ' aria-label="Chọn tất cả">',
+        nosort: 1, noExport: 1, cls: 'nv-cb-td',
+        f: function () { return ''; },
+        h: function (x) {
+          var k = x.u.id + '|' + x.e['Mã NV'];
+          return '<input type="checkbox" class="nv-row-cb" data-nv-key="' + esc(k) + '"' + (NV_SEL[k] ? ' checked' : '') + ' aria-label="Chọn ' + esc(x.e['Họ và tên']) + '">';
+        }
+      };
+      var cols = [selCol].concat([{ t: 'Đơn vị', f: function (x) { return x.u.name; }, hide: 1 }].filter(function () { return isMulti(); })).concat([
         { t: 'Nhân sự', f: function (x) { return x.e['Họ và tên']; }, xt: 'Họ và tên', h: function (x) {
           var src = avatarOf(x.e, x.u.source === 'sample');
           return '<div class="nv-who"><span class="op-av' + (x.st === 'maternity' ? ' av-mat' : x.prob ? ' av-prob' : x.st === 'left' ? ' av-left' : '') + '">' + (src ? '<img src="' + src + '" alt="">' : esc(givenName(x.e['Họ và tên']).charAt(0))) + '</span><span><span class="nv-nm">' + personLink(x.u, x.e['Mã NV'], x.e['Họ và tên']) + (x.isNew && x.st !== 'left' ? '<em class="op-new">Mới</em>' : '') + (x.added ? '<em class="op-kiem" title="Thêm trong phần mềm, chưa ghi ra Excel">mới thêm</em>' : '') + '</span><small title="' + esc(x.e['Chức danh công việc'] || '') + '"><span class="mono">' + esc(x.e['Mã NV']) + '</span>' + (isMulti() ? ' · <b class="nv-co ub ub-' + x.u.id + '"><i class="u-lg"></i>' + esc(shortUnit(x.u.name)) + '</b>' : '') + ' · ' + esc(x.e['Chức danh công việc'] || x.e['Chức vụ'] || '') + '</small></span></div>'; } },
@@ -7633,7 +7803,39 @@ var rows = [];
       if (pick.indexOf('cd') < 0) cols.push({ t: 'Chức danh', f: function (x) { return x.e['Chức danh công việc']; }, hide: 1 });
       pick.forEach(function (id) { if (byId[id]) cols.push(byId[id].col); });
       cols.push({ t: '', nosort: 1, noExport: 1, f: function () { return ''; }, h: function (x) { return '<button class="btn btn-sm" data-act="nv-edit" data-u="' + x.u.id + '" data-id="' + esc(x.e['Mã NV']) + '">Sửa</button>'; } });
-      $('#nArea').innerHTML = (f.tab === 'maternity' ? '<div class="notice nv-mat-tip" style="margin-bottom:12px">' + ic('info') + '<div>' + (rows.length ? '' : '<b>Chưa có ai đang nghỉ thai sản.</b> ') + 'Nghỉ thai sản được ghi bằng <b>đơn nghỉ</b> (không sửa trong hồ sơ): đơn được duyệt thì trạng thái chuyển sang Nghỉ thai sản, bảng công ghi ký hiệu TS và Bảng điều hành nhắc trước ngày đi làm lại; hết đơn tự về Đang đi làm. Nhân viên cũng tự gửi được đơn này trên ứng dụng.<div class="link-row" style="margin-top:8px"><button class="btn btn-sm btn-primary" data-act="np-mat">' + ic('td_plus', 14) + 'Tạo đơn nghỉ thai sản</button></div></div></div>' : '') + table('nv2', cols, rows, { title: 'Danh sach nhan su', note: 'Trạng thái tính đến ' + vn(R), cls: 'nv-tbl', empty: 'Không có ai trong nhóm này.' }); // 25/11/2026 1.0.5
+      var bulkBar = '';
+      if (selKeys.length > 0) {
+        bulkBar = '<div class="nv-bulkbar" role="toolbar" aria-label="Thao tác hàng loạt">' +
+          '<span class="count">' + ic('nhap', 15) + 'Đã chọn <b>' + selKeys.length + '</b> nhân sự</span>' +
+          '<button class="btn btn-sm btn-primary" data-act="nv-bulk-dept">' + ic('pb', 14) + 'Đổi phòng ban</button>' +
+          '<button class="btn btn-sm" data-act="nv-bulk-title">' + ic('cv', 14) + 'Đổi chức vụ, chức danh</button>' +
+          '<button class="btn btn-sm" data-act="nv-bulk-status">' + ic('nv', 14) + 'Đổi trạng thái</button>' +
+          '<button class="btn btn-sm" data-act="nv-bulk-labor">' + ic('clock', 14) + 'Loại lao động</button>' +
+          '<button class="btn btn-sm" data-act="nv-bulk-ca">' + ic('clock', 14) + 'Gán Tổ/Ca</button>' +
+          '<button class="btn btn-sm btn-danger-ghost" data-act="nv-bulk-clear">Bỏ chọn</button>' +
+          '</div>';
+      }
+      $('#nArea').innerHTML = bulkBar + (f.tab === 'maternity' ? '<div class="notice nv-mat-tip" style="margin-bottom:12px">' + ic('info') + '<div>' + (rows.length ? '' : '<b>Chưa có ai đang nghỉ thai sản.</b> ') + 'Nghỉ thai sản được ghi bằng <b>đơn nghỉ</b> (không sửa trong hồ sơ): đơn được duyệt thì trạng thái chuyển sang Nghỉ thai sản, bảng công ghi ký hiệu TS và Bảng điều hành nhắc trước ngày đi làm lại; hết đơn tự về Đang đi làm. Nhân viên cũng tự gửi được đơn này trên ứng dụng.<div class="link-row" style="margin-top:8px"><button class="btn btn-sm btn-primary" data-act="np-mat">' + ic('td_plus', 14) + 'Tạo đơn nghỉ thai sản</button></div></div></div>' : '') + table('nv2', cols, rows, { title: 'Danh sach nhan su', note: 'Trạng thái tính đến ' + vn(R), cls: 'nv-tbl', empty: 'Không có ai trong nhóm này.' }); // 25/11/2026 1.0.5
+      var sa = $('#nvSelAll');
+      if (sa) {
+        sa.onclick = function (ev) {
+          ev.stopPropagation();
+          var on = this.checked;
+          rows.forEach(function (x) {
+            var k = x.u.id + '|' + x.e['Mã NV'];
+            if (on) NV_SEL[k] = true; else delete NV_SEL[k];
+          });
+          refresh();
+        };
+      }
+      $('#nArea').querySelectorAll('.nv-row-cb').forEach(function (cb) {
+        cb.onclick = function (ev) {
+          ev.stopPropagation();
+          var k = this.getAttribute('data-nv-key');
+          if (this.checked) NV_SEL[k] = true; else delete NV_SEL[k];
+          refresh();
+        };
+      });
     }
     REFRESH = refresh; bindFilters('nv2', { nQ: 'q', nKh: 'kh', nDept: 'dept', nCv: 'cv', nHd: 'hd' }, refresh); refresh();
   };
@@ -7645,7 +7847,7 @@ var rows = [];
     setTimeout(function () { var c = $('.who-chip'), tb = $('.topbar'); if (c) window.scrollTo({ top: c.getBoundingClientRect().top + window.scrollY - (tb ? tb.offsetHeight : 0) - 12, behavior: 'smooth' }); }, 120);
   };
   ACTS['viec-who-off'] = function () { if (PS.viec) { PS.viec.who = ''; PS.viec.lv = ''; PS.viec.han = '7'; } render(); };
-  ACTS['nv-tab'] = function (a, id) { PS.nv2.tab = id; if (TB.nv2) TB.nv2.limit = 200; render(); };
+  ACTS['nv-tab'] = function (a, id) { NV_SEL = {}; PS.nv2.tab = id; if (TB.nv2) TB.nv2.limit = 200; render(); };
 
   /* ---------- Thêm / sửa 1 người ---------- */
   // 17/11/2026 (thử nghiệm hadu.vn): các công ty dùng chung MỘT máy chủ, máy chủ nhận diện nhân viên bằng Mã NV → mã phải khác nhau giữa các công ty.
@@ -10394,7 +10596,7 @@ var rows = [];
   }
   // bổ sung trường mới cho thiết lập đã lưu từ trước (07/11 14:30)
   function ccNorm(s) { if (!s.ruleSx) { s.ruleSx = JSON.parse(JSON.stringify(s.rule)); s.ruleSx.halfBy = 'hours'; } var X = s.ruleSx; if (!X.stdMode || X.stdMode === 'lich') X.stdMode = 'nghi'; if (!X.lateVoid) X.lateVoid = 'off'; if (X.lateVoidMin == null) X.lateVoidMin = 60; if (X.lateVoidPct == null) X.lateVoidPct = 50; if (X.otMaxM == null) X.otMaxM = 40; if (X.restN == null) X.restN = 1; if (!X.restPer) X.restPer = 'w'; if (X.dayH == null) X.dayH = 8; if (X.stdH == null) X.stdH = 208; X.deptRest = X.deptRest || {}; if (X.miss === 'half') X.miss = 'wait'; ccNormR(X); s.shifts.forEach(function (x) { if (!x.k) x.k = 'vp'; }); return ccNormR(s.rule, s); }
-  function ccNormR(R, s) { s = s || {}; if (R.otMode == null) R.otMode = 'auto'; if (R.editReason == null) R.editReason = true; if (R.editAfterLock == null) R.editAfterLock = true; if (R.otRateN == null) R.otRateN = 150; if (R.otRateR == null) R.otRateR = 200; if (R.otRateH == null) R.otRateH = 300; if (R.hrRound == null) R.hrRound = 30; /* 11/11 11:16 anh: mặc định làm tròn 30 phút, tính làm thêm khi ra sau 60 phút */ if (R.nightRate == null) R.nightRate = 30; /* 11/11 0.4.2: phụ trội làm việc ban đêm (BLLĐ Điều 98.2) */ if (!R.hrRoundMode) R.hrRoundMode = 'down'; /* 09/11: làm tròn giờ cho người tính theo giờ */ if (s.rule) { (s.codes || []).forEach(function (x) { if (x.r == null && CC_ROLES.indexOf(String(x.k)) >= 0) x.r = String(x.k); if (x.kp == null) x.kp = x.r === 'KP' ? 1 : 0; }); if (!s.exc) s.exc = { dept: {}, emp: {} }; s.exc.dept = s.exc.dept || {}; s.exc.emp = s.exc.emp || {}; return s; } return R; }
+  function ccNormR(R, s) { s = s || {}; if (R.otMode == null) R.otMode = 'auto'; if (R.editReason == null) R.editReason = true; if (R.editAfterLock == null) R.editAfterLock = true; if (R.lockConfirmDays == null) R.lockConfirmDays = 3; if (R.otRateN == null) R.otRateN = 150; if (R.otRateR == null) R.otRateR = 200; if (R.otRateH == null) R.otRateH = 300; if (R.hrRound == null) R.hrRound = 30; /* 11/11 11:16 anh: mặc định làm tròn 30 phút, tính làm thêm khi ra sau 60 phút */ if (R.nightRate == null) R.nightRate = 30; /* 11/11 0.4.2: phụ trội làm việc ban đêm (BLLĐ Điều 98.2) */ if (!R.hrRoundMode) R.hrRoundMode = 'down'; /* 09/11: làm tròn giờ cho người tính theo giờ */ if (s.rule) { (s.codes || []).forEach(function (x) { if (x.r == null && CC_ROLES.indexOf(String(x.k)) >= 0) x.r = String(x.k); if (x.kp == null) x.kp = x.r === 'KP' ? 1 : 0; }); if (!s.exc) s.exc = { dept: {}, emp: {} }; s.exc.dept = s.exc.dept || {}; s.exc.emp = s.exc.emp || {}; return s; } return R; }
   function ccOf(u) { var r0 = ccOf0(u); if (typeof lcSyncSP === 'function') lcSyncSP(r0); return r0; }
   function ccOf0(u) { if (u.source === 'sample' && u.lcV !== 5 && typeof lcSample === 'function') lcSample(u); /* 11/11: mẫu Xưởng Đóng gói xếp 3 ca */ if (!u.ccset) u._ccDraft = u._ccDraft || ccDefault(u); return ccNorm(u.ccset || u._ccDraft); }
   // ngoại lệ của 1 người: nc = không cần chấm công (tính đủ công) · no = không tính tăng ca; đặt theo người ưu tiên hơn theo phòng ban
@@ -10890,7 +11092,8 @@ var rows = [];
       rad('miss', 'wait', '<b>Chờ bổ sung</b> – không tính giờ, nhắc người quản lý (khuyên dùng)') + rad('miss', 'full', 'Tính đủ giờ của ca') + rad('miss', 'zero', 'Không tính giờ') + '</div>' + bsMaxBox(s) + '</div>' +
       '<div class="card card-pad"><div class="card-head"><div><h3>Sửa tay trên bảng công</h3><p>Áp dụng ở Tổng hợp công</p></div></div>' +
       '<div class="tl-rad col">' + '<label class="tl-ro"><input type="checkbox" data-qc="editReason"' + (R.editReason ? ' checked' : '') + '><span><b>Bắt buộc ghi lý do</b> khi sửa</span></label>' +
-      '<label class="tl-ro"><input type="checkbox" data-qc="editAfterLock"' + (R.editAfterLock ? ' checked' : '') + '><span><b>Cho sửa cả sau khi chốt công</b> – ô sửa sau chốt được đánh dấu</span></label></div></div>' +
+      '<label class="tl-ro"><input type="checkbox" data-qc="editAfterLock"' + (R.editAfterLock ? ' checked' : '') + '><span><b>Cho sửa cả sau khi chốt công</b> – ô sửa sau chốt được đánh dấu</span></label></div>' +
+      '<div class="tl-q" style="margin-top:10px"><label for="q_lockConfirmDays">Hạn nhân viên xác nhận công sau khi chốt</label><span class="tl-qi"><input class="input" id="q_lockConfirmDays" type="number" min="1" max="30" data-qk="lockConfirmDays" value="' + (R.lockConfirmDays || 3) + '" style="width:70px"><span>ngày</span></span><small class="faint">Mặc định 3 ngày. Quá hạn hệ thống tự động xác nhận bảng công.</small></div></div>' +
       tlccHrCard(R) + tlccNightCard(R).replace('Tăng ca vào ban đêm: phần mềm tự cộng thêm', 'Khối sản xuất: giờ làm đêm (cả giờ ngoài ca) được trả thêm ' + Math.max(30, +R.nightRate || 30) + '%. Làm ngày lễ vào ban đêm: phần mềm tự cộng thêm') +
       '</div>' +
       '<div class="card card-pad tl-try"><div class="card-head"><div><h3>Xem thử cách tính 1 ca</h3><p>Nhập giờ chấm để kiểm tra quy định</p></div></div>' +
@@ -10993,7 +11196,8 @@ var rows = [];
       '<div class="card card-pad"><div class="card-head"><div><h3>Sửa tay trên bảng công</h3><p>Áp dụng ở Tổng hợp công</p></div></div>' +
       '<div class="notice">' + ic('check') + '<div><b>Luôn cho phép sửa tay</b> dù đã đặt quy tắc: sửa ký hiệu, ngày công, giờ vào – ra, giờ làm thêm của từng ô. Ô sửa tay được giữ nguyên, không bị quy tắc tính đè lại. Mỗi lần sửa ghi lại người sửa, thời điểm, giá trị cũ.</div></div>' +
       '<div class="tl-rad col">' + '<label class="tl-ro"><input type="checkbox" data-qc="editReason"' + (R.editReason ? ' checked' : '') + '><span><b>Bắt buộc ghi lý do</b> khi sửa (ví dụ: quên chấm, đi công tác, máy chấm lỗi)</span></label>' +
-      '<label class="tl-ro"><input type="checkbox" data-qc="editAfterLock"' + (R.editAfterLock ? ' checked' : '') + '><span><b>Cho sửa cả sau khi chốt công</b> – ô sửa sau chốt được đánh dấu để gửi nhân viên xác nhận lại</span></label></div></div>' +
+      '<label class="tl-ro"><input type="checkbox" data-qc="editAfterLock"' + (R.editAfterLock ? ' checked' : '') + '><span><b>Cho sửa cả sau khi chốt công</b> – ô sửa sau chốt được đánh dấu để gửi nhân viên xác nhận lại</span></label></div>' +
+      '<div class="tl-q" style="margin-top:10px"><label for="q_lockConfirmDaysSx">Hạn nhân viên xác nhận công sau khi chốt</label><span class="tl-qi"><input class="input" id="q_lockConfirmDaysSx" type="number" min="1" max="30" data-qk="lockConfirmDays" value="' + (R.lockConfirmDays || 3) + '" style="width:70px"><span>ngày</span></span><small class="faint">Mặc định 3 ngày. Quá hạn hệ thống tự động xác nhận bảng công.</small></div></div>' +
       tlccHrCard(R) + tlccNightCard(R) +
       '</div>' +
       '<div class="card card-pad tl-try"><div class="card-head"><div><h3>Xem thử cách tính</h3><p>Nhập giờ chấm để kiểm tra quy định trước khi áp cho cả tháng</p></div></div>' +
@@ -11413,7 +11617,7 @@ var rows = [];
     res.forEach(function (r) { r.ppl.forEach(function (p) { NK[p.exc.sch ? 'sx' : 'vp']++; }); });
     res.forEach(function (r) { r.ppl.forEach(function (p) { if (!bcInK(p, f.k)) return; T.n++; T.hours += p.exc.hr ? p.sum.hours : 0; T.night += p.sum.night || 0; T.work += p.sum.work; T.paid += p.sum.paid + p.sum.hol; T.issues += p.sum.issues; T.ot += p.sum.otN + p.sum.otR + p.sum.otH; T.otWait += p.sum.otWait; T.manual += p.sum.manual; T.otPay += p.sum.otPay; T.late += p.sum.late; }); });
     var lockBar = '<div class="bc-locks">' + res.map(function (r) {
-      var L = r.lock; return '<div class="bc-lk' + (L ? ' on' : '') + '">' + ic(L ? 'check' : 'np', 16) + '<span>' + (isMulti() ? '<b>' + esc(shortUnit(r.u.name)) + '</b> · ' : '') + '<a class="bc-otm ' + (r.s.rule.otMode === 'confirm' ? 'cf' : '') + '" href="#thietlapcc" title="Đổi ở Thiết lập chấm công → Quy định tính công">Tăng ca: ' + (r.s.rule.otMode === 'confirm' ? 'chờ xác nhận mới tính' : 'mặc định tính') + '</a> ' + (L ? 'Đã chốt công tháng ' + HR.ymLabel(f.m) + ' <small>' + esc(L.by + ' · ' + L.at) + '</small>' + (function () { var df = bcLockDiff(r); return df.length ? ' <span class="tag tag-warn" title="' + esc(df.join(', ')) + '">Bảng công hiện khác lúc chốt: ' + df.length + ' người (sửa sau chốt hoặc đổi thiết lập)</span>' : ''; })() + (function () { var c = r.u.wf && r.u.wf.cong && r.u.wf.cong[f.m]; if (!c) return ''; var ks = Object.keys(c), ok = ks.filter(function (k) { return c[k].xn === 1; }).length, bad = ks.filter(function (k) { return c[k].xn === 2; }); return ' <span class="tag ' + (bad.length ? 'tag-bad' : ok === ks.length ? 'tag-ok' : 'tag-mute') + '" title="' + esc(bad.map(function (k) { return k + ': ' + (c[k].ph || ''); }).join(' | ')) + '">Nhân viên xác nhận ' + ok + '/' + ks.length + (bad.length ? ' · ' + bad.length + ' báo sai' : '') + '</span>'; })() : 'Tháng ' + HR.ymLabel(f.m) + ' đang mở – chưa chốt công') + '</span>' +
+      var L = r.lock; return '<div class="bc-lk' + (L ? ' on' : '') + '">' + ic(L ? 'check' : 'np', 16) + '<span>' + (isMulti() ? '<b>' + esc(shortUnit(r.u.name)) + '</b> · ' : '') + '<a class="bc-otm ' + (r.s.rule.otMode === 'confirm' ? 'cf' : '') + '" href="#thietlapcc" title="Đổi ở Thiết lập chấm công → Quy định tính công">Tăng ca: ' + (r.s.rule.otMode === 'confirm' ? 'chờ xác nhận mới tính' : 'mặc định tính') + '</a> ' + (L ? 'Đã chốt công tháng ' + HR.ymLabel(f.m) + ' <small>' + esc(L.by + ' · ' + L.at) + '</small>' + (L.han_xn ? ' <span class="tag ' + (L.han_xn_ts && Date.now() > L.han_xn_ts ? 'tag-mute' : 'tag-warn') + '" title="Hạn nhân viên xác nhận trên ứng dụng">Hạn xác nhận: ' + esc(L.han_xn) + (L.han_xn_ts && Date.now() > L.han_xn_ts ? ' (Hết hạn)' : '') + '</span>' : '') + (function () { var df = bcLockDiff(r); return df.length ? ' <span class="tag tag-warn" title="' + esc(df.join(', ')) + '">Bảng công hiện khác lúc chốt: ' + df.length + ' người (sửa sau chốt hoặc đổi thiết lập)</span>' : ''; })() + (function () { var c = r.u.wf && r.u.wf.cong && r.u.wf.cong[f.m]; if (!c) return ''; var ks = Object.keys(c), ok = ks.filter(function (k) { return c[k].xn === 1; }).length, bad = ks.filter(function (k) { return c[k].xn === 2; }); return ' <span class="tag ' + (bad.length ? 'tag-bad' : ok === ks.length ? 'tag-ok' : 'tag-mute') + '" title="' + esc(bad.map(function (k) { return k + ': ' + (c[k].ph || ''); }).join(' | ')) + '">Nhân viên xác nhận ' + ok + '/' + ks.length + (bad.length ? ' · ' + bad.length + ' báo sai' : '') + '</span>'; })() : 'Tháng ' + HR.ymLabel(f.m) + ' đang mở – chưa chốt công') + '</span>' +
         (L ? '<button class="btn btn-sm" data-act="bc-unlock" data-id="' + r.u.id + '">Mở lại</button>' : '<button class="btn btn-sm btn-primary" data-act="bc-lock" data-id="' + r.u.id + '">Chốt công tháng</button>') + '</div>';
     }).join('') + '</div>';
     // 0.3.2: danh sách nhân viên báo sai công tháng này (phản hồi từ trang chấm công trên điện thoại)
@@ -11707,21 +11911,25 @@ var rows = [];
   /* ----- Chốt công tháng ----- */
   ACTS['bc-lock'] = function (a, uid) {
     var u = unitById(uid), ym = PS.bc.m, r = bcMonth(u, ym), iss = 0, wait = 0, n = r.ppl.length; r.ppl.forEach(function (p) { iss += p.sum.issues; wait += p.sum.otWait; });
-    var future = r.days[r.days.length - 1] > refDate();
+    var future = r.days[r.days.length - 1] > refDate(), defDays = (r.s.rule && r.s.rule.lockConfirmDays) || 3;
     var m = modal('Chốt công tháng ' + HR.ymLabel(ym), shortUnit(u.name),
       '<ul class="bc-chk"><li class="' + (iss ? 'bad' : 'ok') + '">' + (iss ? iss + ' ô cần xử lý (vắng chưa rõ, thiếu chấm, thiếu đơn…)' : 'Không còn ô cần xử lý') + '</li>' +
       '<li class="' + (wait ? 'warn' : 'ok') + '">' + (wait ? ccNum(wait) + ' giờ tăng ca chờ xác nhận – chốt thì phần này KHÔNG được tính' : 'Không có tăng ca chờ xác nhận') + '</li>' +
       (future ? '<li class="warn">Tháng chưa kết thúc (tính đến ' + HR.vnDate(refDate()) + ')</li>' : '') + '<li class="ok">' + n + ' người · ' + bcNum(r.ppl.reduce(function (t, p) { return t + p.sum.salary; }, 0)) + ' công hưởng lương</li></ul>' +
-      '<p class="faint" style="font-size:12.5px">Sau khi chốt: số liệu tháng này dùng để tính lương. ' + (r.s.rule.editAfterLock ? 'Vẫn sửa tay được – ô sửa sau chốt được đánh dấu để gửi nhân viên xác nhận lại.' : 'Không sửa được nữa cho đến khi Mở lại.') + ' Gửi từng nhân viên xác nhận công trên điện thoại sẽ có khi ghép Ứng dụng nhân viên (bước Chấm công Wi‑Fi).</p>' +
+      '<p class="faint" style="font-size:12.5px">Sau khi chốt: số liệu tháng này dùng để tính lương. ' + (r.s.rule.editAfterLock ? 'Vẫn sửa tay được – ô sửa sau chốt được đánh dấu để gửi nhân viên xác nhận lại.' : 'Không sửa được nữa cho đến khi Mở lại.') + ' Gửi từng nhân viên xác nhận công và thông báo đẩy tới điện thoại.</p>' +
+      '<div class="field" style="margin:10px 0 12px"><label for="lkDays"><b>Hạn nhân viên xác nhận trên ứng dụng</b></label><div style="display:flex;gap:8px;align-items:center"><select class="input" id="lkDays" style="width:auto">' +
+      [1, 2, 3, 5, 7, 10].map(function (d) { return '<option value="' + d + '"' + (d === defDays ? ' selected' : '') + '>Trong ' + d + ' ngày (đến 23:59 ngày ' + HR.vnDate(ccAdd(refDate(), d)) + ')</option>'; }).join('') +
+      '</select></div><small class="faint">Quá hạn này, hệ thống sẽ tự động xác nhận bảng công và khóa gửi báo sai.</small></div>' +
       bcWho() + '<p id="lkMsg" class="tl-msg"></p>' +
       '<div class="link-row" style="justify-content:flex-end"><button class="btn" data-close>Hủy</button><button class="btn btn-primary" id="lkGo">' + (iss || wait ? 'Vẫn chốt công' : 'Chốt công') + '</button></div>', true);
     $('#lkGo', m).addEventListener('click', function () {
       if (!pqAct('cc')) return;
-      var by = ccUser(), X = bcX(u);
-      X.lock[ym] = { by: by, at: nowVn(), ts: Date.now(), issues: iss, wait: wait, sum: r.ppl.map(function (p) { return { id: p.id, name: p.name, work: p.sum.work, paid: p.sum.paid, hol: p.sum.hol, salary: p.sum.salary, bh: p.sum.bh, unpaid: p.sum.unpaid, otN: p.sum.otN, otR: p.sum.otR, otH: p.sum.otH, otPay: Math.round(p.sum.otPay * 100) / 100 }; }) };
-      bcLogAdd(u, { ym: ym, what: 'Chốt công tháng', nw: n + ' người' + (iss ? ', còn ' + iss + ' ô cần xử lý' : '') + (wait ? ', ' + ccNum(wait) + 'h tăng ca chưa xác nhận' : ''), by: by }); X.log[X.log.length - 1].after = false;
-      bcSaveX(u, 'chốt công ' + ym); m.close(); toast('Đã chốt công tháng ' + HR.ymLabel(ym), 'ok', wfOn(u) ? 'Đang gửi công từng người lên điện thoại để nhân viên xác nhận…' : ''); render();
-      if (wfOn(u)) wfSendCong(u, ym, false).then(function (k) { wfLog(u, 'Đã gửi công tháng ' + HR.ymLabel(ym) + ' cho ' + k + ' nhân viên xác nhận'); saveUnits(); toast('Đã gửi công tháng ' + HR.ymLabel(ym) + ' cho ' + k + ' nhân viên xác nhận', 'ok'); render(); }, function (er) { wfLog(u, 'Chưa gửi được công ' + ym + ': ' + er.message, false); saveUnits(); toast('Chưa gửi được công lên điện thoại', 'err', er.message + ' Bấm Đồng bộ ở trang Chấm công Wi‑Fi để gửi lại.'); });
+      var by = ccUser(), X = bcX(u), daysVal = +$('#lkDays', m).value || 3;
+      var hanDateIso = ccAdd(refDate(), daysVal), hanVn = HR.vnDate(hanDateIso), hanTs = new Date(hanDateIso + 'T23:59:59+07:00').getTime();
+      X.lock[ym] = { by: by, at: nowVn(), ts: Date.now(), issues: iss, wait: wait, han_days: daysVal, han_xn: hanVn, han_xn_iso: hanDateIso, han_xn_ts: hanTs, sum: r.ppl.map(function (p) { return { id: p.id, name: p.name, work: p.sum.work, paid: p.sum.paid, hol: p.sum.hol, salary: p.sum.salary, bh: p.sum.bh, unpaid: p.sum.unpaid, otN: p.sum.otN, otR: p.sum.otR, otH: p.sum.otH, otPay: Math.round(p.sum.otPay * 100) / 100 }; }) };
+      bcLogAdd(u, { ym: ym, what: 'Chốt công tháng', nw: n + ' người' + (iss ? ', còn ' + iss + ' ô cần xử lý' : '') + (wait ? ', ' + ccNum(wait) + 'h tăng ca chưa xác nhận' : '') + ', hạn xác nhận ' + hanVn, by: by }); X.log[X.log.length - 1].after = false;
+      bcSaveX(u, 'chốt công ' + ym); m.close(); toast('Đã chốt công tháng ' + HR.ymLabel(ym), 'ok', wfOn(u) ? 'Đang gửi bảng công và thông báo đẩy tới điện thoại nhân viên…' : ''); render();
+      if (wfOn(u)) wfSendCong(u, ym, false, { han_xn: hanVn, han_xn_ts: hanTs }).then(function (k) { wfLog(u, 'Đã gửi công tháng ' + HR.ymLabel(ym) + ' cho ' + k + ' nhân viên xác nhận (hạn ' + hanVn + ')'); saveUnits(); toast('Đã gửi công tháng ' + HR.ymLabel(ym) + ' cho ' + k + ' nhân viên xác nhận', 'ok'); render(); }, function (er) { wfLog(u, 'Chưa gửi được công ' + ym + ': ' + er.message, false); saveUnits(); toast('Chưa gửi được công lên điện thoại', 'err', er.message + ' Bấm Đồng bộ ở trang Chấm công Wi‑Fi để gửi lại.'); });
     });
   };
   ACTS['bc-unlock'] = function (a, uid) {
@@ -12092,12 +12300,13 @@ var rows = [];
         return (byD[dept] = { tuan: t, nua: nua, ca: sh ? (function () { var o = { ten: sh.name, vao: sh.inT, ra: sh.outT }, ng = {}; CC_DOW.forEach(function (w) { var dt = sh.dayT && sh.dayT[w[0]]; if (dt && t.indexOf(w[0]) >= 0) ng[w[0]] = { vao: dt.inT, ra: dt.outT }; }); if (Object.keys(ng).length) o.ngay = ng; if (+sh.pre) { o.som = +sh.pre; o.som_ngay = (sh.preDays && sh.preDays.length ? sh.preDays.map(Number) : [0, 1, 2, 3, 4, 5, 6]).filter(function (d) { return t.indexOf(d) >= 0; }); } return o; })() : null, sx: ccIsSxDept(s, dept) ? 1 : 0 }); /* 12/11 17:56: nua = thứ làm nửa ngày (app tô nửa xám) */ } };
   }
   window.ccAppExtra = ccAppExtra;
-  function wfCongOf(p, tam) { var S0 = p.sum, ng = {}, ct = {}; Object.keys(p.days).forEach(function (dd) { var c = p.days[dd]; if (c.src !== 'out' && c.k) ng[dd] = c.k; if (c.src !== 'out' && (c.tin || c.tout)) ct[dd] = [c.tin || '', c.tout || '', c.late || 0, c.early || 0, c.hours != null ? c.hours : null, c.otRaw || c.ot || 0]; }); var r2 = function (v) { return Math.round(v * 100) / 100; }; return { tam: !!tam, cong: r2(S0.work), phep: r2(S0.paid), le: r2(S0.hol), huong: r2(S0.salary), tc: r2(S0.otN + S0.otR + S0.otH), ngay: ng, ct: ct }; }
-  function wfSendCong(u, ym, tam) {
+  function wfCongOf(p, tam, han) { var S0 = p.sum, ng = {}, ct = {}; Object.keys(p.days).forEach(function (dd) { var c = p.days[dd]; if (c.src !== 'out' && c.k) ng[dd] = c.k; if (c.src !== 'out' && (c.tin || c.tout)) ct[dd] = [c.tin || '', c.tout || '', c.late || 0, c.early || 0, c.hours != null ? c.hours : null, c.otRaw || c.ot || 0]; }); var r2 = function (v) { return Math.round(v * 100) / 100; }; var res = { tam: !!tam, cong: r2(S0.work), phep: r2(S0.paid), le: r2(S0.hol), huong: r2(S0.salary), tc: r2(S0.otN + S0.otR + S0.otH), ngay: ng, ct: ct }; if (han && !tam) { res.han_xn = han.han_xn || ''; res.han_xn_ts = han.han_xn_ts || 0; } return res; }
+  function wfSendCong(u, ym, tam, han) {
     var r = bcMonth(u, ym), ok = {}; wfPeople(u).forEach(function (x) { ok[x.ma] = 1; });
-    var list = r.ppl.filter(function (p) { return ok[p.id]; }).map(function (p) { return { ma: p.id, du_lieu: wfCongOf(p, tam) }; });
+    var L = bcX(u).lock[ym] || {}; han = han || (L.han_xn ? { han_xn: L.han_xn, han_xn_ts: L.han_xn_ts } : null);
+    var list = r.ppl.filter(function (p) { return ok[p.id]; }).map(function (p) { return { ma: p.id, du_lieu: wfCongOf(p, tam, han) }; });
     if (!list.length) return Promise.resolve(0);
-    return wfCall(u, 'cong', { ym: ym, nguoi: ccUser(), list: list }).then(function (j) { if (!tam) { u.wf.sent = u.wf.sent || {}; u.wf.sent[ym] = (bcX(u).lock[ym] || {}).at || nowVn(); } return j.n; });
+    return wfCall(u, 'cong', { ym: ym, nguoi: ccUser(), chot: !tam, tam: !!tam, han_xn: han ? han.han_xn : '', list: list }).then(function (j) { if (!tam) { u.wf.sent = u.wf.sent || {}; u.wf.sent[ym] = L.at || nowVn(); } return j.n; });
   }
   function wfPushPin(u, id, pin, e) {
     if (!wfOn(u)) return; e = e || nvIndex(u)[id] || {};

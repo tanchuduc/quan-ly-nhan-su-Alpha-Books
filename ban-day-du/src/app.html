@@ -1564,17 +1564,22 @@ function allNotis(st) {
   });
 
   // Xác nhận công nếu kế toán đã chốt
-  var C0 = st.cong || [], need0 = C0.filter(function (c) { return !c.du_lieu.tam && c.xn === 0; })[0];
+  var C0 = st.cong || [], need0 = C0.filter(function (c) {
+    if (c.du_lieu.tam || c.xn !== 0) return false;
+    if (c.du_lieu.han_xn_ts && st.now > c.du_lieu.han_xn_ts) return false;
+    return true;
+  })[0];
   if (need0) {
     var idC = 'cong-' + need0.ym;
+    var hanTxt0 = need0.du_lieu.han_xn ? ' (hạn ' + need0.du_lieu.han_xn + ')' : '';
     if (del.indexOf(idC) < 0) {
       list.push({
         id: idC,
         nhom: 'nv',
         loai: 'cong',
         status: 'warn',
-        tieu_de: 'Xác nhận bảng công tháng ' + (+need0.ym.slice(5)),
-        noi_dung: (need0.du_lieu.cong != null ? need0.du_lieu.cong + ' công · ' : '') + 'kế toán đã chốt bảng công. Bấm để xem và xác nhận.',
+        tieu_de: 'Xác nhận bảng công tháng ' + (+need0.ym.slice(5)) + hanTxt0,
+        noi_dung: (need0.du_lieu.cong != null ? need0.du_lieu.cong + ' công · ' : '') + 'kế toán đã chốt bảng công' + (need0.du_lieu.han_xn ? ' · hạn trước ' + need0.du_lieu.han_xn : '') + '. Bấm để xem và xác nhận.',
         at: st.now,
         doc_at: seen.indexOf(idC) >= 0 ? 1 : 0,
         tab: 'cong'
@@ -1599,7 +1604,11 @@ function nvView(st) {
   var today0 = Math.floor((st.now + VN) / 864e5) * 864e5 - VN, q = vp(st.now), tIso = q.y + '-' + q.m + '-' + q.d;
   var mine = st.thang || [], todayList = mine.filter(function (r) { return r.t >= today0; }), pastToday = todayList.filter(function (r) { return r.t <= st.now; });
   var last = pastToday[pastToday.length - 1], next = last && last.loai === 'vao' ? 'ra' : 'vao', other = next === 'vao' ? 'ra' : 'vao';
-  var C = st.cong || [], need = C.filter(function (c) { return !c.du_lieu.tam && c.xn === 0; })[0];
+  var C = st.cong || [], need = C.filter(function (c) {
+    if (c.du_lieu.tam || c.xn !== 0) return false;
+    if (c.du_lieu.han_xn_ts && st.now > c.du_lieu.han_xn_ts) return false;
+    return true;
+  })[0];
   var HSo = st.ho_so || {}, HS = st.hs || null, ten = (HS && HS.ten) || st.me.ten, cty = brd.name, phNew = (st.phieu || []).filter(function (p) { return !p.xem_at; });
   var L = st.lich, DU = st.duyet || [], K = khMap(HS), MS = monthStats(st, HS, HSo), LE = leMap(HS), av = myAv(st);
   var TABS = [['home', 'Home'], ['lich', 'Lịch'], ['cong', 'Công'], ['don', 'Đơn'], ['luong', 'Lương'], ['hoc', 'Học']]; // 12/11 17:42: thêm tab Học (Đào tạo nội bộ)
@@ -1637,7 +1646,7 @@ function nvView(st) {
     if (lk) h += '<div class="hb hb-link"><div class="nvx-sec dk-only">Lối tắt</div>' + lk + '</div>';
     var tasks = [];
     if (DU.length) tasks.push(nvTask('don', 'check', 'warn', DU.length + ' đơn chờ bạn duyệt', esc(DU.slice(0, 2).map(function (d) { return givenOf(d.ten) + ' · ' + vnD(d.tu).slice(0, 5); }).join(', ')) + (DU.length > 2 ? '…' : '')));
-    if (need) tasks.push(nvTask('cong', 'ok', 'warn', 'Xác nhận công tháng ' + (+need.ym.slice(5)), (need.du_lieu.cong != null ? need.du_lieu.cong + ' công · ' : '') + 'kế toán đã chốt'));
+    if (need) tasks.push(nvTask('cong', 'ok', 'warn', 'Xác nhận công tháng ' + (+need.ym.slice(5)) + (need.du_lieu.han_xn ? ' (hạn ' + need.du_lieu.han_xn + ')' : ''), (need.du_lieu.cong != null ? need.du_lieu.cong + ' công · ' : '') + 'kế toán đã chốt' + (need.du_lieu.han_xn ? ' · hạn trước ' + need.du_lieu.han_xn : '')));
     if (L && L.mo && L.mo.length) tasks.push(nvTask('lich', 'lich', 'acc', 'Đăng ký lịch làm ' + lDM(L.mo[0].a) + '–' + lDM(L.mo[0].b), 'Hạn đăng ký ' + lDM(L.mo[0].han)));
     if (phNew.length) tasks.push(nvTask('luong', 'luong', 'inf', 'Phiếu lương tháng ' + (+phNew[0].ym.slice(5)) + ' đã có', 'Chưa xem · bấm để xem chi tiết'));
     var donCho = (st.don || []).filter(function (d) { return d.trang_thai === 'Chờ duyệt' && !d.mau; }); if (donCho.length) tasks.push(nvTask('don', 'don', 'mut', 'Đơn của bạn chờ duyệt', esc(donCho[0].loai + ' ' + vnD(donCho[0].tu).slice(0, 5) + (donCho.length > 1 ? ' và ' + (donCho.length - 1) + ' đơn khác' : ''))));
@@ -1686,8 +1695,14 @@ function nvView(st) {
   }
   /* ---------- CÔNG ---------- */
   if (T === 'cong') {
-    if (need) h += '<section class="nvx-card nvx-warn"><b style="font-size:15px">Xác nhận công tháng ' + need.ym.slice(5) + '/' + need.ym.slice(0, 4) + '</b><p class="muted small" style="margin:4px 0 0">HCNS đã chốt ' + (need.du_lieu.cong != null ? need.du_lieu.cong + ' công' : 'công') + '. Kiểm tra lịch bên dưới rồi xác nhận, hoặc báo ngày sai.</p>' +
-      '<div class="nvx-2"><button class="btn pri" id="xn-ok">Đồng ý</button><button class="btn" id="xn-sai">Báo sai</button></div><div id="xn-f" style="display:none;margin-top:10px"><label class="lbl" for="xn-ph">Ngày nào sai, sai thế nào?</label><textarea id="xn-ph" rows="3"></textarea><button class="btn pri full" id="xn-go" style="margin-top:8px">Gửi HCNS & Quản lý</button></div><div id="xn-res"></div></section>';
+    var cChot = C.filter(function (c) { return !c.du_lieu.tam; })[0];
+    if (need) {
+      var dXn = need.du_lieu || {}, hanXn = dXn.han_xn || '';
+      h += '<section class="nvx-card nvx-warn"><b style="font-size:15px">Xác nhận công tháng ' + need.ym.slice(5) + '/' + need.ym.slice(0, 4) + '</b><p class="muted small" style="margin:4px 0 0">HCNS đã chốt ' + (need.du_lieu.cong != null ? need.du_lieu.cong + ' công' : 'công') + (hanXn ? ' · <b>Hạn xác nhận: ' + hanXn + '</b>' : '') + '. Kiểm tra lịch bên dưới rồi xác nhận, hoặc báo ngày sai.</p>' +
+        '<div class="nvx-2"><button class="btn pri" id="xn-ok">Đồng ý</button><button class="btn" id="xn-sai">Báo sai</button></div><div id="xn-f" style="display:none;margin-top:10px"><label class="lbl" for="xn-ph">Ngày nào sai, sai thế nào?</label><textarea id="xn-ph" rows="3" placeholder="Ví dụ: Ngày 15/10 em đi làm đủ 8h nhưng máy chấm công không nhận..."></textarea><button class="btn pri full" id="xn-go" style="margin-top:8px">Gửi HCNS & Quản lý</button></div><div id="xn-res"></div></section>';
+    } else if (cChot && cChot.xn === 0 && cChot.du_lieu.han_xn_ts && st.now > cChot.du_lieu.han_xn_ts) {
+      h += '<section class="nvx-card nvx-note" style="border-left:4px solid var(--pri)"><b style="font-size:15px">Bảng công tháng ' + cChot.ym.slice(5) + '/' + cChot.ym.slice(0, 4) + ' đã chốt chính thức</b><p class="muted small" style="margin:4px 0 0">Đã hết thời hạn phản hồi (' + (cChot.du_lieu.han_xn || '') + '). Bảng công đã được tự động ghi nhận để tính lương.</p></section>';
+    }
     if (C.length) {
       var Cs = C.slice().sort(function (a, b) { return a.ym < b.ym ? 1 : -1; }), cur = BC.ym && C.some(function (c) { return c.ym === BC.ym; }) ? BC.ym : C.some(function (c) { return c.ym === MS.ym; }) ? MS.ym : Cs[0].ym, shown = NVT.cAll ? Cs : Cs.slice(0, 3);
       if (shown.every(function (c) { return c.ym !== cur; })) shown = shown.concat(Cs.filter(function (c) { return c.ym === cur; }));

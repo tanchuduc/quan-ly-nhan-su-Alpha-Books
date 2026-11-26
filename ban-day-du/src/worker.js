@@ -1218,6 +1218,20 @@ async function api(req, env, url) {
         st.push(db.prepare('INSERT INTO cong (ym, ma, du_lieu, chot, nguoi, xn, xn_at, phan_hoi) VALUES (?, ?, ?, ?, ?, 0, NULL, NULL) ON CONFLICT(ym, ma) DO UPDATE SET du_lieu = excluded.du_lieu, chot = excluded.chot, nguoi = excluded.nguoi, xn = 0, xn_at = NULL, phan_hoi = NULL').bind(ym, ma, dl, now, String(body.nguoi || '').slice(0, 80)));
       }
       if (st.length) await db.batch(st);
+      // 26/11/2026: Gửi Push Notification khi chốt công chính thức (chot: true hoặc có bản ghi không tạm)
+      const isOfficialLock = !!(body.chot || (body.tam === false && list.some(x => x.du_lieu && !x.du_lieu.tam)));
+      if (isOfficialLock) {
+        const mas = [...new Set(list.map(x => String(x.ma || '').toUpperCase()).filter(Boolean))];
+        if (mas.length) {
+          const hanTxt = body.han_xn ? ' (hạn xác nhận: ' + body.han_xn + ')' : '';
+          later(req, pushTo(db, cfg, url.origin, mas, {
+            t: 'Đã có bảng công tháng ' + (+ym.slice(5)) + '/' + ym.slice(0, 4),
+            b: 'HCNS đã chốt bảng chấm công tháng ' + (+ym.slice(5)) + '/' + ym.slice(0, 4) + hanTxt + '. Bấm để kiểm tra và xác nhận.',
+            u: '/?tab=cong',
+            tag: 'cong-' + ym
+          }));
+        }
+      }
       return jc({ ok: true, n: st.length });
     }
     if (r === 'phieu' && req.method === 'POST') {
@@ -1610,6 +1624,13 @@ async function api(req, env, url) {
         const tv = Object.keys(BY).filter(k => nguoiDuyet(BY, k).includes(s.nv.ma)); if (tv.length) o.bp = { n: tv.length }; }
       const av = await db.prepare('SELECT at FROM anh WHERE ma = ?').bind(s.nv.ma).first(); o.me.anh = av ? av.at : 0;
       o.cong = (await db.prepare('SELECT ym, du_lieu, chot, xn, xn_at, phan_hoi FROM cong WHERE ma = ? ORDER BY ym DESC LIMIT ' + (demo ? 6 : 3)).bind(s.nv.ma).all()).results.map(r => ({ ...r, du_lieu: JSON.parse(r.du_lieu || '{}') }));
+      // 26/11/2026: Quá hạn xác nhận công -> tự động chuyển xn = 1 (tự động đồng ý do hết hạn)
+      for (const c of o.cong) {
+        if (!c.du_lieu.tam && c.xn === 0 && c.du_lieu.han_xn_ts && now > c.du_lieu.han_xn_ts) {
+          c.xn = 1;
+          await db.prepare("UPDATE cong SET xn = 1, xn_at = ?, phan_hoi = 'Tự động xác nhận (hết hạn phản hồi)' WHERE ym = ? AND ma = ? AND xn = 0").bind(c.du_lieu.han_xn_ts, c.ym, s.nv.ma).run();
+        }
+      }
       const HS = await hsOf(db, s.nv.ma, demo); o.xm_cfg = xmCfgOf(HS, demo); // 16/11: đơn xin đi muộn / về sớm
       if (o.xm_cfg.on) o.xm = (await db.prepare('SELECT so, ngay, kieu, gio, phut, ly_do, tao, trang_thai, nguoi_duyet, ngay_duyet, ly_do_tc FROM xin_muon WHERE ma = ? AND ngay >= ? ORDER BY ngay DESC, tao DESC LIMIT 30').bind(s.nv.ma, isoVN(now - 92 * 864e5)).all()).results;
       o.lt_cfg = dkCfgOf(HS, 'lt'); o.dc_cfg = dkCfgOf(HS, 'dc'); { const BY2 = await hsLite(db, demo), nm = m => (BY2[m] || {}).ten || m; // 25/11/2026 1.0.5: đơn làm thêm, đổi ca của tôi + đơn đổi ca chờ tôi đồng ý
@@ -1937,6 +1958,12 @@ async function api(req, env, url) {
   if (p === '/api/xac-nhan-cong' && req.method === 'POST') {
     const s = await session(db, req, 'nv'); if (!s) return bad('Phiên đăng nhập đã hết. Đăng nhập lại.', 401);
     const ym = String(body.ym || ''), dong_y = !!body.dong_y, ph = String(body.phan_hoi || '').trim().slice(0, 500);
+    const cur = await db.prepare('SELECT du_lieu, xn FROM cong WHERE ym = ? AND ma = ?').bind(ym, s.nv.ma).first();
+    if (!cur) return bad('Không có công tháng này.');
+    let dl = {}; try { dl = JSON.parse(cur.du_lieu || '{}'); } catch (e) {}
+    if (dl.han_xn_ts && now > dl.han_xn_ts && !dong_y) {
+      return bad('Đã hết hạn gửi báo sai bảng công tháng này' + (dl.han_xn ? ' (hạn chốt: ' + dl.han_xn + ')' : '') + '. Bảng công đã được tự động chốt.');
+    }
     if (!dong_y && !ph) return bad('Ghi rõ ngày nào sai, sai thế nào để HCNS & Quản lý kiểm tra.');
     const r = await db.prepare('UPDATE cong SET xn = ?, xn_at = ?, phan_hoi = ? WHERE ym = ? AND ma = ?').bind(dong_y ? 1 : 2, now, ph, ym, s.nv.ma).run();
     return r.meta.changes ? json({ ok: true }) : bad('Không có công tháng này.');
