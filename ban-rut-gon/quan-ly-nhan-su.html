@@ -2162,6 +2162,236 @@ button.seat.lead:hover i{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--dom
 .dp-d{height:32px;border:0;border-radius:8px;background:none;color:var(--ink);font:inherit;cursor:pointer;font-variant-numeric:tabular-nums}.dp-d:hover{background:var(--pri-soft)}
 .dp-d.wk{color:var(--danger,#B3261E)}.dp-d.out{opacity:.38}.dp-d.td{box-shadow:inset 0 0 0 1.5px var(--pri);font-weight:700}.dp-d.on{background:var(--pri);color:#fff;font-weight:700}
 .dp-f{display:flex;justify-content:space-between;margin-top:6px;border-top:1px solid var(--line);padding-top:6px}.dp-f button{border:0;background:none;color:var(--pri-ink);font:inherit;font-weight:600;cursor:pointer;padding:4px 6px;border-radius:6px}.dp-f button:hover{background:var(--pri-soft)}
+/* ---------------- Ô chọn có tìm kiếm (Searchable Select / Combobox) ---------------- */
+select.ss-ready {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%23D95F18' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%23888' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 24px center, right 9px center;
+  padding-right: 44px !important;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+select.ss-ready:focus, select.ss-ready.ss-open {
+  outline: 2px solid var(--pri);
+  outline-offset: 0;
+  border-color: transparent;
+}
+.ss-pop {
+  position: fixed;
+  z-index: 10002;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.06);
+  font-size: 13.5px;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  animation: ssPopIn .14s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes ssPopIn {
+  from { opacity: 0; transform: translateY(-4px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.ss-pop.ss-above {
+  animation-name: ssPopInAbove;
+}
+@keyframes ssPopInAbove {
+  from { opacity: 0; transform: translateY(4px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.ss-head {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.ss-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--line-2);
+  border-radius: 8px;
+  padding: 0 10px;
+  height: 36px;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.ss-box:focus-within {
+  border-color: var(--pri);
+  box-shadow: 0 0 0 2.5px var(--pri-soft);
+  background: var(--surface);
+}
+.ss-icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+  opacity: .8;
+}
+.ss-box:focus-within .ss-icon {
+  color: var(--pri);
+  opacity: 1;
+}
+.ss-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  padding: 0;
+  margin: 0;
+}
+.ss-input::placeholder {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.ss-clear {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.ss-clear:hover {
+  background: var(--line-2);
+  color: var(--ink);
+}
+.ss-body {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 5px;
+  overscroll-behavior: contain;
+}
+.ss-grp {
+  padding: 6px 10px 3px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--muted);
+}
+.ss-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--ink);
+  transition: background .1s, color .1s;
+  user-select: none;
+  line-height: 1.35;
+}
+.ss-item:hover, .ss-item.ss-focus {
+  background: var(--surface-2);
+}
+.ss-item.ss-sel {
+  background: var(--pri-soft);
+  color: var(--pri-ink);
+  font-weight: 600;
+}
+.ss-item.ss-dis {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.ss-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ss-title {
+  font-size: 13.5px;
+  word-break: break-word;
+}
+.ss-sub {
+  font-size: 11.5px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  align-items: center;
+}
+.ss-item.ss-sel .ss-sub {
+  color: var(--pri-ink);
+  opacity: .85;
+}
+.ss-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+}
+.ss-item.ss-sel .ss-badge {
+  background: rgba(255,255,255,0.7);
+}
+.ss-chk {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  color: var(--pri);
+  display: none;
+}
+.ss-item.ss-sel .ss-chk {
+  display: inline-block;
+}
+.ss-hi {
+  background: rgba(217, 95, 24, 0.22);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+  font-weight: 700;
+}
+.ss-empty {
+  padding: 24px 14px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.ss-empty svg {
+  opacity: .5;
+  margin-bottom: 2px;
+}
+.ss-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  color: var(--muted);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
 /* 12/11 18:36: chọn mục hiện trên thanh tính năng */
 .nh-card{margin-top:14px}.nh-act{display:flex;gap:10px;align-items:center;flex:none}
 .nh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:6px}
@@ -5015,6 +5245,406 @@ if (typeof module !== 'undefined') module.exports = XW;
   document.addEventListener('click', function (e) { var o = dpOwner(e.target); if (o && !DP) dpOpen(o); });
   document.addEventListener('keydown', function (e) { if (DP && e.key === 'Tab' && DP.inp.tagName !== 'INPUT' && DP.inp.contains(e.target) && e.target !== DP.inp.querySelectorAll('input')[2] && !e.shiftKey) return; if (DP && (e.key === 'Escape' || e.key === 'Tab')) { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); } dpClose(); } }, true);
   document.addEventListener('input', function (e) { if (DP && (e.target === DP.inp || (DP.inp.contains && DP.inp.contains(e.target))) && e.isTrusted) { var v = HR.parseVn ? HR.parseVn(dpVal(DP.inp)) : null; if (v) { DP.y = +v.slice(0, 4); DP.m = +v.slice(5, 7) - 1; } dpDraw(); } });
+
+  /* =====================================================================
+     BỘ CHỌN CÓ TÌM KIẾM TOÀN DIỆN (SEARCHABLE SELECT / COMBOBOX)
+     Tự động kích hoạt cho tất cả các ô chọn nhân sự, chức danh, chức vụ,
+     phòng ban, và các ô chọn danh sách >= 4 lựa chọn.
+     Hỗ trợ gõ tiếng Việt không dấu, tìm theo mã NV, highlight, phím tắt.
+     ===================================================================== */
+  var SS = null, lastSsOpen = 0;
+
+  function ssNorm(s) {
+    return String(s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'd')
+      .trim();
+  }
+
+  function isSearchableSelect(sel) {
+    if (!sel || sel.tagName !== 'SELECT' || sel.disabled) return false;
+    if (sel.hasAttribute('data-no-search')) return false;
+    if (sel.classList.contains('dp-mo') || sel.classList.contains('dp-yr')) return false;
+    if (sel.closest && (sel.closest('.dp-pop') || sel.closest('.ss-pop'))) return false;
+    if (sel.hasAttribute('data-search') || sel.classList.contains('ss-select')) return true;
+
+    var id = (sel.id || '').toLowerCase();
+    var name = (sel.name || '').toLowerCase();
+    var lblText = '';
+    if (sel.id) {
+      try {
+        var lEl = document.querySelector('label[for="' + CSS.escape(sel.id) + '"]');
+        if (lEl) lblText = lEl.textContent;
+      } catch (x) {}
+    }
+    if (!lblText && sel.closest) {
+      var fld = sel.closest('.field') || sel.closest('.form-grid') || sel.parentElement;
+      if (fld) {
+        var lEl2 = fld.querySelector('label');
+        if (lEl2) lblText = lEl2.textContent;
+      }
+    }
+    lblText = lblText.toLowerCase();
+
+    var keywords = /nhân sự|nhân viên|người lao động|người duyệt|người nhận|chức vụ|chức danh|phòng ban|bộ phận|vị trí|loại hợp đồng|loại đơn|tổ\/ca|ca làm/i;
+    var idMatch = /who|nv|nwho|hfp|pqnv|pb|cv|cd|pos|dept|staff|user|emp|head|mgr|lead/i;
+
+    if (keywords.test(lblText) || idMatch.test(id) || idMatch.test(name)) {
+      return (sel.options && sel.options.length >= 2);
+    }
+    return (sel.options && sel.options.length >= 4);
+  }
+
+  function ssClose() {
+    if (SS) {
+      if (SS.el) SS.el.remove();
+      document.removeEventListener('mousedown', ssOut, true);
+      window.removeEventListener('scroll', ssPlace, true);
+      window.removeEventListener('resize', ssPlace);
+      if (SS.sel) SS.sel.classList.remove('ss-open');
+      SS = null;
+    }
+  }
+
+  function ssOut(e) {
+    if (SS && !SS.el.contains(e.target) && e.target !== SS.sel && !SS.sel.contains(e.target)) {
+      ssClose();
+    }
+  }
+
+  function ssPlace() {
+    if (!SS || !SS.el || !SS.sel) return;
+    if (!document.body.contains(SS.sel)) { ssClose(); return; }
+    var r = SS.sel.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) { ssClose(); return; }
+    var pop = SS.el;
+    var popW = Math.max(r.width, 320);
+    popW = Math.min(popW, Math.max(window.innerWidth - 16, 280));
+    pop.style.width = popW + 'px';
+
+    var popH = pop.offsetHeight || 300;
+    var spaceBelow = window.innerHeight - r.bottom - 8;
+    var spaceAbove = r.top - 8;
+    var left = Math.max(8, Math.min(r.left, window.innerWidth - popW - 8));
+    pop.style.left = left + 'px';
+
+    if (spaceBelow < 210 && spaceAbove > spaceBelow) {
+      pop.style.top = Math.max(8, r.top - popH - 4) + 'px';
+      pop.classList.add('ss-above');
+    } else {
+      pop.style.top = (r.bottom + 4) + 'px';
+      pop.classList.remove('ss-above');
+    }
+  }
+
+  function ssHighlight(text, tokens) {
+    if (!tokens || !tokens.length) return esc(text);
+    var norm = ssNorm(text);
+    var intervals = [];
+    tokens.forEach(function (t) {
+      if (!t) return;
+      var idx = norm.indexOf(t);
+      while (idx >= 0) {
+        intervals.push([idx, idx + t.length]);
+        idx = norm.indexOf(t, idx + 1);
+      }
+    });
+    if (!intervals.length) return esc(text);
+    intervals.sort(function (a, b) { return a[0] - b[0]; });
+    var merged = [intervals[0]];
+    for (var i = 1; i < intervals.length; i++) {
+      var prev = merged[merged.length - 1], cur = intervals[i];
+      if (cur[0] <= prev[1]) prev[1] = Math.max(prev[1], cur[1]);
+      else merged.push(cur);
+    }
+    var out = '', last = 0;
+    merged.forEach(function (intv) {
+      out += esc(text.slice(last, intv[0])) + '<mark class="ss-hi">' + esc(text.slice(intv[0], intv[1])) + '</mark>';
+      last = intv[1];
+    });
+    out += esc(text.slice(last));
+    return out;
+  }
+
+  function openSearchSelect(sel, prefill) {
+    if (SS && SS.sel === sel) { ssClose(); return; }
+    ssClose();
+    if (!sel || sel.disabled) return;
+
+    var pop = document.createElement('div');
+    pop.className = 'ss-pop';
+    document.body.appendChild(pop);
+    sel.classList.add('ss-open');
+
+    var rawOpts = Array.prototype.slice.call(sel.options);
+    var items = rawOpts.map(function (opt, idx) {
+      var rawTxt = opt.textContent.trim();
+      var optGrp = (opt.parentElement && opt.parentElement.tagName === 'OPTGROUP') ? opt.parentElement.label : '';
+      var name = rawTxt, sub = '';
+      var sepMatch = rawTxt.match(/^(.+?)\s*(?:[–—]| - | · )\s*(.+)$/);
+      if (sepMatch && sepMatch[1].length >= 2) {
+        name = sepMatch[1].trim();
+        sub = sepMatch[2].trim();
+      }
+
+      return {
+        idx: idx,
+        value: opt.value,
+        text: rawTxt,
+        name: name,
+        sub: sub,
+        norm: ssNorm(rawTxt + ' ' + opt.value + ' ' + optGrp),
+        selected: opt.selected,
+        disabled: opt.disabled,
+        group: optGrp
+      };
+    });
+
+    var lblText = '';
+    if (sel.id) {
+      try {
+        var lEl = document.querySelector('label[for="' + CSS.escape(sel.id) + '"]');
+        if (lEl) lblText = lEl.textContent.replace(/[*:]/g, '').trim();
+      } catch (x) {}
+    }
+    if (!lblText && sel.closest) {
+      var fld = sel.closest('.field') || sel.closest('.form-grid') || sel.parentElement;
+      if (fld) {
+        var lEl2 = fld.querySelector('label');
+        if (lEl2) lblText = lEl2.textContent.replace(/[*:]/g, '').trim();
+      }
+    }
+    var ph = lblText ? 'Tìm ' + lblText.toLowerCase() + '…' : 'Gõ tên, mã NV để tìm…';
+
+    pop.innerHTML = '<div class="ss-head">' +
+      '<div class="ss-box">' +
+      '<svg class="ss-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' +
+      '<input type="text" class="ss-input" placeholder="' + esc(ph) + '" autocomplete="off" spellcheck="false">' +
+      '<button type="button" class="ss-clear" title="Xóa tìm kiếm" tabindex="-1">✕</button>' +
+      '</div></div>' +
+      '<div class="ss-body"></div>' +
+      '<div class="ss-foot"><span></span><span>Enter để chọn · Esc để đóng</span></div>';
+
+    var inp = pop.querySelector('.ss-input');
+    var clearBtn = pop.querySelector('.ss-clear');
+    var body = pop.querySelector('.ss-body');
+    var foot = pop.querySelector('.ss-foot span:first-child');
+
+    SS = { el: pop, sel: sel, items: items, activeIdx: -1, visibleItems: [] };
+
+    function renderList(list, tokens) {
+      SS.visibleItems = list;
+      SS.activeIdx = -1;
+      if (!list.length) {
+        body.innerHTML = '<div class="ss-empty">' +
+          '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>' +
+          '<span>Không tìm thấy kết quả phù hợp</span></div>';
+        foot.textContent = '0 kết quả';
+        ssPlace();
+        return;
+      }
+
+      var lastGrp = null;
+      var h = '';
+      list.forEach(function (it, vIdx) {
+        if (it.group && it.group !== lastGrp) {
+          lastGrp = it.group;
+          h += '<div class="ss-grp">' + esc(lastGrp) + '</div>';
+        }
+        var isSel = it.selected;
+        var subHtml = '';
+        if (it.sub) {
+          var badges = it.sub.split(/\s*·\s*/).map(function (b) {
+            return '<span class="ss-badge">' + ssHighlight(b, tokens) + '</span>';
+          }).join(' ');
+          subHtml = '<span class="ss-sub">' + badges + '</span>';
+        }
+        h += '<div class="ss-item' + (isSel ? ' ss-sel' : '') + (it.disabled ? ' ss-dis' : '') + '" data-vidx="' + vIdx + '">' +
+          '<div class="ss-item-main">' +
+          '<span class="ss-title">' + ssHighlight(it.name, tokens) + '</span>' +
+          subHtml +
+          '</div>' +
+          '<svg class="ss-chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>' +
+          '</div>';
+      });
+      body.innerHTML = h;
+      foot.textContent = (list.length === items.length) ? (items.length + ' mục') : ('Tìm thấy ' + list.length + ' / ' + items.length);
+
+      var selEl = body.querySelector('.ss-item.ss-sel');
+      if (selEl) {
+        selEl.scrollIntoView({ block: 'nearest' });
+      }
+      ssPlace();
+    }
+
+    function doFilter() {
+      var q = inp.value.trim();
+      clearBtn.style.display = q ? 'flex' : 'none';
+      var tokens = ssNorm(q).split(/\s+/).filter(Boolean);
+      var filtered = items.filter(function (it) {
+        if (!tokens.length) return true;
+        return tokens.every(function (t) { return it.norm.indexOf(t) >= 0; });
+      });
+      renderList(filtered, tokens);
+    }
+
+    inp.addEventListener('input', doFilter);
+    clearBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      inp.value = '';
+      doFilter();
+      inp.focus();
+    });
+
+    function pickItem(vIdx) {
+      var it = SS.visibleItems[vIdx];
+      if (!it || it.disabled) return;
+      sel.value = it.value;
+      if (rawOpts[it.idx]) rawOpts[it.idx].selected = true;
+      sel.dispatchEvent(new Event('input', { bubbles: true }));
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      if (typeof sel.onchange === 'function') sel.onchange();
+      ssClose();
+      try { sel.focus(); } catch (x) {}
+    }
+
+    body.addEventListener('click', function (e) {
+      var itemEl = e.target.closest('.ss-item');
+      if (!itemEl) return;
+      var vIdx = +itemEl.getAttribute('data-vidx');
+      pickItem(vIdx);
+    });
+
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        ssClose();
+        try { sel.focus(); } catch (x) {}
+        return;
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        var next = SS.activeIdx + 1;
+        if (next >= SS.visibleItems.length) next = 0;
+        setActive(next);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        var prev = SS.activeIdx - 1;
+        if (prev < 0) prev = SS.visibleItems.length - 1;
+        setActive(prev);
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (SS.activeIdx >= 0 && SS.activeIdx < SS.visibleItems.length) {
+          pickItem(SS.activeIdx);
+        } else if (SS.visibleItems.length > 0) {
+          pickItem(0);
+        }
+        return;
+      }
+      if (e.key === 'Tab') {
+        ssClose();
+      }
+    });
+
+    function setActive(idx) {
+      SS.activeIdx = idx;
+      var all = body.querySelectorAll('.ss-item');
+      all.forEach(function (el, i) {
+        el.classList.toggle('ss-focus', i === idx);
+        if (i === idx) el.scrollIntoView({ block: 'nearest' });
+      });
+    }
+
+    if (prefill) {
+      inp.value = prefill;
+    }
+    doFilter();
+    ssPlace();
+
+    document.addEventListener('mousedown', ssOut, true);
+    window.addEventListener('scroll', ssPlace, true);
+    window.addEventListener('resize', ssPlace);
+
+    requestAnimationFrame(function () {
+      inp.focus();
+      if (prefill) inp.select();
+    });
+  }
+
+  function handleSelectTrigger(e) {
+    var sel = e.target.closest && e.target.closest('select');
+    if (sel && isSearchableSelect(sel) && !sel.disabled) {
+      e.preventDefault();
+      var now = Date.now();
+      if (now - lastSsOpen < 300 && SS && SS.sel === sel) return;
+      lastSsOpen = now;
+      openSearchSelect(sel);
+    }
+  }
+
+  document.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse') return;
+    handleSelectTrigger(e);
+  }, true);
+
+  document.addEventListener('mousedown', function (e) {
+    handleSelectTrigger(e);
+  }, true);
+
+  document.addEventListener('keydown', function (e) {
+    var sel = e.target.closest && e.target.closest('select');
+    if (!sel || !isSearchableSelect(sel) || SS) return;
+    if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      openSearchSelect(sel);
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey && e.key !== 'Tab') {
+      e.preventDefault();
+      openSearchSelect(sel, e.key);
+    }
+  }, true);
+
+  function markSearchableSelects(root) {
+    var list = (root || document).querySelectorAll('select');
+    for (var i = 0; i < list.length; i++) {
+      if (isSearchableSelect(list[i])) {
+        list[i].classList.add('ss-ready');
+      }
+    }
+  }
+
+  document.addEventListener('mouseover', function (e) {
+    var sel = e.target.closest && e.target.closest('select');
+    if (sel && isSearchableSelect(sel)) sel.classList.add('ss-ready');
+  }, true);
+
+  document.addEventListener('focusin', function (e) {
+    var sel = e.target.closest && e.target.closest('select');
+    if (sel && isSearchableSelect(sel)) sel.classList.add('ss-ready');
+  }, true);
+
+  if (window.MutationObserver) {
+    var ssMo = new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        if (m.addedNodes && m.addedNodes.length) {
+          for (var i = 0; i < m.addedNodes.length; i++) {
+            var n = m.addedNodes[i];
+            if (n.nodeType === 1) {
+              if (n.tagName === 'SELECT' && isSearchableSelect(n)) n.classList.add('ss-ready');
+              else if (n.querySelectorAll) markSearchableSelects(n);
+            }
+          }
+        }
+      });
+    });
+    ssMo.observe(document.documentElement, { childList: true, subtree: true });
+  }
 
   /* ---------------- Hộp ngày tham chiếu ---------------- */
   function openRefModal() {

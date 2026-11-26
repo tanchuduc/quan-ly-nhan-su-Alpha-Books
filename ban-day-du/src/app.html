@@ -2908,8 +2908,7 @@ function openFeedbackSheet(st) {
     '<textarea id="app-fb-c" rows="4" maxlength="3000" placeholder="Mô tả cụ thể lỗi gặp phải hoặc thắc mắc của bạn…" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid var(--mline);background:var(--mcard);color:var(--mtx);font-size:14px;resize:vertical"></textarea>' +
     '<label class="lbl" for="app-fb-p" style="margin-top:10px">Số điện thoại liên hệ (tùy chọn)</label>' +
     '<input id="app-fb-p" maxlength="20" placeholder="Để quản trị viên tiện liên hệ hỗ trợ" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid var(--mline);background:var(--mcard);color:var(--mtx);font-size:14px">' +
-    '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="app-fb-an"> <span>Gửi ẩn danh (không đính kèm tên & mã NV)</span></label>' +
-    '<p class="nvx-note" style="margin-top:8px">Phản hồi của bạn được gửi trực tiếp tới quản trị viên để xem xét và xử lý.</p>' +
+    '<p class="nvx-note" style="margin-top:10px">Phản hồi của bạn sẽ kèm thông tin người gửi để quản trị viên đối soát và hỗ trợ tốt nhất.</p>' +
     '<div id="app-fb-msg" style="margin-top:8px"></div>' +
     '<button type="button" class="btn pri full" id="app-fb-send" style="margin-top:12px">Gửi phản hồi</button>' +
     '</div>';
@@ -2956,7 +2955,6 @@ function openFeedbackSheet(st) {
   if (sendBtn) sendBtn.onclick = function () {
     var c = ($('#app-fb-c') ? $('#app-fb-c').value : '').trim();
     var p = ($('#app-fb-p') ? $('#app-fb-p').value : '').trim();
-    var an = $('#app-fb-an') && $('#app-fb-an').checked;
     var msg = $('#app-fb-msg');
     if (c.length < 5) {
       if (msg) msg.innerHTML = '<div class="msg err">Vui lòng nhập nội dung chi tiết (ít nhất 5 ký tự).</div>';
@@ -2972,7 +2970,7 @@ function openFeedbackSheet(st) {
       content: c,
       noi_dung: c,
       phone: p,
-      an_danh: an,
+      an_danh: false,
       page: 'App Nhân viên · ' + userMa + ' · tab ' + userTab
     }).then(function (j) {
       if (j.ok) {
