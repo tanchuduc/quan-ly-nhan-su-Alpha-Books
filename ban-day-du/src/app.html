@@ -871,6 +871,22 @@ td.ipbox,td.num{white-space:nowrap;word-break:normal}
 .nvx-wrap.dk .nvx-hero .nvx-bell{position:absolute;top:22px;right:26px;z-index:15;display:flex!important;width:42px;height:42px;background:rgba(255,255,255,.24);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:all .18s}
 .nvx-wrap.dk .nvx-hero .nvx-bell:hover{background:rgba(255,255,255,.38);transform:scale(1.06)}
 
+/* Nút trợ giúp & Cẩm nang FAQ */
+.nvx-wrap.dk .nvx-hero .nvx-btn-help{position:absolute;top:22px;right:78px;z-index:15;display:flex!important;width:42px;height:42px;background:rgba(255,255,255,.24);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:all .18s}
+.nvx-wrap.dk .nvx-hero .nvx-btn-help:hover{background:rgba(255,255,255,.38);transform:scale(1.06)}
+.faq-sec{margin:18px 0 8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mmut);display:flex;align-items:center;gap:6px}
+details.nvx-faq{border-bottom:1px solid var(--mline);padding:11px 4px;transition:background .15s}
+details.nvx-faq:last-child{border-bottom:none}
+details.nvx-faq summary{font-weight:600;font-size:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;list-style:none;user-select:none;line-height:1.45;color:var(--mtx)}
+details.nvx-faq summary::-webkit-details-marker{display:none}
+details.nvx-faq summary::after{content:'+';font-size:18px;font-weight:400;color:var(--mmut);margin-left:8px;flex:none}
+details.nvx-faq[open] summary::after{content:'−';font-weight:700;color:var(--m,#D95F18)}
+details.nvx-faq .faq-body{margin-top:8px;font-size:13px;line-height:1.6;color:var(--mtx);padding-left:2px}
+.step-box{display:flex;gap:12px;padding:12px;border-radius:14px;background:var(--mws);margin-bottom:10px;border:1px solid var(--mline)}
+.step-num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--m,#D95F18);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.step-content b{display:block;font-size:14px;margin-bottom:3px;color:var(--mtx)}
+.step-content p{margin:0;font-size:13px;color:var(--mtx);line-height:1.5}
+
 /* Popover Thông báo trên PC (neo góc trên bên phải) */
 .nvx-wrap.dk .nvx-sheet.is-tb{position:fixed;inset:0;z-index:150;pointer-events:none}
 .nvx-wrap.dk .nvx-sheet.is-tb .bd{position:absolute;inset:0;background:rgba(0,0,0,.08);opacity:0;pointer-events:auto;transition:opacity .15s}
@@ -1267,6 +1283,7 @@ NI.qt = '<path d="M12 2.8 4.5 5.6v5.6c0 4.6 3.1 8.3 7.5 10 4.4-1.7 7.5-5.4 7.5-1
 NI.pc = '<rect x="2.5" y="4" width="19" height="12.5" rx="2"/><path d="M8 20.5h8M12 16.5v4"/>';
 NI.mb = '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18.5h2"/>';
 NI.bell = '<path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/>';
+NI.chat = '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/>';
 NI.xm = '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2.5h6"/>';
 // 25/11/2026 1.0.5: ô chọn loại đơn
 NI.cal = '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8.5 14.5l2 2 4-4"/>';
@@ -1677,15 +1694,15 @@ function nvView(st) {
   var caHom = ''; if (L) { var rr = L.d.filter(function (x) { return x.ngay === L.hom_nay; })[0]; if (rr) caHom = lParts(L, rr.ca).map(function (x) { var sm = x.kh ? 0 : lSom(x, q.wd), a0 = x.kh ? null : lMin(x.vao); return x.kh ? x.ten : lShort(x) + ' ' + (x.vao || '') + '–' + (x.ra || '') + (sm && a0 !== null ? ' (có mặt ' + lM2(a0 - sm) + ')' : ''); }).join(' + '); }
   else if (LE[tIso]) caHom = 'Nghỉ lễ – ' + LE[tIso]; else if (HS && HS.lich && HS.lich.ca) caHom = (HS.lich.tuan || [1, 2, 3, 4, 5]).indexOf(q.wd) >= 0 ? vpCaT(HS.lich.ca, q.wd) : 'Ngày nghỉ hằng tuần';
   var avBtn = '<button type="button" class="nvx-avb" data-tab="toi" aria-label="Mở mục Bạn">' + avHtml(av, ten, '') + '</button>';
-  var allN = allNotis(st), TBN = allN.filter(function (x) { return !x.doc_at; }).length, bellBtn = '<button type="button" class="nvx-bell" data-bell aria-label="Thông báo' + (TBN ? ', ' + TBN + ' chưa đọc' : '') + '">' + ni('bell', 21) + (TBN ? '<i>' + (TBN > 9 ? '9+' : TBN) + '</i>' : '') + '</button>'; // 16/11 anh: chuông thông báo góc trên bên phải
+  var allN = allNotis(st), TBN = allN.filter(function (x) { return !x.doc_at; }).length, bellBtn = '<button type="button" class="nvx-bell" data-bell aria-label="Thông báo' + (TBN ? ', ' + TBN + ' chưa đọc' : '') + '">' + ni('bell', 21) + (TBN ? '<i>' + (TBN > 9 ? '9+' : TBN) + '</i>' : '') + '</button>', helpBtn = '<button type="button" class="nvx-bell nvx-btn-help" data-go-help aria-label="Hướng dẫn & Hỏi đáp" title="Cẩm nang & Hỏi đáp">' + ni('help', 21) + '</button>'; // 16/11 anh: chuông thông báo góc trên bên phải
   var TT = { lich: ['Lịch làm việc', (HS && HS.pb) || ''], cong: ['Công', 'Bảng chấm công của bạn'], don: ['Đơn', 'Nghỉ phép, nghỉ không lương'], luong: ['Lương', 'Phiếu lương của bạn'], hoc: ['Khóa học', 'Đào tạo nội bộ'] };
   var h = '<div class="nvx-wrap' + (DK ? ' dk' : '') + '">' + (DEMO ? '<div class="nvx-demo">' + ni('leaf', 13) + 'Bản thử theo dữ liệu mẫu</div>' : '') + (!DK && dkCan() ? '<button type="button" class="dk-sw" data-view="dk">' + ni('pc', 16) + 'Xem dạng máy tính</button>' : '') + '<div class="nvx"><div class="nvx-scr"><div class="nvx-sb" aria-hidden="true"><b id="sbclk">' + q.h + ':' + q.mi + '</b><span><i></i><i></i><i></i><i></i><em></em></span></div>';
   /* ---------- ĐẦU TRANG ---------- */
   if (T === 'home') h += '<header class="nvx-hero' + (hh >= 18 || hh < 5 ? ' night' : hh < 10 ? ' sang' : hh >= 16 ? ' chieu' : '') + '">' + (DK ? heroSceneDk(hh) : heroScene(hh)) + '<div class="in"><div class="r1">' + avBtn + '<div class="g"><span class="d">' + THU[q.wd] + ', ' + (+q.d) + ' tháng ' + (+q.m) + '</span><h1>' + chao + ', ' + esc(givenOf(ten)) + '</h1>' + (DK ? '<span class="sub">' + nbw(heroSub(hh)) + '</span>' : '') + '</div>' +
-    bellBtn + '</div>' +
+    (DK ? helpBtn + bellBtn : '<span class="nvx-hr" style="align-self:flex-start">' + helpBtn + bellBtn + '</span>') + '</div>' +
     '<div class="r2"><b id="clk">' + q.h + ':' + q.mi + '</b><span class="cty">' + esc(cty) + '</span></div>' + (caHom ? '<div class="r3"><span class="ca">' + ni('clock', 14) + esc(caHom) + '</span></div>' : '') + '</div></header>';
-  else if (T === 'toi') h += '<header class="nvx-hd"><button type="button" class="nvx-back" data-sub="' + (NVT.sub && NVT.sub !== 'bp' ? '' : '-') + '" aria-label="Quay lại">' + ni('back') + '</button><h1>' + ({ bp: 'Bộ phận của tôi', org: 'Sơ đồ tổ chức', hs: 'Hồ sơ cá nhân', hd: 'Hợp đồng', ht: 'Hành trình làm việc', ts: 'Thiết bị, tài sản', vb: 'Thông tin chung công ty', pin: st.me.mk ? 'Đổi mật khẩu' : 'Đổi mã PIN' }[NVT.sub] || 'Bạn') + '</h1>' + bellBtn + '</header>';
-  else h += '<header class="nvx-hd"><div><span class="d">' + esc(TT[T][1]) + '</span><h1>' + TT[T][0] + '</h1></div><span class="nvx-hr">' + bellBtn + avBtn + '</span></header>';
+  else if (T === 'toi') h += '<header class="nvx-hd"><button type="button" class="nvx-back" data-sub="' + (NVT.sub && NVT.sub !== 'bp' ? '' : '-') + '" aria-label="Quay lại">' + ni('back') + '</button><h1>' + ({ bp: 'Bộ phận của tôi', org: 'Sơ đồ tổ chức', hs: 'Hồ sơ cá nhân', hd: 'Hợp đồng', ht: 'Hành trình làm việc', ts: 'Thiết bị, tài sản', vb: 'Thông tin chung công ty', pin: st.me.mk ? 'Đổi mật khẩu' : 'Đổi mã PIN', help: 'Cẩm nang & Hỏi đáp (FAQ)' }[NVT.sub] || 'Bạn') + '</h1><span class="nvx-hr">' + (NVT.sub !== 'help' ? helpBtn : '') + bellBtn + '</span></header>';
+  else h += '<header class="nvx-hd"><div><span class="d">' + esc(TT[T][1]) + '</span><h1>' + TT[T][0] + '</h1></div><span class="nvx-hr">' + helpBtn + bellBtn + avBtn + '</span></header>';
   h += '<main class="nvx-main t-' + T + (T === 'home' ? ' up' : '') + '"><div id="gmsg"></div>';
   /* ---------- TRANG CHỦ ---------- */
   if (T === 'home') {
@@ -1697,7 +1714,7 @@ function nvView(st) {
       '<div class="nvx-pbtn"><button class="nvx-big ' + next + '" id="b-main" data-l="' + next + '">' + ni('clock', 20) + 'Chấm ' + (next === 'vao' ? 'vào ca' : 'ra ca') + '</button><button class="nvx-alt" id="b-alt" data-l="' + other + '">' + (other === 'vao' ? 'Vào ca' : 'Ra ca') + '</button></div><div id="res"></div>' +
       (st.me.ncc ? '<p class="hint">Bạn thuộc diện <b>không cần chấm công</b> – chấm hay không đều được tính đủ công.</p>' : '') +
       (!st.wifi ? '<div class="nvx-row" style="margin-top:8px">' + (!hasPass() && st.che_do !== 'chi_wifi' ? '<button class="btn sm pri" data-qr>' + ni('qr', 16) + 'Quét mã QR</button>' : '<span></span>') + '<button class="btn sm" id="recheck">Kiểm tra lại mạng</button></div>' : '') +
-      '<div class="nvx-pfoot">' + (st.wifi ? '<span class="pill ok"><span class="dot"></span>Wi‑Fi văn phòng</span>' : '<span class="pill no"><span class="dot"></span>Ngoài mạng văn phòng</span>') + (st.ip ? '<span class="ip" title="IP lượt này (' + esc(st.ip_loai) + ')">IP ' + esc(st.ip) + '</span>' : '<span class="ip"></span>') + (DEMO ? '<button type="button" class="nvx-q" id="help" aria-label="Hướng dẫn thử chấm công" title="Hướng dẫn thử chấm công">?</button>' : '') + '</div></section>';
+      '<div class="nvx-pfoot">' + (st.wifi ? '<span class="pill ok"><span class="dot"></span>Wi‑Fi văn phòng</span>' : '<span class="pill no"><span class="dot"></span>Ngoài mạng văn phòng</span>') + (st.ip ? '<span class="ip" title="IP lượt này (' + esc(st.ip_loai) + ')">IP ' + esc(st.ip) + '</span>' : '<span class="ip"></span>') + '<button type="button" class="nvx-q" data-go-help aria-label="Hướng dẫn & Hỏi đáp" title="Xem cẩm nang & hỏi đáp">?</button>' + '</div></section>';
     h += '</div>'; var lk = '';
     if (st.hn && !st.hn.xong) lk += hnHomeBtn(st);
     if (st.dt && (st.dt.kh || []).length) lk += dtHomeBtn(st); // 12/11 16:30: khóa học nội bộ
@@ -1846,12 +1863,16 @@ function toiHtml(st, HS, HSo, ten, cty, av) {
     if (st.me.qt) h += '<div class="nvx-grp">Quản trị</div><section class="nvx-card nvx-list nvx-menu nvx-menu2">' + qtItem(st, 'it') + '</section>';
     var VBn = st.vb && (st.vb.ds || []).length, TBN = (st.tb || []).filter(function (x) { return !x.doc_at; }).length; h += '<div class="nvx-grp">Công ty</div><section class="nvx-card nvx-list nvx-menu nvx-menu2"><button type="button" class="it" data-sub="vb"><span class="ic c2">' + ni('doc', 18) + '</span><span class="tx"><b>Kho văn bản chung</b><small>' + (VBn ? VBn + ' tài liệu: nội quy, quy định, quy chế…' : 'Nội quy, quy định, quy chế, KPI') + '</small></span>' + ni('go', 16) + '</button><button type="button" class="it" data-bell><span class="ic c4">' + ni('bell', 18) + '</span><span class="tx"><b>Thông báo</b><small>' + (TBN ? TBN + ' thông báo chưa đọc' : 'Không có thông báo mới') + '</small></span>' + ni('go', 16) + '</button></section>'; // 16/11
     h += '<div class="nvx-grp">Hồ sơ của bạn</div><section class="nvx-card nvx-list nvx-menu nvx-menu2">' + [['org', 'org', 'Sơ đồ tổ chức', 'Phòng ban, quản lý trực tiếp, đồng nghiệp', 'c1'], ['hs', 'user', 'Hồ sơ cá nhân', 'Thông tin, giấy tờ đã nộp', 'c2'], ['hd', 'doc', 'Hợp đồng', (HS && (HS.hop_dong || []).length) ? HS.hop_dong.length + ' hợp đồng' : 'Hợp đồng lao động', 'c3'], ['ht', 'path', 'Hành trình làm việc', 'Các mốc tại công ty', 'c4'], ['ts', 'pc', 'Thiết bị, tài sản', HS && HS.ts && HS.ts.length ? HS.ts.length + ' tài sản bạn đang sử dụng' : 'Máy móc, phần mềm công ty giao cho bạn', 'c5']].map(function (x) { return '<button type="button" class="it" data-sub="' + x[0] + '"><span class="ic ' + x[4] + '">' + ni(x[1], 18) + '</span><span class="tx"><b>' + x[2] + '</b><small>' + esc(x[3]) + '</small></span>' + ni('go', 16) + '</button>'; }).join('') + '</section>' +
+      '<div class="nvx-grp">Hỗ trợ & Góp ý</div><section class="nvx-card nvx-list nvx-menu nvx-menu2">' +
+      '<button type="button" class="it" data-sub="help"><span class="ic c1">' + ni('help', 18) + '</span><span class="tx"><b>Cẩm nang sử dụng & Hỏi đáp (FAQ)</b><small>Cách cài app, chấm công, gửi đơn, tra cứu</small></span>' + ni('go', 16) + '</button>' +
+      '<button type="button" class="it" id="app-fb-btn"><span class="ic c2">' + ni('chat', 18) + '</span><span class="tx"><b>Góp ý & Báo lỗi</b><small>Báo lỗi ứng dụng hoặc đóng góp ý kiến tới quản trị viên</small></span>' + ni('go', 16) + '</button></section>' +
       '<div class="nvx-grp">Tài khoản</div><section class="nvx-card nvx-list nvx-menu nvx-menu2">' + (st.che_do !== 'chi_wifi' ? '<button type="button" class="it" data-qr><span class="ic c5">' + ni('qr', 18) + '</span><span class="tx"><b>Chấm công bằng mã QR</b><small>Mở camera quét mã trên màn hình chấm công</small></span>' + ni('go', 16) + '</button>' : '') +
       '<button type="button" class="it" id="push-it"><span class="ic c4">' + ni('bell', 18) + '</span><span class="tx"><b>Thông báo trên máy này</b><small id="push-st">Đang kiểm tra…</small></span>' + ni('go', 16) + '</button>' +
       '<button type="button" class="it" data-sub="pin"><span class="ic c6">' + ni('lock', 18) + '</span><span class="tx"><b>' + (st.me.mk ? 'Đổi mật khẩu' : 'Đổi mã PIN') + '</b><small>' + (st.me.mk ? 'Dùng chung cho app và trang quản trị' : 'Mã đăng nhập trang nhân viên') + '</small></span>' + ni('go', 16) + '</button>' +
       '<button type="button" class="it out" id="out-btn"><span class="ic bad">' + ni('out', 18) + '</span><span class="tx"><b>' + (DEMO ? 'Đổi người khác' : 'Đăng xuất') + '</b></span></button></section>';
     return h;
   }
+  if (S === 'help') return helpHtml(st);
   if (S === 'bp') return '<div id="bp"><section class="nvx-card nvx-empty">Đang tải dữ liệu bộ phận…</section></div>';
   if (S === 'org') return '<div id="org"><section class="nvx-card nvx-empty">Đang tải sơ đồ tổ chức…</section></div>';
   if (S === 'hs') {
@@ -2506,7 +2527,7 @@ function nvBind(st, X) {
   sh.querySelectorAll('[data-close]').forEach(function (b) { b.onclick = closeSheet; });
   if (window._nvKey) document.removeEventListener('keydown', window._nvKey); window._nvKey = function (e) { if (e.key === 'Escape' && !sh.hidden) closeSheet(); }; document.addEventListener('keydown', window._nvKey);
   app.querySelectorAll('[data-tab]').forEach(function (b) { b.onclick = function () { NVT.tab = b.getAttribute('data-tab'); NVT.sub = ''; try { sessionStorage.setItem('nv-tab', NVT.tab); } catch (e) { } nvView(st); scrTop(0); }; });
-  app.querySelectorAll('[data-sub]').forEach(function (b) { b.onclick = function () { var v = b.getAttribute('data-sub'); if (v === '-') { NVT.tab = 'home'; NVT.sub = ''; } else NVT.sub = v; nvView(st); scrTop(0); }; });
+  app.querySelectorAll('[data-sub]').forEach(function (b) { b.onclick = function () { var v = b.getAttribute('data-sub'); if (v === '-') { NVT.tab = 'home'; NVT.sub = ''; } else { NVT.tab = 'toi'; NVT.sub = v; } nvView(st); scrTop(0); }; });
   lichBind(st);
   if ($('#lk-open')) $('#lk-open').onclick = function () { LK.pd = ''; openSheet('Đăng ký lịch làm', lkBody(st)); sh.classList.add('full', 'dt'); lkBind(st, closeSheet); };
   app.querySelectorAll('[data-lkk]').forEach(function (x) { x.onclick = function () { LK.k = +x.getAttribute('data-lkk'); DKS = null; nvView(st); }; });
@@ -2753,7 +2774,164 @@ function nvBind(st, X) {
     this.disabled = true; api('/api/doi-pin', { cu: a, moi: b }).then(function (j) { $('#pn-go').disabled = false; r.innerHTML = j.ok ? '<div class="msg ok">Đã đổi mật khẩu. Dùng mật khẩu mới cho cả app và trang quản trị.</div>' : '<div class="msg err">' + esc(j.loi) + '</div>'; if (j.ok) { $('#pn-cu').value = $('#pn-moi').value = $('#pn-lai').value = ''; } }); };
   else if ($('#pn-go')) $('#pn-go').onclick = function () { var a = $('#pn-cu').value, b = $('#pn-moi').value, c = $('#pn-lai').value, r = $('#pn-res'); if (!/^\d{4,8}$/.test(b)) { r.innerHTML = '<div class="msg err">Mã PIN mới gồm 4–8 chữ số.</div>'; return; } if (b !== c) { r.innerHTML = '<div class="msg err">Hai lần nhập mã PIN mới chưa khớp.</div>'; return; }
     this.disabled = true; api('/api/doi-pin', { cu: a, moi: b }).then(function (j) { $('#pn-go').disabled = false; r.innerHTML = j.ok ? '<div class="msg ok">Đã đổi mã PIN. Lần đăng nhập sau dùng mã mới.</div>' : '<div class="msg err">' + esc(j.loi) + '</div>'; if (j.ok) { $('#pn-cu').value = $('#pn-moi').value = $('#pn-lai').value = ''; } }); };
+  if ($('#app-fb-btn')) $('#app-fb-btn').onclick = function () { openFeedbackSheet(st); };
+  if ($('#help-fb-btn')) $('#help-fb-btn').onclick = function () { openFeedbackSheet(st); };
+  app.querySelectorAll('[data-go-help]').forEach(function (b) { b.onclick = function () { NVT.tab = 'toi'; NVT.sub = 'help'; nvView(st); scrTop(0); }; });
   if ($('#out-btn')) $('#out-btn').onclick = function () { if (DEMO || confirmBox('Đăng xuất khỏi điện thoại này?')) api('/api/dang-xuat', { vai: 'nv' }).then(function () { NVT.tab = 'home'; NVT.sub = ''; ORG = null; try { sessionStorage.removeItem('nv-tab'); } catch (e) { } boot(); }); };
+}
+
+function helpHtml(st) {
+  var h = '';
+  // 1. Thẻ banner giới thiệu
+  h += '<section class="nvx-card" style="margin-bottom:12px;background:linear-gradient(135deg,rgba(217,95,24,0.08),rgba(217,95,24,0.02));border:1px solid var(--mline)">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="display:inline-flex;padding:8px;border-radius:12px;background:var(--m,#D95F18);color:#fff">' + ni('help', 22) + '</span>' +
+    '<div><b style="font-size:16px;display:block">Cẩm nang & Hỏi đáp (FAQ)</b><small style="color:var(--mmut)">Ứng dụng Nhân sự Alpha Books</small></div></div>' +
+    '<p style="margin:6px 0 0;font-size:13px;line-height:1.5;color:var(--mtx)">Chào bạn! Dưới đây là hướng dẫn nhanh 3 bước sử dụng app cùng câu trả lời cho các thắc mắc thường gặp nhất về chấm công, nghỉ phép và phiếu lương.</p>' +
+    '</section>';
+
+  // 2. 3 Bước khởi đầu nhanh
+  h += '<div class="nvx-sec">3 Bước bắt đầu nhanh</div>';
+  h += '<section class="nvx-card" style="margin-bottom:12px;padding:12px 14px">';
+  h += '<div class="step-box"><span class="step-num">1</span><div class="step-content"><b>Cài app ra Màn hình chính (PWA)</b><p>• <b>iPhone/iPad (Safari):</b> Bấm nút <b>Chia sẻ</b> (ô vuông mũi tên lên) ➔ chọn <b>"Thêm vào MH chính"</b>.<br>• <b>Android (Chrome):</b> Bấm menu <b>3 chấm</b> góc trên ➔ chọn <b>"Cài đặt ứng dụng"</b> hoặc <b>"Thêm vào MH chính"</b>.<br><i>App xuất hiện như ứng dụng cài đặt, mở nhanh không cần gõ link.</i></p></div></div>';
+  h += '<div class="step-box"><span class="step-num">2</span><div class="step-content"><b>Đăng nhập & Đổi mã PIN bảo mật</b><p>Đăng nhập bằng <b>Mã nhân viên</b> và <b>Mã PIN</b> mặc định do HCNS cấp. Sau khi vào app, vào tab <b>Bạn ➔ Đổi mã PIN</b> để bảo mật phiếu lương và thông tin cá nhân của bạn.</p></div></div>';
+  h += '<div class="step-box" style="margin-bottom:0"><span class="step-num">3</span><div class="step-content"><b>Chấm công mỗi ngày</b><p>Đến công ty, kết nối Wi-Fi văn phòng Alpha Books ➔ mở app ➔ bấm nút <b>"Chấm vào ca"</b> (hoặc <b>"Chấm ra ca"</b> khi hết ngày). Bạn cũng có thể quét mã QR tại quầy lễ tân.</p></div></div>';
+  h += '</section>';
+
+  // 3. Câu hỏi thường gặp
+  h += '<div class="nvx-sec">Câu hỏi thường gặp (FAQ)</div>';
+  h += '<section class="nvx-card" style="margin-bottom:12px">';
+  
+  // Nhóm 1: Chấm công & Wi-Fi
+  h += '<div class="faq-sec">' + ni('clock', 15) + ' Chấm công & Kết nối Wi-Fi</div>';
+  h += '<details class="nvx-faq" open><summary>1. Tại sao app báo "Ngoài mạng văn phòng" khi tôi đang ở công ty?</summary><div class="faq-body">' +
+    'Nguyên nhân thường gặp nhất là điện thoại đang dùng 4G/5G hoặc bật VPN. Cách xử lý:<br>' +
+    '• Đảm bảo bạn đã <b>kết nối đúng Wi-Fi văn phòng Alpha Books</b>.<br>' +
+    '• <b>Tắt 4G/5G</b> tạm thời để điện thoại ưu tiên Wi-Fi.<br>' +
+    '• <b>Tắt VPN / 1.1.1.1 / WARP</b> và tắt tính năng <i>iCloud Private Relay</i> (trên iPhone).<br>' +
+    '• Quay lại màn hình chính của app và bấm nút <b>"Kiểm tra lại mạng"</b>.' +
+    '</div></details>';
+
+  h += '<details class="nvx-faq"><summary>2. Quên chấm công vào ca hoặc ra ca thì xử lý thế nào?</summary><div class="faq-body">' +
+    'Nếu bạn quên chấm công, đừng lo lắng:<br>' +
+    '• Vào tab <b>Đơn</b> ➔ Bấm <b>Tạo đơn mới</b>.<br>' +
+    '• Chọn loại đơn: <b>"Giải trình công / Bổ sung giờ chấm"</b>.<br>' +
+    '• Chọn ngày, nhập giờ thực tế bạn đã có mặt/về và nêu rõ lý do ➔ Bấm <b>Gửi đơn</b>.<br>' +
+    '• Quản lý trực tiếp của bạn sẽ xem xét và phê duyệt bổ sung công.' +
+    '</div></details>';
+
+  h += '<details class="nvx-faq"><summary>3. Đi công tác hoặc gặp đối tác ngoài văn phòng thì chấm công sao?</summary><div class="faq-body">' +
+    'Khi có lịch làm việc bên ngoài, bạn vào tab <b>Đơn</b> ➔ Tạo đơn <b>"Đi công tác"</b> hoặc <b>"Làm việc bên ngoài"</b> trước hoặc trong ngày làm việc. Khi đơn được duyệt, hệ thống sẽ tự động ghi nhận đủ công.' +
+    '</div></details>';
+
+  h += '<details class="nvx-faq"><summary>4. Có thể chấm công hộ đồng nghiệp được không?</summary><div class="faq-body">' +
+    '<b>Tuyệt đối không.</b> Hệ thống xác thực danh tính qua tài khoản cá nhân, mạng Wi-Fi và thiết bị. Việc chấm công hộ vi phạm nghiêm trọng nội quy lao động của Alpha Books.' +
+    '</div></details>';
+
+  // Nhóm 2: Nghỉ phép & Đơn từ
+  h += '<div class="faq-sec" style="margin-top:16px">' + ni('doc', 15) + ' Nghỉ phép & Đơn từ</div>';
+  h += '<details class="nvx-faq"><summary>5. Làm sao để gửi đơn xin nghỉ phép, nghỉ ốm, việc riêng?</summary><div class="faq-body">' +
+    'Vào tab <b>Đơn</b> ➔ Bấm <b>Tạo đơn mới</b> ➔ Chọn loại nghỉ (Phép năm, Nghỉ việc riêng, Nghỉ ốm hưởng BHXH, Nghỉ không lương...) ➔ Chọn ngày và lý do ➔ Bấm <b>Gửi đơn</b>. Số ngày phép năm còn lại sẽ được tự động trừ sau khi đơn được duyệt.' +
+    '</div></details>';
+
+  h += '<details class="nvx-faq"><summary>6. Xem số ngày nghỉ phép năm còn lại của tôi ở đâu?</summary><div class="faq-body">' +
+    'Bạn có thể xem ngay ở đầu tab <b>Đơn</b> hoặc vào tab <b>Bạn ➔ Hồ sơ cá nhân</b>. App hiển thị rõ: Tổng ngày phép được hưởng trong năm, số ngày đã dùng và số ngày còn lại.' +
+    '</div></details>';
+
+  h += '<details class="nvx-faq"><summary>7. Ai là người duyệt đơn của tôi và bao lâu có kết quả?</summary><div class="faq-body">' +
+    'Đơn của bạn được gửi tự động đến Quản lý trực tiếp của bộ phận (xem tên Quản lý tại tab <b>Bạn</b>). Khi quản lý Duyệt hoặc Từ chối, chuông thông báo trên app sẽ báo tin ngay cho bạn.' +
+    '</div></details>';
+
+  // Nhóm 3: Phiếu lương & Bảo mật
+  h += '<div class="faq-sec" style="margin-top:16px">' + ni('luong', 15) + ' Bảng lương & Bảo mật</div>';
+  h += '<details class="nvx-faq"><summary>8. Xem phiếu lương hàng tháng ở đâu? Có bảo mật không?</summary><div class="faq-body">' +
+    'Vào tab <b>Lương</b> ➔ Nhập mã PIN cá nhân để mở khóa. Phiếu lương hiển thị chi tiết: Lương cơ bản, phụ cấp, ngày công thực tế, trừ BHXH, thuế TNCN và số thực lĩnh. <b>Chỉ duy nhất bạn</b> (qua mã PIN) và phòng HCNS/Kế toán mới xem được thông tin này.' +
+    '</div></details>';
+
+  h += '<details class="nvx-faq"><summary>9. Nếu thấy thắc mắc hoặc sai sót về lương/công thì làm sao?</summary><div class="faq-body">' +
+    'Bạn hãy bấm nút <b>Góp ý & Báo lỗi</b> ngay dưới đây hoặc liên hệ trực tiếp phòng HCNS & Kế toán trước ngày chốt lương hàng tháng để được đối soát và điều chỉnh kịp thời.' +
+    '</div></details>';
+
+  // Nhóm 4: Tài khoản & Thiết bị
+  h += '<div class="faq-sec" style="margin-top:16px">' + ni('lock', 15) + ' Tài khoản & Thiết bị</div>';
+  h += '<details class="nvx-faq"><summary>10. Tôi quên mã PIN đăng nhập thì phải làm thế nào?</summary><div class="faq-body">' +
+    'Bạn hãy liên hệ trực tiếp với Phòng HCNS Alpha Books. Quản trị viên nhân sự sẽ kiểm tra và đặt lại (reset) mã PIN mặc định cho bạn ngay lập tức.' +
+    '</div></details>';
+
+  h += '<details class="nvx-faq"><summary>11. Đổi điện thoại mới hoặc mất máy có bị mất dữ liệu không?</summary><div class="faq-body">' +
+    'Hoàn toàn không. Dữ liệu công, đơn và lương được lưu an toàn trên máy chủ của công ty. Bạn chỉ cần mở trình duyệt trên điện thoại mới, truy cập link app và đăng nhập lại bằng Mã NV + Mã PIN là tiếp tục sử dụng bình thường.' +
+    '</div></details>';
+
+  h += '</section>';
+
+  // 4. Hỗ trợ & Phản hồi
+  h += '<div class="nvx-sec">Cần hỗ trợ thêm?</div>';
+  h += '<section class="nvx-card" style="text-align:center;padding:18px 16px">';
+  h += '<p style="margin:0 0 12px;font-size:13.5px;color:var(--mtx);line-height:1.5">Nếu gặp sự cố kỹ thuật hoặc có đề xuất cải tiến ứng dụng, bạn có thể gửi phản hồi trực tiếp tới Quản trị viên:</p>';
+  h += '<button type="button" class="btn pri full" id="help-fb-btn" style="display:flex;align-items:center;justify-content:center;gap:8px">' + ni('chat', 18) + ' Gửi Góp ý & Báo lỗi ứng dụng</button>';
+  h += '<p class="nvx-note" style="margin-top:12px">Phòng Hành chính Nhân sự Alpha Books luôn sẵn sàng đồng hành và hỗ trợ bạn.</p>';
+  h += '</section>';
+
+  return h;
+}
+
+function openFeedbackSheet(st) {
+  var types = ['Báo lỗi', 'Thắc mắc quy chế', 'Đề xuất tính năng'];
+  var formHtml = '<div class="nvx-form">' +
+    '<label class="lbl">Loại phản hồi</label>' +
+    '<div class="xm-seg" role="radiogroup" aria-label="Loại phản hồi" id="app-fb-types">' +
+      types.map(function (t, i) { return '<button type="button" class="' + (i ? '' : 'on') + '" data-t="' + t + '">' + t + '</button>'; }).join('') +
+    '</div>' +
+    '<label class="lbl" for="app-fb-c" style="margin-top:12px">Nội dung chi tiết <span style="color:#D93025">*</span></label>' +
+    '<textarea id="app-fb-c" rows="4" maxlength="3000" placeholder="Mô tả cụ thể lỗi gặp phải hoặc thắc mắc của bạn…" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid var(--mline);background:var(--mcard);color:var(--mtx);font-size:14px;resize:vertical"></textarea>' +
+    '<label class="lbl" for="app-fb-p" style="margin-top:10px">Số điện thoại liên hệ (tùy chọn)</label>' +
+    '<input id="app-fb-p" maxlength="20" placeholder="Để quản trị viên tiện liên hệ hỗ trợ" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid var(--mline);background:var(--mcard);color:var(--mtx);font-size:14px">' +
+    '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="app-fb-an"> <span>Gửi ẩn danh (không đính kèm tên & mã NV)</span></label>' +
+    '<p class="nvx-note" style="margin-top:8px">Phản hồi của bạn được gửi trực tiếp tới quản trị viên để xem xét và xử lý.</p>' +
+    '<div id="app-fb-msg" style="margin-top:8px"></div>' +
+    '<button type="button" class="btn pri full" id="app-fb-send" style="margin-top:12px">Gửi phản hồi</button>' +
+    '</div>';
+  openSheet('Góp ý & Báo lỗi', formHtml);
+  var curType = 'Báo lỗi';
+  var seg = $('#app-fb-types');
+  if (seg) seg.onclick = function (e) {
+    var b = e.target.closest('button[data-t]');
+    if (!b) return;
+    curType = b.getAttribute('data-t');
+    seg.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+  };
+  var sendBtn = $('#app-fb-send');
+  if (sendBtn) sendBtn.onclick = function () {
+    var c = ($('#app-fb-c') ? $('#app-fb-c').value : '').trim();
+    var p = ($('#app-fb-p') ? $('#app-fb-p').value : '').trim();
+    var an = $('#app-fb-an') && $('#app-fb-an').checked;
+    var msg = $('#app-fb-msg');
+    if (c.length < 5) {
+      if (msg) msg.innerHTML = '<div class="msg err">Vui lòng nhập nội dung chi tiết (ít nhất 5 ký tự).</div>';
+      return;
+    }
+    sendBtn.disabled = true;
+    if (msg) msg.innerHTML = '<div class="msg">Đang gửi phản hồi…</div>';
+    api('/api/feedback', {
+      type: curType,
+      loai: curType,
+      content: c,
+      noi_dung: c,
+      phone: p,
+      an_danh: an,
+      page: 'App Nhân viên · ' + (st.me ? st.me.ma : '') + ' · tab ' + NVT.tab
+    }).then(function (j) {
+      if (j.ok) {
+        if (msg) msg.innerHTML = '<div class="msg ok">✓ Cảm ơn bạn! Phản hồi đã được gửi tới quản trị viên.</div>';
+        setTimeout(function () { closeSheet(); }, 1600);
+      } else {
+        sendBtn.disabled = false;
+        if (msg) msg.innerHTML = '<div class="msg err">' + esc(j.loi || 'Chưa gửi được, vui lòng thử lại.') + '</div>';
+      }
+    }).catch(function (er) {
+      sendBtn.disabled = false;
+      if (msg) msg.innerHTML = '<div class="msg err">Lỗi kết nối: ' + esc(er.message || 'vui lòng thử lại') + '</div>';
+    });
+  };
 }
 // thu nhỏ ảnh đại diện 256×256 (cắt vuông giữa ảnh) → JPEG
 function avResize(file, cb) {

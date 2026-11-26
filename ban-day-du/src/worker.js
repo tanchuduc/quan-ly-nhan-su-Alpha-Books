@@ -713,7 +713,10 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS td_anh (tok TEXT PRIMARY KEY, v TEXT, at INTEGER)`, // 20/11/2026: ảnh khi chia sẻ link cổng tuyển dụng (JPEG base64)
   `CREATE TABLE IF NOT EXISTS td_ho_so (ma TEXT PRIMARY KEY, tok TEXT NOT NULL, job TEXT, du_lieu TEXT, cv_ten TEXT, cv_loai TEXT, cv_size INTEGER, cv_parts INTEGER DEFAULT 0, ip TEXT, tao INTEGER)`,
   `CREATE INDEX IF NOT EXISTS td_ho_so_tok ON td_ho_so (tok, tao)`,
-  `CREATE TABLE IF NOT EXISTS td_cv_part (ma TEXT NOT NULL, i INTEGER NOT NULL, data BLOB, PRIMARY KEY (ma, i))`
+  `CREATE TABLE IF NOT EXISTS td_cv_part (ma TEXT NOT NULL, i INTEGER NOT NULL, data BLOB, PRIMARY KEY (ma, i))`,
+  // Góp ý & Báo lỗi nội bộ (nhân viên & quản trị)
+  `CREATE TABLE IF NOT EXISTS gop_y (id INTEGER PRIMARY KEY AUTOINCREMENT, ma TEXT, ten TEXT, phone TEXT, email TEXT, loai TEXT NOT NULL, noi_dung TEXT NOT NULL, trang TEXT, thiet_bi TEXT, ip TEXT, trang_thai TEXT DEFAULT 'moi', ghi_chu TEXT, tao INTEGER NOT NULL, cap_nhat INTEGER)`,
+  `CREATE INDEX IF NOT EXISTS gop_y_tao ON gop_y(tao DESC)`
 ];
 const MIGRATE_V2 = ['ALTER TABLE cham ADD COLUMN may TEXT', 'ALTER TABLE phien ADD COLUMN may TEXT', 'ALTER TABLE tu_choi ADD COLUMN may TEXT'];
 const MIGRATE_V3 = ['ALTER TABLE nv ADD COLUMN pb TEXT', 'ALTER TABLE nv ADD COLUMN ncc INTEGER DEFAULT 0', 'ALTER TABLE nv ADD COLUMN nguon TEXT'];
@@ -722,6 +725,10 @@ const MIGRATE_V4 = ['ALTER TABLE don ADD COLUMN duyet_ma TEXT', 'ALTER TABLE don
 const MIGRATE_V6 = ['ALTER TABLE nv ADD COLUMN qt TEXT', 'ALTER TABLE nv ADD COLUMN mk TEXT', 'ALTER TABLE nv ADD COLUMN mk_salt TEXT', 'ALTER TABLE nv ADD COLUMN mk_doi INTEGER']; // 13/11/2026: một tài khoản – quyền quản trị (qt = {r, t, sys}), mật khẩu, bắt đổi mật khẩu lần đầu
 const MIGRATE_V8 = ['ALTER TABLE ip_vp ADD COLUMN dd TEXT']; // 22/11/2026 (1.0.4): IP văn phòng gắn tên chi nhánh / địa điểm
 const MIGRATE_V7 = ['ALTER TABLE nv ADD COLUMN cty TEXT']; // 17/11/2026: nhiều công ty dùng chung một máy chủ – mỗi nhân viên thuộc công ty nào (trang quản lý lọc theo công ty)
+const MIGRATE_V9 = [
+  `CREATE TABLE IF NOT EXISTS gop_y (id INTEGER PRIMARY KEY AUTOINCREMENT, ma TEXT, ten TEXT, phone TEXT, email TEXT, loai TEXT NOT NULL, noi_dung TEXT NOT NULL, trang TEXT, thiet_bi TEXT, ip TEXT, trang_thai TEXT DEFAULT 'moi', ghi_chu TEXT, tao INTEGER NOT NULL, cap_nhat INTEGER)`,
+  `CREATE INDEX IF NOT EXISTS gop_y_tao ON gop_y(tao DESC)`
+];
 let schemaOk = false;
 async function ensureSchema(db) {
   if (schemaOk) return;
@@ -739,6 +746,10 @@ async function ensureSchema(db) {
   if ((v ? Number(v.v) : 0) < 8) {
     for (const sql of MIGRATE_V8) { try { await db.prepare(sql).run(); } catch (e) { if (!/duplicate column/i.test(String(e && e.message))) throw e; } }
     await db.prepare("INSERT INTO cfg (k, v) VALUES ('schema_v', '8') ON CONFLICT(k) DO UPDATE SET v = '8'").run();
+  }
+  if ((v ? Number(v.v) : 0) < 9) {
+    for (const sql of MIGRATE_V9) { try { await db.prepare(sql).run(); } catch (e) { if (!/duplicate|already exists/i.test(String(e && e.message))) throw e; } }
+    await db.prepare("INSERT INTO cfg (k, v) VALUES ('schema_v', '9') ON CONFLICT(k) DO UPDATE SET v = '9'").run();
   }
   schemaOk = true;
 }
@@ -1312,6 +1323,18 @@ async function api(req, env, url) {
     if (r === 'toi') return U ? json({ ok: true, me: U, ten_cty: cfg.ten_cty, ver: VER, now }) : bad('Chưa đăng nhập.', 401);
     if (r === 'dang-xuat' && req.method === 'POST') { const tok = cookies(req)[COOKIE.qt]; if (tok) await db.prepare('DELETE FROM phien WHERE tok = ?').bind(await sha256(tok)).run(); return json({ ok: true }, 200, { 'set-cookie': setCookie(COOKIE.qt, '', 0) }); }
     if (!U) return bad('Phiên đăng nhập trang quản trị đã hết. Đăng nhập lại.', 401);
+    // Góp ý & Báo lỗi nội bộ (dành cho quản trị viên xem & xử lý)
+    if (r === 'gop-y' && req.method === 'GET') {
+      const list = (await db.prepare("SELECT * FROM gop_y ORDER BY tao DESC LIMIT 300").all()).results;
+      return json({ ok: true, list });
+    }
+    if (r === 'gop-y-cap-nhat' && req.method === 'POST') {
+      const id = Number(body.id);
+      const tt = String(body.trang_thai || 'da_xu_ly').slice(0, 30);
+      const gc = String(body.ghi_chu || '').slice(0, 500);
+      await db.prepare("UPDATE gop_y SET trang_thai = ?, ghi_chu = ?, cap_nhat = ? WHERE id = ?").bind(tt, gc, now, id).run();
+      return json({ ok: true });
+    }
     const QS = /^(du-lieu|kv|kv-xoa|nhat-ky)$/.test(r) ? await qtScope(db, U) : null; // 20/11/2026 1.0.3
     if (QS && QS.none) return bad('Tài khoản chưa được gán vai trò trong Phân quyền tài khoản – nhờ Quản trị hệ thống gán vai trò.', 403);
     if (r === 'doi-mk' && req.method === 'POST') {
@@ -1439,6 +1462,43 @@ async function api(req, env, url) {
       return json({ ok: true });
     }
     return bad('Không có API này', 404);
+  }
+
+  /* ----- GÓP Ý & BÁO LỖI NỘI BỘ (nhân viên & quản trị) ----- */
+  if (p === '/api/feedback' || p === '/api/gop-y') {
+    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+    if (req.method === 'POST') {
+      const s_nv = await session(db, req, 'nv');
+      const s_qt = await session(db, req, 'qt');
+      const an_danh = !!body.an_danh;
+      let ma = an_danh ? 'ẨN DANH' : ((s_nv && s_nv.nv && s_nv.nv.ma) || (s_qt && (s_qt.ma || 'QUANTRI')) || String(body.ma || '')).slice(0, 50);
+      let ten = an_danh ? 'Ẩn danh' : String(body.name || body.ten || (s_nv && s_nv.nv && s_nv.nv.ten) || (s_qt && (s_qt.ma || 'Quản trị viên')) || 'Khách').slice(0, 100);
+      const phone = String(body.phone || body.sdt || '').trim().slice(0, 20);
+      const email = String(body.email || '').trim().slice(0, 160);
+      const loai = String(body.type || body.loai || 'Đánh giá chung').trim().slice(0, 50);
+      let noi_dung = String(body.content || body.noi_dung || '').trim().slice(0, 4000);
+      if (!noi_dung || noi_dung.length < 3) return jc({ ok: false, loi: 'Nội dung góp ý quá ngắn (tối thiểu 3 ký tự).' }, 400);
+      const trang = String(body.page || body.trang || '').slice(0, 200);
+      const thiet_bi = String(body.device || body.thiet_bi || shortUA(req.headers.get('user-agent'))).slice(0, 200);
+
+      const res = await db.prepare(
+        "INSERT INTO gop_y (ma, ten, phone, email, loai, noi_dung, trang, thiet_bi, ip, trang_thai, tao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'moi', ?)"
+      ).bind(ma, ten, phone, email, loai, noi_dung, trang, thiet_bi, ip, now).run();
+
+      // Thông báo Telegram nếu có cấu hình
+      const teleToken = (env && env.TELEGRAM_BOT_TOKEN) || cfg.tele_bot_token || '9088339560:AAHOFmR1fiiPy6PYpI_gb461cMQ5S2k4NPw';
+      const teleChat = (env && env.TELEGRAM_CHAT_ID) || cfg.tele_chat_id || '1891298910';
+      if (teleToken && teleChat) {
+        const teleTxt = `📌 <b>[GÓP Ý / BÁO LỖI NỘI BỘ]</b>\n👤 <b>Người gửi:</b> ${htmlEsc(ten)} (${htmlEsc(ma)})\n🏷 <b>Phân loại:</b> ${htmlEsc(loai)}\n📄 <b>Trang:</b> ${htmlEsc(trang || 'Chung')}\n💬 <b>Nội dung:</b>\n${htmlEsc(noi_dung)}\n${phone ? '📞 SĐT: ' + htmlEsc(phone) + '\n' : ''}${email ? '✉️ Email: ' + htmlEsc(email) + '\n' : ''}⏱ <i>${vnParts(now).d}/${vnParts(now).m}/${vnParts(now).y} ${vnParts(now).h}:${vnParts(now).mi}</i>`;
+        later(req, fetch(`https://api.telegram.org/bot${teleToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ chat_id: teleChat, text: teleTxt, parse_mode: 'HTML' })
+        }).catch(() => {}));
+      }
+
+      return jc({ ok: true, id: res.meta && res.meta.last_row_id });
+    }
   }
 
   /* ----- 16/11/2026: thông báo đẩy ----- */
