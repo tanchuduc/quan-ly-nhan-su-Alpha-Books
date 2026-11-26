@@ -1756,7 +1756,7 @@ async function api(req, env, url) {
   if (p === '/api/bao-sai-ngay' && req.method === 'POST') {
     const s = await session(db, req, 'nv'); if (!s) return bad('Phiên đăng nhập đã hết. Đăng nhập lại.', 401);
     const ngay = String(body.ngay || ''), nd = String(body.noi_dung || '').trim().slice(0, 300);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(ngay) || ngay > isoVN(now) || ngay < isoVN(now - 100 * 864e5)) return bad('Ngày không hợp lệ.'); if (!nd) return bad('Ghi rõ sai thế nào để kế toán kiểm tra.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(ngay) || ngay > isoVN(now) || ngay < isoVN(now - 100 * 864e5)) return bad('Ngày không hợp lệ.'); if (!nd) return bad('Ghi rõ sai thế nào để HCNS & Quản lý kiểm tra.');
     if (body.xoa) { await db.prepare('DELETE FROM bao_sai WHERE ma = ? AND ngay = ?').bind(s.nv.ma, ngay).run(); return json({ ok: true }); }
     { // 20/11/2026 (anh): giới hạn số ngày nhân viên báo sai / bổ sung công mỗi tháng (Thiết lập chấm công → Quy định tính công); sửa nội dung ngày đã báo không tính thêm lượt
       const HSb = await hsOf(db, s.nv.ma, demo), mx = HSb && HSb.bs ? +HSb.bs.max || 0 : 0;
@@ -1937,7 +1937,7 @@ async function api(req, env, url) {
   if (p === '/api/xac-nhan-cong' && req.method === 'POST') {
     const s = await session(db, req, 'nv'); if (!s) return bad('Phiên đăng nhập đã hết. Đăng nhập lại.', 401);
     const ym = String(body.ym || ''), dong_y = !!body.dong_y, ph = String(body.phan_hoi || '').trim().slice(0, 500);
-    if (!dong_y && !ph) return bad('Ghi rõ ngày nào sai, sai thế nào để kế toán kiểm tra.');
+    if (!dong_y && !ph) return bad('Ghi rõ ngày nào sai, sai thế nào để HCNS & Quản lý kiểm tra.');
     const r = await db.prepare('UPDATE cong SET xn = ?, xn_at = ?, phan_hoi = ? WHERE ym = ? AND ma = ?').bind(dong_y ? 1 : 2, now, ph, ym, s.nv.ma).run();
     return r.meta.changes ? json({ ok: true }) : bad('Không có công tháng này.');
   }
