@@ -1022,9 +1022,17 @@ async function api(req, env, url) {
     }
     if (r === 'don') return jc({ ok: true, now, list: (await db.prepare("SELECT * FROM don WHERE nguon = 'Điện thoại' AND trang_thai != 'Đã hủy' ORDER BY tao DESC LIMIT 200").all()).results });
     if (r === 'don-cap-nhat' && req.method === 'POST') {
-      const list = Array.isArray(body.list) ? body.list.slice(0, 200) : [], st = [];
-      for (const x of list) { if (!['Đã duyệt', 'Từ chối', 'Chờ duyệt'].includes(x.trang_thai)) continue; st.push(db.prepare("UPDATE don SET trang_thai = ?, nguoi_duyet = ?, ngay_duyet = ?, ly_do_tc = ?, so_ngay = COALESCE(?, so_ngay), cap_nhat = ? WHERE so = ? AND nguon = 'Điện thoại'").bind(x.trang_thai, String(x.nguoi_duyet || '').slice(0, 80), String(x.ngay_duyet || ''), String(x.ly_do_tc || '').slice(0, 300), x.so_ngay == null ? null : Number(x.so_ngay) || null, now, String(x.so))); }
-      if (st.length) await db.batch(st); return jc({ ok: true, n: st.length });
+      const list = Array.isArray(body.list) ? body.list.slice(0, 200) : [], st = [], bao = [];
+      for (const x of list) {
+        if (!['Đã duyệt', 'Từ chối', 'Chờ duyệt'].includes(x.trang_thai)) continue;
+        const o = await db.prepare('SELECT ma, loai, tu, den, trang_thai FROM don WHERE so = ?').bind(String(x.so)).first(); if (!o) continue;
+        st.push(db.prepare("UPDATE don SET trang_thai = ?, nguoi_duyet = ?, ngay_duyet = ?, ly_do_tc = ?, so_ngay = COALESCE(?, so_ngay), cap_nhat = ? WHERE so = ? AND nguon = 'Điện thoại'").bind(x.trang_thai, String(x.nguoi_duyet || '').slice(0, 80), String(x.ngay_duyet || ''), String(x.ly_do_tc || '').slice(0, 300), x.so_ngay == null ? null : Number(x.so_ngay) || null, now, String(x.so)));
+        if (o.trang_thai !== x.trang_thai && x.trang_thai !== 'Chờ duyệt')
+          bao.push({ ma: o.ma, m: { t: 'Đơn ' + String(o.loai || 'nghỉ').replace(/^đơn\s+/i, '').toLowerCase() + ' ' + (x.trang_thai === 'Đã duyệt' ? 'đã được duyệt' : 'bị từ chối'), b: String(o.tu || '').slice(8) + '/' + String(o.tu || '').slice(5, 7) + ' · ' + String(x.nguoi_duyet || '') + (x.ly_do_tc ? ': ' + x.ly_do_tc : ''), u: '/?tab=don', tag: String(x.so) } });
+      }
+      if (st.length) await db.batch(st);
+      if (bao.length) later(req, Promise.all(bao.map(b => pushTo(db, cfg, url.origin, [b.ma], b.m))));
+      return jc({ ok: true, n: st.length });
     }
     if (r === 'xin-muon') return jc({ ok: true, list: (await db.prepare('SELECT * FROM xin_muon WHERE trang_thai != \'Đã hủy\' ORDER BY tao DESC LIMIT 300').all()).results.filter(x => demoFind(x.ma)) }); // 16/11
     if (r === 'giai-trinh') return jc({ ok: true, list: (await db.prepare('SELECT ' + GT_COLS + ' FROM giai_trinh ORDER BY tao DESC LIMIT 300').all()).results.filter(x => demoFind(x.ma)) }); // 25/11/2026 1.0.5
@@ -1188,12 +1196,16 @@ async function api(req, env, url) {
       return jc({ ok: true, n: st.length });
     }
     if (r === 'don-cap-nhat' && req.method === 'POST') {
-      const list = Array.isArray(body.list) ? body.list.slice(0, 1000) : [], st = [];
+      const list = Array.isArray(body.list) ? body.list.slice(0, 1000) : [], st = [], bao = [];
       for (const x of list) {
         if (!['Đã duyệt', 'Từ chối', 'Chờ duyệt'].includes(x.trang_thai)) continue;
+        const o = await db.prepare('SELECT ma, loai, tu, den, trang_thai FROM don WHERE so = ?').bind(String(x.so)).first(); if (!o) continue;
         st.push(db.prepare('UPDATE don SET trang_thai = ?, nguoi_duyet = ?, ngay_duyet = ?, ly_do_tc = ?, so_ngay = COALESCE(?, so_ngay), cap_nhat = ? WHERE so = ?').bind(x.trang_thai, String(x.nguoi_duyet || '').slice(0, 80), String(x.ngay_duyet || ''), String(x.ly_do_tc || '').slice(0, 300), x.so_ngay == null ? null : Number(x.so_ngay), now, String(x.so)));
+        if (o.trang_thai !== x.trang_thai && x.trang_thai !== 'Chờ duyệt')
+          bao.push({ ma: o.ma, m: { t: 'Đơn ' + String(o.loai || 'nghỉ').replace(/^đơn\s+/i, '').toLowerCase() + ' ' + (x.trang_thai === 'Đã duyệt' ? 'đã được duyệt' : 'bị từ chối'), b: String(o.tu || '').slice(8) + '/' + String(o.tu || '').slice(5, 7) + ' · ' + String(x.nguoi_duyet || '') + (x.ly_do_tc ? ': ' + x.ly_do_tc : ''), u: '/?tab=don', tag: String(x.so) } });
       }
       if (st.length) await db.batch(st);
+      if (bao.length) later(req, Promise.all(bao.map(b => pushTo(db, cfg, url.origin, [b.ma], b.m))));
       return jc({ ok: true, n: st.length });
     }
     if (r === 'cong' && req.method === 'POST') {
