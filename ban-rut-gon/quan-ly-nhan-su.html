@@ -6359,6 +6359,24 @@ if (typeof module !== 'undefined') module.exports = XW;
   BINDS.gopy = function () {
     var f = ps('gopy', { tab: 'all', q: '', loai: '' });
 
+    function fmtTime(ts) {
+      if (!ts) return '';
+      var d = new Date(ts);
+      return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    }
+
+    function fmtDuration(ms) {
+      if (!ms || ms <= 0) return 'Dưới 1 phút';
+      var sec = Math.floor(ms / 1000);
+      var min = Math.floor(sec / 60);
+      var hr = Math.floor(min / 60);
+      var day = Math.floor(hr / 24);
+      if (day > 0) return day + ' ngày ' + (hr % 24) + ' giờ';
+      if (hr > 0) return hr + ' giờ ' + (min % 60) + ' phút';
+      if (min > 0) return min + ' phút';
+      return sec + ' giây';
+    }
+
     function renderGopyList(list) {
       GOPY_CACHE = list || [];
       var nAll = list.length;
@@ -6379,7 +6397,7 @@ if (typeof module !== 'undefined') module.exports = XW;
         if (f.tab === 'da_xu_ly' && x.trang_thai !== 'da_xu_ly') return false;
         if (f.loai && x.loai !== f.loai) return false;
         if (q) {
-          var t = (x.ten || '') + ' ' + (x.ma || '') + ' ' + (x.phone || '') + ' ' + (x.noi_dung || '') + ' ' + (x.ghi_chu || '');
+          var t = (x.ten || '') + ' ' + (x.ma || '') + ' ' + (x.phone || '') + ' ' + (x.noi_dung || '') + ' ' + (x.ghi_chu || '') + ' ' + (x.nguoi_xu_ly || '');
           if (t.toLowerCase().indexOf(q) === -1) return false;
         }
         return true;
@@ -6402,14 +6420,32 @@ if (typeof module !== 'undefined') module.exports = XW;
         var isXong = x.trang_thai === 'da_xu_ly';
         var isDang = x.trang_thai === 'dang_xu_ly';
         var stCls = isXong ? 'background:#eaf5ec;color:#2f7d4f' : isDang ? 'background:#fdf3e5;color:#c2740e' : 'background:#fdeceb;color:#d93025';
-        var stTxt = isXong ? '✓ Đã xử lý' : isDang ? '⚡ Đang xử lý' : '● Mới';
+        var stTxt = isXong ? '✓ Đã xử lý' : isDang ? '⚡ Đang xử lý' : '● Mới (Chưa xử lý)';
 
         var typeCls = x.loai === 'Báo lỗi' ? 'background:#fee2e2;color:#991b1b' : x.loai === 'Thắc mắc quy chế' ? 'background:#fef3c7;color:#92400e' : 'background:#e0f2fe;color:#075985';
 
-        var d = new Date(x.tao);
-        var dStr = ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+        var taoStr = fmtTime(x.tao);
+        var tiepNhanStr = fmtTime(x.tiep_nhan_luc);
+        var xuLyStr = fmtTime(x.xu_ly_luc);
+
+        var slaText = '';
+        var slaTagCls = '';
+        if (isXong && x.xu_ly_luc && x.tao) {
+          slaText = 'Hoàn tất sau: ' + fmtDuration(x.xu_ly_luc - x.tao);
+          slaTagCls = 'tag tag-ok';
+        } else if (isDang && x.tiep_nhan_luc) {
+          slaText = 'Đang xử lý (đã tiếp nhận ' + fmtDuration(Date.now() - x.tiep_nhan_luc) + ')';
+          slaTagCls = 'tag tag-warn';
+        } else {
+          slaText = 'Đang chờ tiếp nhận (' + fmtDuration(Date.now() - x.tao) + ')';
+          slaTagCls = 'tag tag-bad';
+        }
+
+        var logList = [];
+        try { logList = JSON.parse(x.nhat_ky || '[]'); } catch (e) { logList = []; }
 
         h += '<div class="card card-pad" style="border:1px solid var(--border,#e2e8f0);border-radius:10px;padding:16px;background:var(--card-bg,#fff);box-shadow:0 1px 3px rgba(0,0,0,0.03)">' +
+          // Header phản hồi
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">' +
             '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
               '<span class="tag" style="font-weight:700;font-size:12px;' + typeCls + '">' + esc(x.loai || 'Góp ý') + '</span>' +
@@ -6419,14 +6455,16 @@ if (typeof module !== 'undefined') module.exports = XW;
             '</div>' +
             '<div style="display:flex;align-items:center;gap:8px">' +
               '<span style="font-size:12px;padding:3px 10px;border-radius:6px;font-weight:700;' + stCls + '">' + stTxt + '</span>' +
-              '<small class="muted">' + dStr + '</small>' +
+              '<small class="muted">' + taoStr + '</small>' +
             '</div>' +
           '</div>' +
 
+          // Nội dung phản hồi
           '<div style="font-size:14px;line-height:1.6;white-space:pre-wrap;background:var(--bg,#f8fafc);padding:12px 14px;border-radius:8px;border:1px solid var(--border,#e2e8f0);margin-bottom:10px;color:var(--tx,#0f172a)">' +
             esc(x.noi_dung || '') +
           '</div>' +
 
+          // Metadata thiết bị & nút hành động
           '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:12px" class="muted">' +
             '<div>' +
               (x.trang ? '<span>📄 ' + esc(x.trang) + '</span> · ' : '') +
@@ -6437,6 +6475,54 @@ if (typeof module !== 'undefined') module.exports = XW;
               (!isXong ? '<button type="button" class="btn btn-sm btn-primary" data-gopy-st="' + x.id + '" data-val="da_xu_ly">✓ Đã xử lý xong</button>' : '') +
               (isXong ? '<button type="button" class="btn btn-sm" data-gopy-st="' + x.id + '" data-val="dang_xu_ly">Mở lại</button>' : '') +
             '</div>' +
+          '</div>' +
+
+          // Khối TIMELINE & LOG THỜI ĐIỂM XỬ LÝ
+          '<div style="background:var(--bg,#f8fafc);border:1px solid var(--border,#e2e8f0);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12.5px">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;border-bottom:1px dashed var(--border,#e2e8f0);padding-bottom:6px">' +
+              '<div style="display:flex;align-items:center;gap:8px">' +
+                '<b style="color:var(--tx,#0f172a)">⏱️ Tiến độ & Thời điểm xử lý:</b>' +
+                '<span class="' + slaTagCls + '" style="font-weight:600;font-size:11.5px">' + slaText + '</span>' +
+              '</div>' +
+              (logList.length > 0 ? '<button type="button" class="btn btn-sm btn-ghost" data-toggle-log="' + x.id + '" style="font-size:11.5px;padding:2px 8px">📋 Chi tiết nhật ký (' + logList.length + ')</button>' : '') +
+            '</div>' +
+
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px">' +
+              // Mốc 1: Ghi nhận
+              '<div style="display:flex;gap:8px;align-items:flex-start">' +
+                '<div style="background:#e0f2fe;color:#0284c7;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">1</div>' +
+                '<div>' +
+                  '<div style="font-weight:700;color:var(--tx,#0f172a)">Ghi nhận lúc</div>' +
+                  '<div style="font-family:monospace;font-size:12px;color:var(--tx,#1e293b);margin:1px 0">' + taoStr + '</div>' +
+                  '<div class="muted" style="font-size:11px">Người gửi: <b>' + esc(x.ten || 'Người dùng') + '</b>' + (x.ma ? ' (' + esc(x.ma) + ')' : '') + '</div>' +
+                '</div>' +
+              '</div>' +
+
+              // Mốc 2: Tiếp nhận
+              '<div style="display:flex;gap:8px;align-items:flex-start">' +
+                '<div style="background:' + (x.tiep_nhan_luc ? '#fef3c7;color:#d97706' : '#f1f5f9;color:#94a3b8') + ';width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">2</div>' +
+                '<div>' +
+                  '<div style="font-weight:700;color:' + (x.tiep_nhan_luc ? 'var(--tx,#0f172a)' : 'var(--muted,#94a3b8)') + '">Tiếp nhận lúc</div>' +
+                  '<div style="font-family:monospace;font-size:12px;color:' + (x.tiep_nhan_luc ? 'var(--tx,#1e293b)' : 'var(--muted,#94a3b8)') + ';margin:1px 0">' + (tiepNhanStr ? tiepNhanStr : '<i>(Chưa tiếp nhận)</i>') + '</div>' +
+                  '<div class="muted" style="font-size:11px">' + (x.tiep_nhan_luc ? 'Bởi: <b>' + esc(x.nguoi_xu_ly || 'Quản trị viên') + '</b>' : 'Chờ phân công') + '</div>' +
+                '</div>' +
+              '</div>' +
+
+              // Mốc 3: Hoàn thành
+              '<div style="display:flex;gap:8px;align-items:flex-start">' +
+                '<div style="background:' + (x.xu_ly_luc ? '#dcfce7;color:#16a34a' : '#f1f5f9;color:#94a3b8') + ';width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">3</div>' +
+                '<div>' +
+                  '<div style="font-weight:700;color:' + (x.xu_ly_luc ? '#16a34a' : 'var(--muted,#94a3b8)') + '">Xử lý xong lúc</div>' +
+                  '<div style="font-family:monospace;font-size:12px;color:' + (x.xu_ly_luc ? '#16a34a' : 'var(--muted,#94a3b8)') + ';margin:1px 0">' + (xuLyStr ? xuLyStr : '<i>(Chưa xong)</i>') + '</div>' +
+                  '<div class="muted" style="font-size:11px">' + (x.xu_ly_luc ? 'Xong bởi: <b>' + esc(x.nguoi_xu_ly || 'Quản trị viên') + '</b>' : 'Đang xử lý') + '</div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+
+            // Chi tiết nhat_ky khi bấm mở rộng
+            (logList.length > 0 ? '<div id="log-detail-' + x.id + '" style="display:none;margin-top:10px;padding-top:8px;border-top:1px dashed var(--border,#e2e8f0)"><div style="font-weight:600;font-size:11px;color:var(--dim,#64748b);margin-bottom:6px">LỊCH SỬ THAO TÁC:</div>' + logList.map(function (lg) {
+              return '<div style="font-size:11.5px;padding:3px 0;display:flex;gap:8px;align-items:baseline"><span style="font-family:monospace;color:var(--dim,#64748b);font-size:11px">' + fmtTime(lg.at) + '</span><b style="color:var(--tx,#0f172a)">' + esc(lg.who || 'Hệ thống') + ':</b><span>' + esc(lg.act || '') + '</span></div>';
+            }).join('') + '</div>' : '') +
           '</div>' +
 
           // Khung ghi chú nội bộ của admin
@@ -6451,7 +6537,7 @@ if (typeof module !== 'undefined') module.exports = XW;
       box.innerHTML = h;
 
       // Bind status buttons
-      $$$('[data-gopy-st]', box).forEach(function (btn) {
+      $$('[data-gopy-st]', box).forEach(function (btn) {
         btn.onclick = function () {
           var id = btn.getAttribute('data-gopy-st');
           var stVal = btn.getAttribute('data-val');
@@ -6471,7 +6557,7 @@ if (typeof module !== 'undefined') module.exports = XW;
       });
 
       // Bind save note buttons
-      $$$('[data-gopy-save-note]', box).forEach(function (btn) {
+      $$('[data-gopy-save-note]', box).forEach(function (btn) {
         btn.onclick = function () {
           var id = btn.getAttribute('data-gopy-save-note');
           var input = $('#gopy-note-' + id);
@@ -6488,6 +6574,17 @@ if (typeof module !== 'undefined') module.exports = XW;
             toast('Lỗi lưu ghi chú: ' + e.message, 'err');
             btn.disabled = false;
           });
+        };
+      });
+
+      // Bind toggle log buttons
+      $$('[data-toggle-log]', box).forEach(function (btn) {
+        btn.onclick = function () {
+          var id = btn.getAttribute('data-toggle-log');
+          var el = $('#log-detail-' + id, box);
+          if (el) {
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+          }
         };
       });
     }
@@ -6507,11 +6604,11 @@ if (typeof module !== 'undefined') module.exports = XW;
     loadGopyData();
 
     // Tabs filter
-    $$$('[data-st-tab]').forEach(function (btn) {
+    $$('[data-st-tab]').forEach(function (btn) {
       btn.onclick = function () {
         var t = btn.getAttribute('data-st-tab');
         f.tab = t;
-        $$$('[data-st-tab]').forEach(function (x) { x.classList.toggle('on', x === btn); });
+        $$('[data-st-tab]').forEach(function (x) { x.classList.toggle('on', x === btn); });
         if (GOPY_CACHE) renderGopyList(GOPY_CACHE);
       };
     });
@@ -6545,18 +6642,36 @@ if (typeof module !== 'undefined') module.exports = XW;
       toast('Không có dữ liệu để xuất Excel', 'warn');
       return;
     }
-    var rows = [['STT', 'Mã NV', 'Họ và tên', 'Số điện thoại', 'Email', 'Phân loại', 'Nội dung', 'Trang gửi', 'Thiết bị', 'Trạng thái', 'Ghi chú xử lý', 'Thời gian gửi']];
+    function fmtT(ts) {
+      if (!ts) return '';
+      var d = new Date(ts);
+      return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    }
+    function fmtDur(ms) {
+      if (!ms || ms <= 0) return 'Dưới 1 phút';
+      var sec = Math.floor(ms / 1000);
+      var min = Math.floor(sec / 60);
+      var hr = Math.floor(min / 60);
+      var day = Math.floor(hr / 24);
+      if (day > 0) return day + ' ngày ' + (hr % 24) + ' giờ';
+      if (hr > 0) return hr + ' giờ ' + (min % 60) + ' phút';
+      if (min > 0) return min + ' phút';
+      return sec + ' giây';
+    }
+    var rows = [['STT', 'Mã NV', 'Họ và tên', 'Số điện thoại', 'Email', 'Phân loại', 'Nội dung', 'Trang gửi', 'Thiết bị', 'Trạng thái', 'Thời điểm ghi nhận', 'Thời điểm tiếp nhận', 'Thời điểm xử lý xong', 'Thời gian xử lý', 'Người xử lý', 'Ghi chú xử lý']];
     GOPY_CACHE.forEach(function (x, i) {
-      var d = new Date(x.tao);
-      var dStr = ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+      var dGhiNhan = fmtT(x.tao);
+      var dTiepNhan = fmtT(x.tiep_nhan_luc);
+      var dXuLy = fmtT(x.xu_ly_luc);
+      var diffStr = x.xu_ly_luc && x.tao ? fmtDur(x.xu_ly_luc - x.tao) : '';
       var st = x.trang_thai === 'da_xu_ly' ? 'Đã xử lý' : x.trang_thai === 'dang_xu_ly' ? 'Đang xử lý' : 'Mới';
-      rows.push([i + 1, x.ma || '', x.ten || '', x.phone || '', x.email || '', x.loai || '', x.noi_dung || '', x.trang || '', x.thiet_bi || '', st, x.ghi_chu || '', dStr]);
+      rows.push([i + 1, x.ma || '', x.ten || '', x.phone || '', x.email || '', x.loai || '', x.noi_dung || '', x.trang || '', x.thiet_bi || '', st, dGhiNhan, dTiepNhan, dXuLy, diffStr, x.nguoi_xu_ly || '', x.ghi_chu || '']);
     });
-    var csvContent = "\\uFEFF" + rows.map(function (e) {
+    var csvContent = "\uFEFF" + rows.map(function (e) {
       return e.map(function (val) {
         return '"' + String(val).replace(/"/g, '""') + '"';
       }).join(",");
-    }).join("\\n");
+    }).join("\n");
     var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement("a");
     link.href = URL.createObjectURL(blob);

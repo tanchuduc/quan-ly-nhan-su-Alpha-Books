@@ -1330,9 +1330,43 @@ async function api(req, env, url) {
     }
     if (r === 'gop-y-cap-nhat' && req.method === 'POST') {
       const id = Number(body.id);
-      const tt = String(body.trang_thai || 'da_xu_ly').slice(0, 30);
-      const gc = String(body.ghi_chu || '').slice(0, 500);
-      await db.prepare("UPDATE gop_y SET trang_thai = ?, ghi_chu = ?, cap_nhat = ? WHERE id = ?").bind(tt, gc, now, id).run();
+      const tt = body.trang_thai ? String(body.trang_thai).slice(0, 30) : null;
+      const gc = body.ghi_chu !== undefined ? String(body.ghi_chu).slice(0, 500) : null;
+      const who = (U.ten || 'Admin') + (U.ma ? ' (' + U.ma + ')' : '');
+
+      const cur = await db.prepare("SELECT * FROM gop_y WHERE id = ?").bind(id).first();
+      if (!cur) return bad('Không tìm thấy bản ghi góp ý này.', 404);
+
+      let logList = [];
+      try { logList = JSON.parse(cur.nhat_ky || '[]'); } catch (e) { logList = []; }
+
+      let tiepNhan = cur.tiep_nhan_luc;
+      let xuLy = cur.xu_ly_luc;
+      let newTt = cur.trang_thai;
+      let newGc = cur.ghi_chu;
+
+      if (tt && tt !== cur.trang_thai) {
+        newTt = tt;
+        if (tt === 'dang_xu_ly') {
+          if (!tiepNhan) tiepNhan = now;
+          logList.push({ at: now, who: who, act: 'Tiếp nhận xử lý' });
+        } else if (tt === 'da_xu_ly') {
+          xuLy = now;
+          if (!tiepNhan) tiepNhan = now;
+          logList.push({ at: now, who: who, act: 'Xử lý hoàn tất' });
+        } else if (tt === 'moi') {
+          logList.push({ at: now, who: who, act: 'Mở lại yêu cầu' });
+        }
+      }
+
+      if (gc !== null && gc !== cur.ghi_chu) {
+        newGc = gc;
+        logList.push({ at: now, who: who, act: 'Ghi chú: ' + (gc ? '"' + gc + '"' : '(xóa ghi chú)') });
+      }
+
+      await db.prepare("UPDATE gop_y SET trang_thai = ?, ghi_chu = ?, cap_nhat = ?, tiep_nhan_luc = ?, xu_ly_luc = ?, nguoi_xu_ly = ?, nhat_ky = ? WHERE id = ?")
+        .bind(newTt, newGc, now, tiepNhan, xuLy, who, JSON.stringify(logList), id).run();
+
       return json({ ok: true });
     }
     const QS = /^(du-lieu|kv|kv-xoa|nhat-ky)$/.test(r) ? await qtScope(db, U) : null; // 20/11/2026 1.0.3
@@ -1481,9 +1515,15 @@ async function api(req, env, url) {
       const trang = String(body.page || body.trang || '').slice(0, 200);
       const thiet_bi = String(body.device || body.thiet_bi || shortUA(req.headers.get('user-agent'))).slice(0, 200);
 
+      const initLog = JSON.stringify([{
+        at: now,
+        who: ten + (ma ? ' (' + ma + ')' : ''),
+        act: 'Gửi phản hồi (' + loai + ')'
+      }]);
+
       const res = await db.prepare(
-        "INSERT INTO gop_y (ma, ten, phone, email, loai, noi_dung, trang, thiet_bi, ip, trang_thai, tao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'moi', ?)"
-      ).bind(ma, ten, phone, email, loai, noi_dung, trang, thiet_bi, ip, now).run();
+        "INSERT INTO gop_y (ma, ten, phone, email, loai, noi_dung, trang, thiet_bi, ip, trang_thai, tao, nhat_ky) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'moi', ?, ?)"
+      ).bind(ma, ten, phone, email, loai, noi_dung, trang, thiet_bi, ip, now, initLog).run();
 
       // Thông báo Telegram nếu có cấu hình
       const teleToken = (env && env.TELEGRAM_BOT_TOKEN) || cfg.tele_bot_token || '9088339560:AAHOFmR1fiiPy6PYpI_gb461cMQ5S2k4NPw';
