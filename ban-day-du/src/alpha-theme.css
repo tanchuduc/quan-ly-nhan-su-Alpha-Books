@@ -1,0 +1,382 @@
+/**
+ * Alpha Books HR Enterprise Design Tokens & Theme Overlay
+ * Brand: Alpha Books ("Better Knowledge, Better Success")
+ * Philosophy: Modern Enterprise SaaS · Calm Minimalism · Data-First · High Contrast
+ * Primary Accent: #F47830 (Official Alpha Books Orange)
+ */
+
+:root {
+  /* ==========================================================================
+     1. Semantic Color Tokens - Alpha Books Brand
+     ========================================================================== */
+  /* Alpha Books Brand Colors */
+  --alpha-orange: #F47830;
+  --alpha-orange-hover: #E0651E;
+  --alpha-orange-active: #C95210;
+  --alpha-orange-soft: #FEF3EC;
+  --alpha-orange-border: #FCDCC7;
+  --alpha-gradient: linear-gradient(135deg, #F47830 0%, #EB6014 100%);
+  --alpha-gradient-card: linear-gradient(135deg, #FFF9F5 0%, #FFFFFF 100%);
+
+  /* Neutrals (Modern Slate) - Replaces muddy parchment/yellow paper */
+  --bg-app: #F8FAFC;          /* slate-50: Main application canvas */
+  --bg-surface: #FFFFFF;      /* Clean pure white for cards, sheets, panels */
+  --bg-surface-subtle: #F1F5F9; /* slate-100: Table headers, input background */
+  --bg-surface-hover: #E2E8F0;  /* slate-200: Row hover, chip hover */
+
+  /* Borders & Dividers */
+  --border-subtle: #E2E8F0;   /* slate-200 */
+  --border-strong: #CBD5E1;   /* slate-300 */
+  --border-focus: #F47830;    /* Alpha Orange focus ring */
+
+  /* Typography / Text Colors */
+  --text-primary: #0F172A;    /* slate-900: High-contrast primary text */
+  --text-secondary: #334155;  /* slate-700: Body text, table data */
+  --text-muted: #64748B;      /* slate-500: Subtitles, captions, metadata */
+  --text-faint: #94A3B8;      /* slate-400: Placeholders, disabled text */
+  --text-on-primary: #FFFFFF; /* Crisp white on Alpha Orange */
+
+  /* Semantic Feedback States */
+  --success: #10B981;
+  --success-soft: #ECFDF5;
+  --success-text: #065F46;
+  --success-border: #A7F3D0;
+
+  --warning: #F59E0B;
+  --warning-soft: #FFFBEB;
+  --warning-text: #92400E;
+  --warning-border: #FDE68A;
+
+  --danger: #F43F5E;
+  --danger-soft: #FFF1F2;
+  --danger-text: #9F1239;
+  --danger-border: #FECDD3;
+
+  --info: #0EA5E9;
+  --info-soft: #F0F9FF;
+  --info-text: #075985;
+  --info-border: #BAE6FD;
+
+  /* Elevation Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-float: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+
+  /* Typography Stack */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* ==========================================================================
+     2. Mapping Old CSS Variables to New Alpha Tokens (Both App & Web)
+     ========================================================================== */
+  /* Overrides for app.html */
+  --bg: var(--bg-app) !important;
+  --surface: var(--bg-surface) !important;
+  --surface-2: var(--bg-surface-subtle) !important;
+  --surface-3: #E2E8F0 !important;
+  --border: var(--border-subtle) !important;
+  --border-strong: var(--border-strong) !important;
+  --text: var(--text-primary) !important;
+  --text-muted: var(--text-secondary) !important;
+  --text-faint: var(--text-muted) !important;
+  --accent: var(--alpha-orange) !important;
+  --accent-2: var(--alpha-orange-hover) !important;
+  --accent-strong: var(--alpha-orange-active) !important;
+  --accent-soft: var(--alpha-orange-soft) !important;
+  --on-accent: #ffffff !important;
+
+  /* Overrides for phan-mem.html (Web Quản trị) */
+  --paper: var(--bg-app) !important;
+  --line: var(--border-subtle) !important;
+  --line-2: var(--border-strong) !important;
+  --ink: var(--text-primary) !important;
+  --ink-2: var(--text-secondary) !important;
+  --muted: var(--text-muted) !important;
+  --faint: var(--text-faint) !important;
+  --pri: var(--alpha-orange) !important;
+  --pri-2: var(--alpha-orange-hover) !important;
+  --pri-ink: var(--alpha-orange-active) !important;
+  --pri-soft: var(--alpha-orange-soft) !important;
+  --pri-soft-2: var(--alpha-orange-border) !important;
+  --rail: #0F172A !important; /* Elegant deep Navy Slate for admin sidebar */
+}
+
+/* ==========================================================================
+   3. Global Polish & Font Refinement
+   ========================================================================== */
+body {
+  font-family: var(--font-family) !important;
+  background-color: var(--bg-app) !important;
+  color: var(--text-primary) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   4. Touch Ergonomics (Mobile App Touch Targets >= 44px)
+   ========================================================================== */
+/* Main Punchy Action Buttons (Chấm vào ca, Gửi đơn, Lưu...) */
+.btn-primary,
+button.btn.pri,
+.ch-btn,
+#ch-in,
+#ch-out {
+  min-height: 48px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  background: var(--alpha-gradient) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(244, 120, 48, 0.28) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+}
+
+.btn-primary:active,
+button.btn.pri:active,
+.ch-btn:active {
+  transform: scale(0.98) !important;
+  filter: brightness(0.95) !important;
+}
+
+/* Standard Buttons */
+.btn,
+button.btn {
+  min-height: 42px !important;
+  padding: 8px 16px !important;
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  transition: all 0.15s ease !important;
+}
+
+/* Form Inputs & Selects */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+  min-height: 44px !important;
+  font-size: 15px !important;
+  border: 1.5px solid var(--border-strong) !important;
+  border-radius: 10px !important;
+  background-color: #ffffff !important;
+  color: var(--text-primary) !important;
+  padding: 8px 12px !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--alpha-orange) !important;
+  box-shadow: 0 0 0 3px rgba(244, 120, 48, 0.18) !important;
+  outline: none !important;
+}
+
+/* Bottom Navigation Bar for Mobile App */
+.b-nav,
+nav.bottom-nav {
+  height: 64px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-top: 1px solid var(--border-subtle) !important;
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.04) !important;
+}
+
+.b-nav button,
+.b-nav a {
+  min-height: 48px !important;
+  padding: 6px 0 !important;
+  transition: color 0.15s ease !important;
+}
+
+.b-nav button.active,
+.b-nav a.active {
+  color: var(--alpha-orange) !important;
+  font-weight: 600 !important;
+}
+
+/* ==========================================================================
+   5. Table UX Overhaul (Sticky Columns & Sticky Header in Admin)
+   ========================================================================== */
+.table-wrap,
+.table-responsive,
+.dtView,
+.tbl-wrap {
+  position: relative !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  width: 100% !important;
+  font-size: 13.5px !important;
+}
+
+/* Sticky Header */
+thead th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background-color: #F8FAFC !important;
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0.05em !important;
+  padding: 12px 14px !important;
+  border-bottom: 1.5px solid var(--border-strong) !important;
+  white-space: nowrap !important;
+}
+
+/* Sticky First 2 Columns (Checkbox & Employee Name / Code) */
+table.sticky-col tbody tr td:first-child,
+table.sticky-col thead tr th:first-child {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 5 !important;
+  background-color: inherit !important;
+}
+
+table.sticky-col tbody tr td:nth-child(2),
+table.sticky-col thead tr th:nth-child(2) {
+  position: sticky !important;
+  left: 50px !important;
+  z-index: 5 !important;
+  background-color: inherit !important;
+  box-shadow: 3px 0 6px -2px rgba(15, 23, 42, 0.08) !important;
+}
+
+tbody tr {
+  background-color: #ffffff;
+  transition: background-color 0.12s ease !important;
+}
+
+tbody tr:hover {
+  background-color: #F8FAFC !important;
+}
+
+tbody td {
+  padding: 10px 14px !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-secondary) !important;
+  vertical-align: middle !important;
+}
+
+/* Numerical Data Alignment */
+td.num,
+th.num,
+td.currency,
+td[align="right"] {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: "tnum" !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 13px !important;
+}
+
+/* ==========================================================================
+   6. Modern Card Styling & Hero Badges
+   ========================================================================== */
+.card,
+.nvx-card,
+.panel {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+}
+
+/* Status Badges */
+.badge,
+.tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 3px 9px !important;
+  border-radius: 9999px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  white-space: nowrap !important;
+}
+
+.badge-success,
+.tag-ok {
+  background-color: var(--success-soft) !important;
+  color: var(--success-text) !important;
+  border: 1px solid var(--success-border) !important;
+}
+
+.badge-warning,
+.tag-warn {
+  background-color: var(--warning-soft) !important;
+  color: var(--warning-text) !important;
+  border: 1px solid var(--warning-border) !important;
+}
+
+.badge-danger,
+.tag-err {
+  background-color: var(--danger-soft) !important;
+  color: var(--danger-text) !important;
+  border: 1px solid var(--danger-border) !important;
+}
+
+.badge-info,
+.tag-info {
+  background-color: var(--info-soft) !important;
+  color: var(--info-text) !important;
+  border: 1px solid var(--info-border) !important;
+}
+
+/* ==========================================================================
+   7. Alpha Books Branding Header & Custom Indicator
+   ========================================================================== */
+.alpha-brand-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.alpha-brand-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.alpha-brand-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.alpha-brand-subtitle {
+  font-size: 11.5px;
+  color: var(--alpha-orange);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Fix mobile viewport bounce & scroll smoothness */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}

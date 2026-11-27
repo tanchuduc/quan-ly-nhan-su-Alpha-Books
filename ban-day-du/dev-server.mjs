@@ -11,10 +11,24 @@ const TARGET_ORIGIN = 'https://hr.alphabooks.vn';
 
 const appHtmlPath = path.join(__dirname, 'src', 'app.html');
 const phanMemPath = path.join(__dirname, 'src', 'phan-mem.html');
+const alphaThemePath = path.join(__dirname, 'src', 'alpha-theme.css');
+const alphaUxPath = path.join(__dirname, 'src', 'alpha-ux.js');
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const p = url.pathname;
+
+  // 0. Phục vụ asset Alpha Books
+  if (p === '/alpha-theme.css' && fs.existsSync(alphaThemePath)) {
+    res.writeHead(200, { 'Content-Type': 'text/css; charset=utf-8' });
+    res.end(fs.readFileSync(alphaThemePath, 'utf8'));
+    return;
+  }
+  if (p === '/alpha-ux.js' && fs.existsSync(alphaUxPath)) {
+    res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+    res.end(fs.readFileSync(alphaUxPath, 'utf8'));
+    return;
+  }
 
   // 1. Phục vụ API: Proxy sang TARGET_ORIGIN (hr.alphabooks.vn)
   if (p.startsWith('/api/') || p === '/api') {
@@ -72,6 +86,7 @@ const server = http.createServer(async (req, res) => {
   if (p === '/' || p === '/nv') {
     let html = fs.readFileSync(appHtmlPath, 'utf8');
     html = html.replace('{{ROUTE}}', 'nv').replace(/{{VER}}/g, '1.0.5');
+    html = html.replace('</head>', '<link rel="stylesheet" href="/alpha-theme.css">\n<script src="/alpha-ux.js"></script>\n</head>');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html);
     return;
@@ -81,6 +96,7 @@ const server = http.createServer(async (req, res) => {
   if (p === '/quan-ly' || p === '/ql') {
     let html = fs.readFileSync(appHtmlPath, 'utf8');
     html = html.replace('{{ROUTE}}', 'ql').replace(/{{VER}}/g, '1.0.5');
+    html = html.replace('</head>', '<link rel="stylesheet" href="/alpha-theme.css">\n<script src="/alpha-ux.js"></script>\n</head>');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html);
     return;
@@ -90,6 +106,7 @@ const server = http.createServer(async (req, res) => {
   if (p === '/tram') {
     let html = fs.readFileSync(appHtmlPath, 'utf8');
     html = html.replace('{{ROUTE}}', 'tram').replace(/{{VER}}/g, '1.0.5');
+    html = html.replace('</head>', '<link rel="stylesheet" href="/alpha-theme.css">\n<script src="/alpha-ux.js"></script>\n</head>');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html);
     return;
@@ -99,6 +116,7 @@ const server = http.createServer(async (req, res) => {
   if (p === '/phan-mem' || p === '/quan-tri') {
     if (fs.existsSync(phanMemPath)) {
       let html = fs.readFileSync(phanMemPath, 'utf8');
+      html = html.replace('</head>', '<link rel="stylesheet" href="/alpha-theme.css">\n<script src="/alpha-ux.js"></script>\n</head>');
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(html);
       return;

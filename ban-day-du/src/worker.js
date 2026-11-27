@@ -13,6 +13,7 @@ import { DEMO_DT } from './demo-daotao.js'; // 12/11 16:30: khóa đào tạo n�
 import { TAY_LATIN, TAY_VI } from './font-tay.js'; // 12/11: phông viết tay cho phần chào mừng hội nhập // 12/11: hành trình hội nhập mẫu (0.6.1 bản thử)
 import { OG_QL_B64, OG_NV_B64 } from './og-anh.js'; // 08/11: ảnh chia sẻ Facebook/Zalo cho bản chạy thử
 import HRM_HTML from './phan-mem.html'; // 08/11: Phần mềm quản lý nhân sự toàn diện bản xem trước (build/index.html chép sang khi node build.js)
+import { ALPHA_THEME_CSS, ALPHA_UX_JS } from './alpha-assets.js'; // Alpha Books Enterprise Design Tokens & UX Polish
 
 const VER = '1.0.5';  // 13/11/2026 18:30 (bản 0.8.1 phần mềm): một tài khoản chung – tài khoản có quyền quản trị dùng mật khẩu, trang /quan-tri, dữ liệu phần mềm quản trị lưu trên máy chủ, mã cài đặt lần đầu. Trước: '0.4.6';  // 13/11/2026 14:55: nhiều người có quyền duyệt đơn (ai duyệt trước thì đơn chuyển trạng thái, ghi tên người duyệt) + màn Bộ phận của tôi. Trước: '0.4.5';  // 12/11/2026 22:54: ca có yêu cầu có mặt sớm (som, som_ngay) hiện trên app. Trước: '0.4.4';  // 12/11/2026: hành trình hội nhập trên app nhân viên (đi cùng phần mềm 0.6.1)
 // trước: VER '0.4.1'  // 07/11/2026: nối Phần mềm quản lý nhân sự toàn diện (đồng bộ nhân viên, lượt chấm, đơn nghỉ, xác nhận công)
@@ -2356,11 +2357,13 @@ export default {
       if (url.pathname === '/font/tay-latin.woff2' || url.pathname === '/font/tay-vi.woff2') return new Response(b64ToBytes(url.pathname === '/font/tay-vi.woff2' ? TAY_VI : TAY_LATIN), { headers: { 'content-type': 'font/woff2', 'cache-control': 'public, max-age=2592000, immutable' } });
       if (url.pathname === '/qr-app.svg') return new Response(qrSvg(url.origin + '/'), { headers: { 'content-type': 'image/svg+xml', 'cache-control': 'max-age=3600', 'access-control-allow-origin': '*' } }); // 12/11: mã QR mở app nhân viên (phần mềm hiện ở trang Ứng dụng nhân viên)
       if (url.pathname === '/icon.svg') return new Response(ICON_SVG, { headers: { 'content-type': 'image/svg+xml', 'cache-control': 'max-age=86400' } });
-      if (/^\/phan-mem\/?$/.test(url.pathname) && isDemo(env, url)) return new Response(HRM_HTML, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' } });
+      if (url.pathname === '/alpha-theme.css') return new Response(ALPHA_THEME_CSS, { headers: { 'content-type': 'text/css; charset=utf-8', 'cache-control': 'public, max-age=86400' } });
+      if (url.pathname === '/alpha-ux.js') return new Response(ALPHA_UX_JS, { headers: { 'content-type': 'application/javascript; charset=utf-8', 'cache-control': 'public, max-age=86400' } });
+      if (/^\/phan-mem\/?$/.test(url.pathname) && isDemo(env, url)) return new Response(HRM_HTML.replace('</head>', '<link rel="stylesheet" href="/alpha-theme.css"><script src="/alpha-ux.js"></script></head>'), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' } });
       // 13/11/2026: trang quản trị của đơn vị = Phần mềm quản lý nhân sự toàn diện chạy ngay trên máy chủ này, dữ liệu lưu trên máy chủ (bản thử: chuyển sang /phan-mem dùng dữ liệu mẫu)
       if (/^\/quan-tri\/?$/.test(url.pathname)) {
         if (isDemo(env, url)) return Response.redirect(url.origin + '/phan-mem' + url.search, 302);
-        const sv = '<script>window.QTT_SV=' + JSON.stringify({ v: VER, api: '/api/qt/' }) + ';window.QTT_BR=' + brJs(await brCfg(env)) + ';</script>';
+        const sv = '<script>window.QTT_SV=' + JSON.stringify({ v: VER, api: '/api/qt/' }) + ';window.QTT_BR=' + brJs(await brCfg(env)) + ';</script><link rel="stylesheet" href="/alpha-theme.css"><script src="/alpha-ux.js"></script>';
         return withMay(new Response(HRM_HTML.replace(/<head([^>]*)>/i, m => m + sv), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', ...SEC } }));
       }
       if (/^\/og-(ql|nv)\.jpg$/.test(url.pathname) && isDemo(env, url)) return new Response(b64ToBytes(url.pathname === '/og-ql.jpg' ? OG_QL_B64 : OG_NV_B64), { headers: { 'content-type': 'image/jpeg', 'cache-control': 'max-age=86400' } });
@@ -2369,6 +2372,7 @@ export default {
       const route = ROUTES[url.pathname.replace(/\/+$/, '') || '/'];
       if (!route) return new Response('Không có trang này', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
       let html = APP_HTML.replace('{{ROUTE}}', route).replace(/{{VER}}/g, VER);
+      html = html.replace('</head>', '<link rel="stylesheet" href="/alpha-theme.css">\n<script src="/alpha-ux.js"></script>\n</head>');
       if (!isDemo(env, url)) { const c = await brCfg(env), nm = (c.br_ten || c.ten_cty || '').slice(0, 40), lg = /^data:image\/(png|webp|jpeg|svg\+xml);base64,/.exec(c.br_logo || ''); if (nm) html = html.replace('<title>Chấm công</title>', '<title>' + htmlEsc(nm) + '</title>').replace('content="Chấm công">', 'content="' + htmlEsc(nm.slice(0, 24)) + '">'); if (lg) { const ext = lg[1] === 'jpeg' ? 'jpg' : lg[1] === 'svg+xml' ? 'svg' : lg[1]; html = html.replace('<link rel="icon" href="/icon.svg" type="image/svg+xml">', '<link rel="icon" href="/logo.' + ext + '">'); } html = html.replace('</head>', '<script>window.QTT_BR=' + brJs(c) + ';</script>\n</head>'); } // 16/11/2026: thương hiệu riêng
       // 08/11: thẻ chia sẻ (tiêu đề + ảnh) khi dán link bản chạy thử lên Facebook/Zalo – chỉ ở bản thử, máy chủ của công ty không có
       if (isDemo(env, url) && (route === 'ql' || route === 'nv')) {
