@@ -2359,11 +2359,11 @@ export default {
       if (url.pathname === '/icon.svg') return new Response(ICON_SVG, { headers: { 'content-type': 'image/svg+xml', 'cache-control': 'max-age=86400' } });
       if (url.pathname === '/alpha-theme.css') return new Response(ALPHA_THEME_CSS, { headers: { 'content-type': 'text/css; charset=utf-8', 'cache-control': 'public, max-age=86400' } });
       if (url.pathname === '/alpha-ux.js') return new Response(ALPHA_UX_JS, { headers: { 'content-type': 'application/javascript; charset=utf-8', 'cache-control': 'public, max-age=86400' } });
-      if (/^\/phan-mem\/?$/.test(url.pathname) && isDemo(env, url)) return new Response(HRM_HTML.replace('</head>', '<link rel="stylesheet" href="/alpha-theme.css"><script src="/alpha-ux.js"></script></head>'), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' } });
+      if (/^\/phan-mem\/?$/.test(url.pathname) && isDemo(env, url)) return new Response(HRM_HTML, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer' } });
       // 13/11/2026: trang quản trị của đơn vị = Phần mềm quản lý nhân sự toàn diện chạy ngay trên máy chủ này, dữ liệu lưu trên máy chủ (bản thử: chuyển sang /phan-mem dùng dữ liệu mẫu)
       if (/^\/quan-tri\/?$/.test(url.pathname)) {
         if (isDemo(env, url)) return Response.redirect(url.origin + '/phan-mem' + url.search, 302);
-        const sv = '<script>window.QTT_SV=' + JSON.stringify({ v: VER, api: '/api/qt/' }) + ';window.QTT_BR=' + brJs(await brCfg(env)) + ';</script><link rel="stylesheet" href="/alpha-theme.css"><script src="/alpha-ux.js"></script>';
+        const sv = '<script>window.QTT_SV=' + JSON.stringify({ v: VER, api: '/api/qt/' }) + ';window.QTT_BR=' + brJs(await brCfg(env)) + ';</script>';
         return withMay(new Response(HRM_HTML.replace(/<head([^>]*)>/i, m => m + sv), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', ...SEC } }));
       }
       if (/^\/og-(ql|nv)\.jpg$/.test(url.pathname) && isDemo(env, url)) return new Response(b64ToBytes(url.pathname === '/og-ql.jpg' ? OG_QL_B64 : OG_NV_B64), { headers: { 'content-type': 'image/jpeg', 'cache-control': 'max-age=86400' } });

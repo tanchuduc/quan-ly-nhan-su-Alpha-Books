@@ -84,21 +84,6 @@
   --accent-strong: var(--alpha-orange-active) !important;
   --accent-soft: var(--alpha-orange-soft) !important;
   --on-accent: #ffffff !important;
-
-  /* Overrides for phan-mem.html (Web Quản trị) */
-  --paper: var(--bg-app) !important;
-  --line: var(--border-subtle) !important;
-  --line-2: var(--border-strong) !important;
-  --ink: var(--text-primary) !important;
-  --ink-2: var(--text-secondary) !important;
-  --muted: var(--text-muted) !important;
-  --faint: var(--text-faint) !important;
-  --pri: var(--alpha-orange) !important;
-  --pri-2: var(--alpha-orange-hover) !important;
-  --pri-ink: var(--alpha-orange-active) !important;
-  --pri-soft: var(--alpha-orange-soft) !important;
-  --pri-soft-2: var(--alpha-orange-border) !important;
-  --rail: #0F172A !important; /* Elegant deep Navy Slate for admin sidebar */
 }
 
 /* ==========================================================================

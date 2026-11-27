@@ -116,7 +116,6 @@ const server = http.createServer(async (req, res) => {
   if (p === '/phan-mem' || p === '/quan-tri') {
     if (fs.existsSync(phanMemPath)) {
       let html = fs.readFileSync(phanMemPath, 'utf8');
-      html = html.replace('</head>', '<link rel="stylesheet" href="/alpha-theme.css">\n<script src="/alpha-ux.js"></script>\n</head>');
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(html);
       return;
